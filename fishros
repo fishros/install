@@ -1,9 +1,0 @@
-rm -rf /tmp/fishinstall/
-mkdir -p /tmp/fishinstall/tools
-wget http://fishros.com/install/install1s/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
-source /etc/profile
-if [ $UID -eq 0 ];then
-    apt-get install sudo 
-fi
-sudo python3 /tmp/fishinstall/install.py
-. ~/.bashrc
