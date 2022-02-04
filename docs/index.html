@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>人生苦短|快用一键安装</title>
+  <!-- no chche setting -->
+  <meta   http-equiv= "Expires "   CONTENT= "0 ">                 
+  <meta   http-equiv= "Cache-Control "   CONTENT= "no-cache ">                 
+  <meta   http-equiv= "Pragma "   CONTENT= "no-cache ">                 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//unpkg.com/docsify@4/lib/themes/vue.css">
+</head>
+<body>
+  <nav>
+    <a href="https://fishros.com">鱼香ROS</a>
+    <a href="https://space.bilibili.com/1940177928">B站</a>
+    <a href="https://www.zhihu.com/people/fishros">知乎</a>
+    <a href="https://blog.csdn.net/qq_27865227">CSDN</a>
+    <a href="https://github.com/fishros/">给小鱼点个赞</a>
+  </nav>
+  <div id="app"></div>
+  <script>
+    var num = 0;
+    // mermaid.initialize({ startOnLoad: false });
+    window.$docsify = {
+      name: '鱼香ROS',
+    //   repo: 'https://github.com/fishros/d2l-ros2-foxy',
+      // loadNavbar: true,
+      loadSidebar: true,
+      alias: {
+         '/.*/_sidebar.md': '/_sidebar.md',
+      },
+      subMaxLevel: 3,
+      auto2top: true,
+      sidebarDisplayLevel: 1,
+      search: {
+      	placeholder: '键入以搜索',
+      	noData: '没找到，快去找小鱼催稿',
+        paths: 'auto',
+        depth: 6
+      },
+      // routerMode: 'history',
+      markdown: {
+        renderer: {
+          code: function(code, lang) {
+            if (lang === "mermaid") {
+              return (
+                '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
+              );
+            }
+            return this.origin.code.apply(this, arguments);
+          }
+        }
+    },
+    count:{
+      countable:true,
+      fontsize:'0.9em',
+      color:'rgb(90,90,90)',
+      language:'chinese' 
+    },
+    'flexible-alerts': {
+      style: 'flat'
+    },
+    tabs: 
+    {
+      persist    : true,      // default
+      sync       : true,      // default
+      theme      : 'classic', // default
+      tabComments: true,      // default
+      tabHeadings: true       // default
+    }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//unpkg.com/docsify@4"></script>
+  <!-- Serach -->
+  <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
+  <!-- 代码Copy -->
+  <script src="//unpkg.com/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <!-- 折叠 -->
+  <script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  <!-- Gitalker -->
+  <!-- <link rel="stylesheet" href="//unpkg.com/gitalk/dist/gitalk.css">
+  <script src="//unpkg.com/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//unpkg.com/gitalk/dist/gitalk.min.js"></script> -->
+  <!-- <script>
+    const gitalk = new Gitalk({
+      clientID: '7564994c686191bfefe6',
+      clientSecret: 'fa492e8b868bb77d52a5b278cf0aab06f9b1c052',
+      repo: 'd2l-ros2-foxy',
+      owner: 'aiotrobot',
+      admin: ['aiotrobot'],
+      id: "comment",
+      // facebook-like distraction free mode
+      distractionFreeMode: false
+    })
+  </script> -->
+  <!-- 图片缩放 -->
+  <script src="//unpkg.com/docsify/lib/plugins/zoom-image.min.js"></script>
+  <!-- 分页导航 -->
+  <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script> -->
+  <!-- 代码高亮 -->
+  <script src="//unpkg.com/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//unpkg.com/prismjs@1/components/prism-php.min.js"></script>
+  <link rel="stylesheet" href="//unpkg.com/mermaid/dist/mermaid.min.css">
+  <script src="//unpkg.com/mermaid/dist/mermaid.min.js"></script>
+  <!-- 字数统计 -->
+  <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+  <!-- Latest -->
+  <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+  <!-- 表情插件 -->
+  <script src="//unpkg.com/docsify/lib/plugins/emoji.min.js"></script>
+  <!-- tab -->
+  <script src="https://unpkg.com/docsify-tabs@1"></script>
+</body>
+</html>
