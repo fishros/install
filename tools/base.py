@@ -749,9 +749,9 @@ class Progress():
         self.i = 0
 
     def update(self,log=""):
-        length = 30
-        if len(log)>length: log = log[:length]
-        log = log+"                "
+        # length = 60
+        # if len(log)>length: log = log[:length]
+        # log = log+"                "
         if (self.i%4) == 0: 
             print('\r[/]{}'.format(log),end="")
         elif(self.i%4) == 1: 
@@ -761,6 +761,7 @@ class Progress():
         elif (self.i%4) == 3: 
             print('\r[-]{}'.format(log),end="")
         sys.stdout.flush()
+        self.i += 1
         # update time
         # self.dur  = time.perf_counter() -self.start 
         # self.i = int(self.dur/(self.timeout/self.scale))
@@ -772,7 +773,7 @@ class Progress():
         # print("\r{:^3.0f}%[{}->{}]{:.2f}s {}".format(c,a,b,self.dur,log),end = "")
     
     def finsh(self,log=""):
-        length = 30
+        length = 60
         if len(log)>length: log = log[:length]
         log = log+"                           " 
         print('\r[-]{}'.format(log),end="")
@@ -802,13 +803,22 @@ class CmdTask(Task):
         # sub.communicate
         bar  = Progress(timeout=timeout)
         bar.update()
-        for line in sub.stdout.readlines():
+
+        while sub.poll()==None:
+            line = sub.stdout.readline()
             line = line.decode("utf-8").strip("\n")
+            out.append(line)
             bar.update(line)
             time.sleep(0.01)
+
+        lines = sub.stdout.readlines()
+        for line in lines:
+            line = line.decode("utf-8").strip("\n")
             out.append(line)
-        
-        time.sleep(1)
+            bar.update(line)
+            time.sleep(0.01)
+
+
         if sub.poll()==None:
             sub.kill()
             print("\033[31mTimeOut!:{}".format(timeout))

@@ -5,6 +5,6 @@ if [ $UID -eq 0 ];then
     apt-get install sudo 
 fi
 sudo python3 /tmp/fishinstall/install.py
-rm -rf /tmp/fishinstall/
-rm fishros
+sudo rm -rf /tmp/fishinstall/
+sudo rm fishros
 . ~/.bashrc
