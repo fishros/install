@@ -894,6 +894,15 @@ class FileUtils():
         return False
 
     @staticmethod
+    def getbashrc():
+        """
+        优先home,没有home提供root
+        """
+        bashrc_result = CmdTask("ls /home/*/.bashrc", 0).run() 
+        if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run() 
+        return bashrc_result
+
+    @staticmethod
     def new(path,name=None,data=''):
         if not os.path.exists(path):
             CmdTask("sudo mkdir -p {}".format(path),3).run()
@@ -1067,6 +1076,9 @@ def download_tools(id,tools):
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
         os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
+
+
+
 
 
 osarch = AptUtils.getArch()
