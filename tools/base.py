@@ -997,6 +997,7 @@ class AptUtils():
         result = CmdTask("dpkg --print-architecture",2).run()
         if result[0]==0: return result[1][0].strip("\n")
         PrintUtils.print_error("小鱼提示:自动获取系统架构失败...请手动选择")
+        # @TODO 提供架构选项 amd64,i386,arm
         return None
     
     @staticmethod
@@ -1066,3 +1067,6 @@ def download_tools(id,tools):
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
         os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
+
+
+osarch = AptUtils.getArch()

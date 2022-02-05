@@ -62,7 +62,7 @@ class Tool(BaseTool):
 
 信息：
 1. osversion 系统相关信息
-
+2. osarch 架构信息 amd64/i386/arm
 
 ## 贡献名单
 
