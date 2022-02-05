@@ -11,6 +11,7 @@ tools ={
     3: {'tip':'一键配置:rosdep(小鱼的rosdepc,又快又好用)',                 'type':2,     'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
     4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':2,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
     5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,     'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
+    6: {'tip':'一键安装:nodejs开发环境(通过nodejs可以预览小鱼官网噢)',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
 }
 
 
@@ -20,7 +21,7 @@ def main():
     # download base
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
     from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask
-    from tools.base import encoding_utf8,osversion
+    from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
 
     # check base config

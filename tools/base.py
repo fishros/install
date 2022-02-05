@@ -786,7 +786,7 @@ class Progress():
 
 
 class CmdTask(Task):
-    def __init__(self,command,timeout,groups=False,os_command=False) -> None:
+    def __init__(self,command,timeout=0,groups=False,os_command=False) -> None:
         super().__init__(Task.TASK_TYPE_CMD)
         self.command = command
         self.timeout = timeout
@@ -880,7 +880,7 @@ class ChooseTask(Task):
 
     def run(self):
         PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
-        PrintUtils.print_delay(self.tips)
+        PrintUtils.print_delay(self.tips,0.01)
         return ChooseTask.__choose(self.dic,self.tips,self.array)
 
 
@@ -899,8 +899,8 @@ class FileUtils():
         优先home,没有home提供root
         """
         bashrc_result = CmdTask("ls /home/*/.bashrc", 0).run() 
-        if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run() 
-        return bashrc_result
+        if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run()
+        return bashrc_result[1]
 
     @staticmethod
     def new(path,name=None,data=''):
