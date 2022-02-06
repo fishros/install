@@ -20,8 +20,8 @@ class Tool(BaseTool):
         else:
             return False
         PrintUtils.print_info("下载完成,接下来为你解压安装Nodejs~")
-        CmdTask("rm -rf /opt/nodejs/").run()
-        CmdTask("mkdir -p /opt/nodejs/").run()
+        CmdTask("rm -rf /snap/nodejs/*").run()
+        CmdTask("mkdir -p /snap/nodejs/").run()
         CmdTask("sudo tar -xvf /tmp/nodejs.tar.xz  -C /opt/nodejs/").run()
         CmdTask("rm -rf /tmp/nodejs.tar.xz").run()
         PrintUtils.print_info("解压完成,接下来为你配置nodejs环境~")
