@@ -12,6 +12,7 @@ tools ={
     4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':2,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
     5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,     'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
     6: {'tip':'一键安装:nodejs开发环境(通过nodejs可以预览小鱼官网噢)',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
+    77: {'tip':'测试模式:运行自定义工具测试'},
 }
 
 
@@ -61,8 +62,15 @@ def main():
     for tool_id in tools.keys(): choose_dic[tool_id]  = tools[tool_id]["tip"]
     code,result = ChooseTask(choose_dic, "---众多工具，等君来用---").run()
     if code==0: PrintUtils().print_success("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
+    elif code==77: 
+        code,result = ChooseTask(choose_dic, "请选择你要测试的程序:").run()
+        if  code<0 and code>=77:  return False
+        # CmdTask("cp tools/* /tmp/fishinstall/tools/").run
+        run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
+         
     else: 
         download_tools(code,tools)
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
 
-main()
+if __name__=='__main__':
+    main()

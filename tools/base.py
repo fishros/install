@@ -903,6 +903,16 @@ class FileUtils():
         return bashrc_result[1]
 
     @staticmethod
+    def getusers():
+        """
+        优先home,没有home提供root
+        """
+        users = CmdTask("users", 0).run() 
+        if users[0]!=0:  return ['root']
+        return users[1]
+
+
+    @staticmethod
     def new(path,name=None,data=''):
         if not os.path.exists(path):
             CmdTask("sudo mkdir -p {}".format(path),3).run()
