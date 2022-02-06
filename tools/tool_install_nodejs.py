@@ -20,13 +20,13 @@ class Tool(BaseTool):
         else:
             return False
         PrintUtils.print_info("下载完成,接下来为你解压安装Nodejs~")
-        CmdTask("rm -rf /snap/nodejs/*").run()
-        CmdTask("mkdir -p /snap/nodejs/").run()
+        CmdTask("rm -rf /opt/nodejs/").run()
+        CmdTask("mkdir -p /opt/nodejs/").run()
         CmdTask("sudo tar -xvf /tmp/nodejs.tar.xz  -C /opt/nodejs/").run()
         CmdTask("rm -rf /tmp/nodejs.tar.xz").run()
         PrintUtils.print_info("解压完成,接下来为你配置nodejs环境~")
         # 配置环境
-        for bashrc in FileUtils.getbashrc():
+        for bashrc in FileUtils.getbashrc()+['/root/.bashrc']:
             FileUtils.find_replace_sub(bashrc,"# >>> nodejs initialize >>>","# <<< nodejs initialize <<<", "")
             FileUtils.append(bashrc,"# >>> nodejs initialize >>>\n"+"export PATH=$PATH:/opt/nodejs/node-v16.13.2-linux-x64/bin/"+"\n# <<< nodejs initialize <<<")
         PrintUtils.print_info("配置完成,接下来你可以尝试使用node和npm指令运行了~")
