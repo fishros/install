@@ -13,7 +13,9 @@
 
 可以参考的待添加工具：
 
-- 一键安装VsCode
+- 一键安装:VsCode
+- 一键安装:Docker
+- 一键安装:cartographer
 
 
 ## 使用方法
