@@ -5,6 +5,7 @@
 已支持工具列表：
 
 - 一键安装:ROS(支持ROS和ROS2,树莓派Jetson)  [贡献@小鱼](https://github.com/fishros)
+- 一键安装:VsCode(支持amd64和arm64)  [贡献@小鱼](https://github.com/fishros)
 - 一键安装:github桌面版(小鱼常用的github客户端)  [贡献@小鱼](https://github.com/fishros)
 - 一键安装:nodejs开发环境(通过nodejs可以预览小鱼官网噢  [贡献@小鱼](https://github.com/fishros)
 - 一键配置:rosdep(小鱼的rosdepc,又快又好用)  [贡献@小鱼](https://github.com/fishros)
@@ -13,7 +14,6 @@
 
 可以参考的待添加工具：
 
-- 一键安装:VsCode
 - 一键安装:Docker
 - 一键安装:cartographer
 
@@ -88,3 +88,4 @@ class Tool(BaseTool):
 - 一键配置ros环境 [小鱼](https://github.com/fishros)
 - 一键配置系统源 [小鱼](https://github.com/fishros)
 - 一键安装nodejs [小鱼](https://github.com/fishros)
+- 一键安装vscode [小鱼](https://github.com/fishros)
