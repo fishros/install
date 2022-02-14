@@ -13,6 +13,7 @@ tools ={
     5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,     'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
     6: {'tip':'一键安装:nodejs开发环境(通过nodejs可以预览小鱼官网噢)',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
     7: {'tip':'一键安装:VsCode',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
+    8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
     77: {'tip':'测试模式:运行自定义工具测试'},
 }
 
