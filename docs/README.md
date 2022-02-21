@@ -21,7 +21,9 @@ wget http://fishros.com/install -O fishros && . fishros
 
 ## 打赏小鱼
 
-请到[fishros.com](http://fishros.com)左侧扫赞赏码
+可以到[fishros.com](http://fishros.com)左侧扫赞赏码
+
+如果余粮不多，可以给小鱼一个star，一键安装开源地址：https://github.com/fishros/install
 
 
 如果上述命令运行出现错误可以联系小鱼或者在github上提出issue:进行修复
