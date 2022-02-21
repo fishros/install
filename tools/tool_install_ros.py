@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from distutils import cmd
 from .base import BaseTool
 from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
 from .base import osversion
