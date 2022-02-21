@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from distutils import cmd
 from .base import BaseTool
 from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
 from .base import osversion
@@ -106,6 +107,12 @@ class Tool(BaseTool):
 
         # add key
         cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
+        if cmd_result[0]!=0:
+            cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
+        if cmd_result[0]!=0:
+            PrintUtils.print_info("导入密钥失败，开始更换导入方式并二次尝试...")
+            cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+
 
         #add source 
         mirrors = get_mirror_by_code(osversion.get_codename())

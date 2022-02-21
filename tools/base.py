@@ -1007,7 +1007,7 @@ class AptUtils():
         apt_command = CmdTask('sudo apt update',100)
         result = apt_command.run()
         if result[0]!=0:
-            PrintUtils.print_error("你的系统当前apt存在问题，请先使用一键换源处理...若无法处理，请将下列错误信息告知小鱼...{},{}".format(result[1],result[2]))
+            PrintUtils.print_error("你的系统当前apt存在问题，请先使用一键换源处理...若无法处理，请将下列错误信息告知小鱼...,{}".format(result[2]))
             return False
         return True
 
@@ -1065,7 +1065,7 @@ class BaseTool():
 
     def uninit(self):
         # 接触初始化
-        PrintUtils.print_delay("若遇到问题,可在github:https://github.com/fishros/提出issue反馈")
+        PrintUtils.print_delay("一键安装已开源，欢迎给个star/提出问题/帮助完善：https://github.com/fishros/install/ ")
 
 def run_tool_file(file):
     import importlib
@@ -1079,10 +1079,10 @@ def run_tool_url(url,url_prefix):
     run_tool_file(url.replace(url_prefix,'').replace("/","."))
 
 def download_tools(id,tools):
-    # download tool
+    # download tool 
     url = tools[id]['tool']
     os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
-    # download dep
+    # download dep 
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
         os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
