@@ -600,6 +600,8 @@ def GetOsVersion():
         def get_codename(self):
             if not self._os_codename:
                 self.detect_os()
+                if len(self._os_codename.split(" "))>1:
+                    self._os_codename=self._os_codename.split(" ")[0].lower()
             return self._os_codename
 
 
