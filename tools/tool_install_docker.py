@@ -26,15 +26,15 @@ class Tool(BaseTool):
         CmdTask('sudo apt install apt-transport-https ca-certificates curl software-properties-common -y',120).run()
 
         #add key
-        CmdTask('curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -',10).run()
+        CmdTask('curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | sudo apt-key add -',10).run()
         #verify key
         CmdTask('sudo apt-key fingerprint 0EBFCD88',10).run()
 
         # 根据系统架构下载不同版本的安装包
         if osarch=='amd64':
-            CmdTask('sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',os_command=True).run()
+            CmdTask('sudo add-apt-repository "deb [arch=amd64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu $(lsb_release -cs) stable"',os_command=True).run()
         elif osarch=='arm64':
-            CmdTask('sudo add-apt-repository "deb [arch=arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"',os_command=True).run()
+            CmdTask('sudo add-apt-repository "deb [arch=arm64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu $(lsb_release -cs) stable"',os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成,接下来升级apt索引~")
