@@ -93,7 +93,7 @@ class Tool(BaseTool):
 
         # 更换系统源
         dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
-        code,result = ChooseTask(dic, "如果您是第一次安装，推荐您先更换一下系统源").run()
+        code,result = ChooseTask(dic, "墙力建议小白选择换源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
             run_tool_file('tools.tool_config_system_source')
 
@@ -151,8 +151,8 @@ class Tool(BaseTool):
         if cmd_result[0]==0:  
             # config_rosenv()
             run_tool_file('tools.tool_config_rosenv')
-            PrintUtils.print_success("恭喜你，安装成功了，是不是很方便，打开fishros.com给小鱼来个一键三连吧~")
-        else: PrintUtils.print_error("不好意思，安装失败了,请关注公众号鱼香ROS,反馈解决问题...")
+            PrintUtils.print_success("恭喜你，安装成功了，再附赠你机器人学习宝藏网站：鱼香社区-https://fishros.org.cn/forum")
+        else: PrintUtils.print_error("安装失败了,请打开鱼香社区-https://fishros.org.cn/forum 在一键安装专区反馈问题...")
 
 
 

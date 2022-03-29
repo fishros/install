@@ -74,5 +74,8 @@ def main():
         download_tools(code,tools)
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
 
+    PrintUtils.print_delay("欢迎加入机器人学习交流QQ群：139707339",0.1)
+    PrintUtils.print_delay("鱼香ROS机器人社区上线了！！快快打开链接：-https://fishros.org.cn/forum，一起交流学习机器人问题吧～",0.01)
+
 if __name__=='__main__':
     main()
