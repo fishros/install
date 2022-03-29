@@ -93,7 +93,9 @@ class Tool(BaseTool):
 
         # 更换系统源
         dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
-        code,result = ChooseTask(dic, "墙力建议小白选择换源，换源!!!系统默认国外源容易失败!!").run()
+
+        PrintUtils.print_delay("=========接下来这一步很重要，请小白关注，大佬请忽略========")
+        code,result = ChooseTask(dic, "墙裂建议小白一定换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
             run_tool_file('tools.tool_config_system_source')
 
