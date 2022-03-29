@@ -1068,7 +1068,8 @@ class BaseTool():
 
     def uninit(self):
         # 接触初始化
-        PrintUtils.print_delay("一键安装已开源，欢迎给个star/提出问题/帮助完善：https://github.com/fishros/install/ ")
+        pass
+        # PrintUtils.print_delay("一键安装已开源，欢迎给个star/提出问题/帮助完善：https://github.com/fishros/install/ ")
 
 def run_tool_file(file):
     import importlib
