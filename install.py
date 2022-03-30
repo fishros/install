@@ -14,6 +14,7 @@ tools ={
     6: {'tip':'一键安装:nodejs',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
     7: {'tip':'一键安装:VsCode开发工具',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
     8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
+    9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
     77: {'tip':'测试模式:运行自定义工具测试'},
 }
 

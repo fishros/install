@@ -789,18 +789,20 @@ class Progress():
 
 
 class CmdTask(Task):
-    def __init__(self,command,timeout=0,groups=False,os_command=False) -> None:
+    def __init__(self,command,timeout=0,groups=False,os_command=False,path=None) -> None:
         super().__init__(Task.TASK_TYPE_CMD)
         self.command = command
         self.timeout = timeout
         self.os_command = os_command
+        self.cwd = path
 
     @staticmethod
-    def __run_command(command,timeout=10):
+    def __run_command(command,timeout=10,cwd=None):
         out,err = [],[]
         sub = subprocess.Popen(command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            cwd=cwd,
             shell=True)
 
         # sub.communicate
@@ -838,15 +840,17 @@ class CmdTask(Task):
         return (code,out,err)
     
     @staticmethod
-    def _os_command(command,timeout=10):
-        os.system(command)
-
+    def _os_command(command,timeout=10,cwd=None):
+        if cwd is not None:
+            os.system(f"cd {cwd} && command")
+        else:
+            os.system(command)
 
     def run(self):
         PrintUtils.print_info("\033[32mRun CMD Task:[{}]".format(self.command))
         if self.os_command:
-            return self._os_command(self.command,self.timeout)
-        return self.__run_command(self.command,self.timeout)
+            return self._os_command(self.command,self.timeout,cwd=self.cwd)
+        return self.__run_command(self.command,self.timeout,cwd=self.cwd)
 
 
 
