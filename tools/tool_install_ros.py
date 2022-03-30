@@ -24,7 +24,7 @@ class Tool(BaseTool):
         ros_dist_dic = {
             'artful':{"packages.ros"},
             'bionic':{"tsinghua","huawei","packages.ros"},
-            'buster':{"tsinghua","huawei","packages.ros"},
+            'buster':{"packages.ros"},
             'cosmic':{"packages.ros"},
             'disco':{"packages.ros"},
             'eoan':{"packages.ros"},
@@ -52,7 +52,7 @@ class Tool(BaseTool):
         ros2_dist_dic = {
             'bionic':{"tsinghua","huawei","packages.ros"},
             'bullseye':{"tsinghua","huawei","packages.ros"},
-            'buster':{"tsinghua","huawei","packages.ros"},
+            'buster':{"packages.ros"},
             'cosmic':{"tsinghua","huawei","packages.ros"},
             'disco':{"tsinghua","huawei","packages.ros"},
             'eoan':{"tsinghua","huawei","packages.ros"},
