@@ -39,6 +39,9 @@ class Tool(BaseTool):
         # delete file
         dic = {1:"仅更换系统源",2:"更换系统源并清理第三方源"}
         code,result = ChooseTask(dic, "请选择换源方式").run()
+        # 尝试第一次更新索引文件
+        result = CmdTask('sudo apt update',100).run()
+
         FileUtils.delete('/etc/apt/sources.list')
         if code==2: 
             print("删除一个资源文件")
@@ -68,11 +71,16 @@ class Tool(BaseTool):
             PrintUtils.print_info("更新失败，开始更换导入方式并三次尝试...")
             result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9",10).run()
             result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517",10).run()
+            result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853",10).run()
+            result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 112695A0E562B32A",10).run()
             result = CmdTask("apt-get install debian-keyring debian-archive-keyring",10).run()
             result = CmdTask("apt-key update",10).run()
             result = CmdTask('sudo apt update',100).run()
         if result[0]!=0:
-            PrintUtils.print_success("因为您的这块程序未经过充分测试，所以还是发生了错误，可以联系小鱼进行修复哦~")
+            PrintUtils.print_info("""如果出现问题NO_PUBKEY XXXXXXXX，请手动运行添加指令：apt-key adv --keyserver keyserver.ubuntu.com --recv-keys XXXXXXXX
+如：error： NO_PUBKEY 0E98404D386FA1D9
+运行指令：sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
+            """)
         
         # final check
         if result[0]==0: 
