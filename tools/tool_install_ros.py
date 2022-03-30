@@ -65,21 +65,22 @@ class Tool(BaseTool):
         }
 
 
-        def get_mirror_by_code(code):
-            mirror = []
-            if "tsinghua" in ros_dist_dic[code]:
-                mirror.append(ros_mirror_dic["tsinghua"]['ROS1'])
-            elif "huawei" in ros_dist_dic[code]:
-                mirror.append(ros_mirror_dic["huawei"]['ROS1'])
-            elif "packages.ros" in ros_dist_dic[code]:
-                mirror.append(ros_mirror_dic["packages.ros"]['ROS1'])
+        def get_mirror_by_code(code,arch='amd64'):
+            ros1_choose_queue = ["tsinghua","huawei","packages.ros"]
+            ros2_choose_queue = ["tsinghua","huawei","packages.ros"]
+            
+            # armhf架构，优先使用官方源
+            if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
 
-            if "tsinghua" in ros2_dist_dic[code]:
-                mirror.append(ros_mirror_dic["tsinghua"]['ROS2'])
-            elif "huawei" in ros2_dist_dic[code]:
-                mirror.append(ros_mirror_dic["huawei"]['ROS2'])
-            elif "packages.ros" in ros2_dist_dic[code]:
-                mirror.append(ros_mirror_dic["packages.ros"]['ROS2'])
+            mirror = []
+            for item in ros1_choose_queue:
+                if item in ros_dist_dic[code]:
+                    mirror.append(ros_mirror_dic[item]['ROS1'])
+                    break
+            for item in ros2_choose_queue:
+                if item in ros2_dist_dic[code]:
+                    mirror.append(ros_mirror_dic[item]['ROS2'])
+                    break
             return mirror
 
         tips = '欢迎使用ROS开箱子工具，本工具由[鱼香ROS]小鱼贡献..'
@@ -115,12 +116,11 @@ class Tool(BaseTool):
             cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
 
 
-        #add source 
-        mirrors = get_mirror_by_code(osversion.get_codename())
-        # print("----------------------------",mirrors)
-        print(mirrors)
         arch = AptUtils.getArch()
         if arch==None: return False
+        #add source 
+        mirrors = get_mirror_by_code(osversion.get_codename(),arch=arch)
+        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
         source_data = ''
         for mirror in mirrors:
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
