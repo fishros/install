@@ -64,7 +64,15 @@ class Tool(BaseTool):
             FileUtils.delete('/etc/apt/sources.list')
             FileUtils.new('/etc/apt/','sources.list',source.replace("https://","http://").replace("<code-name>",osversion.get_codename()))
             result = CmdTask('sudo apt update',100).run()
-
+        if result[0]!=0:
+            PrintUtils.print_info("更新失败，开始更换导入方式并三次尝试...")
+            result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9",10).run()
+            result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517",10).run()
+            result = CmdTask("apt-get install debian-keyring debian-archive-keyring",10).run()
+            result = CmdTask("apt-key update",10).run()
+            result = CmdTask('sudo apt update',100).run()
+        if result[0]!=0:
+            PrintUtils.print_success("因为您的这块程序未经过充分测试，所以还是发生了错误，可以联系小鱼进行修复哦~")
         
         # final check
         if result[0]==0: 
