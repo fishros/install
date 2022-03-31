@@ -20,6 +20,7 @@ def GetOsVersion():
     import codecs
     # to be removed after Ubuntu Xenial is out of support
     import sys
+    # @TODO 系统的python版本小于3.8，Conda版本>3.8
     if sys.version_info >= (3, 8):
         import distro
     else:
@@ -842,7 +843,7 @@ class CmdTask(Task):
     @staticmethod
     def _os_command(command,timeout=10,cwd=None):
         if cwd is not None:
-            os.system(f"cd {cwd} && command")
+            os.system("cd {} && {}".format(cwd,command))
         else:
             os.system(command)
 

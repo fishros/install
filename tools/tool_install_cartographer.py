@@ -34,7 +34,7 @@ class Tool(BaseTool):
         # check apt
         if not AptUtils.checkapt(): return False
         # 1
-        CmdTask('sudo apt install ninja-build stow -y').run()
+        CmdTask('sudo apt install ninja-build stow git -y').run()
         # 2
         CmdTask('mkdir -p cartographer_ws/src').run()
         CmdTask('git clone https://gitee.com/yuzi99url/cartographer_ros.git',path='cartographer_ws/src').run()
