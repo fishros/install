@@ -4,6 +4,7 @@ source /etc/profile
 if [ $UID -eq 0 ];then
     apt-get install sudo 
 fi
+sudo apt install python3-distro -y
 sudo python3 /tmp/fishinstall/install.py
 sudo rm -rf /tmp/fishinstall/
 sudo rm fishros
