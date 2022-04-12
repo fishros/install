@@ -220,24 +220,20 @@ class Tool(BaseTool):
         
 
         install_version = ros_name[rosname]
+        AptUtils.install_pkg('aptitude')
+
         if code==2:
-            cmd_result = CmdTask("sudo apt install {} -y".format(dic_base[install_version]),300,os_command=True).run()
-            cmd_result = CmdTask("sudo apt install {} -y".format(dic_base[install_version]),300,os_command=False).run()
+            cmd_result = CmdTask("sudo aptitude install  {} -y".format(dic_base[install_version]),300,os_command=True).run()
+            cmd_result = CmdTask("sudo aptitude install   {} -y".format(dic_base[install_version]),300,os_command=False).run()
         elif code==1:
-            cmd_result = CmdTask("sudo apt install ros-{}-desktop -y".format(install_version),300,os_command=True).run()
-            cmd_result = CmdTask("sudo apt install ros-{}-desktop -y".format(install_version),300,os_command=False).run()
+            cmd_result = CmdTask("sudo aptitude install   ros-{}-desktop -y".format(install_version),300,os_command=True).run()
+            cmd_result = CmdTask("sudo aptitude install   ros-{}-desktop -y".format(install_version),300,os_command=False).run()
 
         # apt broken error
         if cmd_result[0]!=0:
-            if FileUtils.check_result(result[1]+result[2],['apt --fix-broken install -y']):
-                if code==2: cmd_result = CmdTask("sudo apt install {} -y".format(dic_base[rosname]),300,os_command=False).run()
-                elif code==1: cmd_result = CmdTask("sudo apt install ros-{}-desktop -y".format(rosname),300,os_command=False).run()
-
-        # apt depend error
-        if cmd_result[0]!=0:
-            if FileUtils.check_result(result[1]+result[2],['apt --fix-broken install -y']):
-                if code==2: cmd_result = CmdTask("sudo apt install {} -y".format(dic_base[rosname]),300,os_command=False).run()
-                elif code==1: cmd_result = CmdTask("sudo apt install ros-{}-desktop -y".format(rosname),300,os_command=False).run()
+            if FileUtils.check_result(cmd_result[1]+cmd_result[2],['apt --fix-broken install -y']):
+                if code==2: cmd_result = CmdTask("sudo aptitude install   {} -y".format(dic_base[rosname]),300,os_command=False).run()
+                elif code==1: cmd_result = CmdTask("sudo aptitude install   ros-{}-desktop -y".format(rosname),300,os_command=False).run()
 
         # 安装额外的依赖
         RosVersions.install_depend(install_version)
