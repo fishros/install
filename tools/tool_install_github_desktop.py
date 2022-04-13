@@ -7,20 +7,18 @@ from .base import run_tool_file
 class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
-        self.name = "模板工程"
+        self.name = "安装Github桌面版"
         self.autor = '小鱼'
 
     def install_github(self):
         """
-        wget -qO - https://packagecloud.io/shiftkey/desktop/gpgkey | sudo tee /etc/apt/trusted.gpg.d/shiftkey-desktop.asc > /dev/null
-        sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/shiftkey/desktop/any/ any main" > /etc/apt/sources.list.d/packagecloud-shiftky-desktop.list'
-        sudo apt-get update
+        wget https://mirror.ghproxy.com/https://github.com/shiftkey/desktop/releases/download/release-2.9.12-linux4/GitHubDesktop-linux-2.9.12-linux4.deb -O /tmp/github.deb
+        sudo dpkg -i  /tmp/github.deb
+        sudo apt install /tmp/github.deb -y
         """
-        CmdTask('wget -qO - https://packagecloud.io/shiftkey/desktop/gpgkey | sudo tee /etc/apt/trusted.gpg.d/shiftkey-desktop.asc > /dev/null', 0).run()
-        CmdTask("""sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/shiftkey/desktop/any/ any main" > /etc/apt/sources.list.d/packagecloud-shiftky-desktop.list'""", 0).run()
-        AptUtils.checkapt()
-        AptUtils.install_pkg('github-desktop')
-
+        CmdTask('sudo wget https://mirror.ghproxy.com/https://github.com/shiftkey/desktop/releases/download/release-2.9.12-linux4/GitHubDesktop-linux-2.9.12-linux4.deb -O /tmp/github.deb',os_command=True).run()
+        CmdTask('sudo dpkg -i  /tmp/github.deb').run()
+        CmdTask('sudo apt install /tmp/github.deb -y').run()
 
     def run(self):
         #正式的运行
