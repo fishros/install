@@ -714,6 +714,11 @@ class PrintUtils():
         print("\033[32m{}\033[37m".format(data))
 
     @staticmethod
+    def print_warn(data,end="\n"):
+        print("\033[33m{}\033[37m".format(data))
+
+
+    @staticmethod
     def print_fish(timeout=1,scale=30):
         return 
         start = time.perf_counter()
