@@ -163,8 +163,8 @@ class Tool(BaseTool):
     def check_sys_source(self):
         # 更换系统源
         dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
-        PrintUtils.print_delay("=========接下来这一步很重要，请小白关注，大佬请忽略========")
-        code,result = ChooseTask(dic, "墙裂建议小白一定换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
+        PrintUtils.print_delay("=========接下来这一步很重要，如果不知道怎么选请选择1========")
+        code,result = ChooseTask(dic, "首次安装一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
             run_tool_file('tools.tool_config_system_source')
 
@@ -214,9 +214,9 @@ class Tool(BaseTool):
         for a in dic_base.keys(): 
             ros_name[RosVersions.get_version_string(a)] = a
 
-        _,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称:",True).run()
+        _,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
         version_dic = {1:rosname+"桌面版",2:rosname+"基础版(小)"}
-        code,name = ChooseTask(version_dic,"请选择安装的具体版本:",False).run()
+        code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
         
 
         install_version = ros_name[rosname]
