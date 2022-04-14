@@ -55,9 +55,9 @@ class RosVersions:
     def tip_test_command(name):
         version = RosVersions.get_version(name).version
         if version=="ROS1":
-            PrintUtils.print_info("小鱼提示：您安装的是ROS1，可以打开一个新的终端输入roscore即可测试！")
+            PrintUtils.print_warn("小鱼，黄黄的提示：您安装的是ROS1，可以打开一个新的终端输入roscore测试！")
         elif version=="ROS2":
-            PrintUtils.print_info("小鱼提示：您安装的是ROS2,ROS2是没有roscore的，请打开新终端输入ros2测试！小鱼制作了ROS2课程，关注公众号《鱼香ROS》即可获取~")
+            PrintUtils.print_warn("小鱼：黄黄的提示：您安装的是ROS2,ROS2是没有roscore的，请打开新终端输入ros2测试！小鱼制作了ROS2课程，关注公众号《鱼香ROS》即可获取~")
     
 
 ros_mirror_dic = {
