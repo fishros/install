@@ -893,7 +893,7 @@ class ChooseTask(Task):
 
     def run(self):
         PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
-        PrintUtils.print_delay(self.tips,0.01)
+        PrintUtils.print_delay(self.tips,0.001)
         return ChooseTask.__choose(self.dic,self.tips,self.array)
 
 
