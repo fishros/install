@@ -6,7 +6,7 @@ from .base import run_tool_file
 
 class Tool(BaseTool):
     def __init__(self):
-        self.name = "Quick-Install:Vscode"
+        self.name = "一键安装Vscode"
         self.type = BaseTool.TYPE_INSTALL
         self.autor = '小鱼'
 
