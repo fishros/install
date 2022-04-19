@@ -15,6 +15,7 @@ tools ={
     7: {'tip':'一键安装:VsCode开发工具',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
     8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
     9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
+    10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':0,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
     77: {'tip':'测试模式:运行自定义工具测试'},
 }
 
@@ -57,8 +58,8 @@ def main():
 如果觉得工具好用,请给个star,如果你想和小鱼一起编写工具,请关注微信公众号<鱼香ROS>,联系小鱼
 更多工具教程，请访问鱼香ROS官方网站:http://fishros.com
     """
-    # PrintUtils.print_delay(tip,0.01)
-    # PrintUtils.print_delay(book,0.01)
+    PrintUtils.print_delay(tip,0.001)
+    PrintUtils.print_delay(book,0.001)
 
     # download tools
     choose_dic = {}
@@ -76,7 +77,7 @@ def main():
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
 
     PrintUtils.print_delay("欢迎加入机器人学习交流QQ群：139707339(入群口令：一键安装)",0.1)
-    PrintUtils.print_delay("鱼香ROS机器人社区上线了！！快快打开链接：-https://fishros.org.cn/forum，一起交流学习机器人问题吧～",0.01)
+    PrintUtils.print_success("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",0.001)
 
 if __name__=='__main__':
     main()
