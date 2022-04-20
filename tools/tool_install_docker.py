@@ -41,6 +41,10 @@ class Tool(BaseTool):
         CmdTask("sudo apt update").run()
         PrintUtils.print_info("开始安装最新版本docker CE~")
         CmdTask("sudo apt install docker-ce -y").run()
+        CmdTask("sudo groupadd docker").run()
+        user = FileUtils.getusers()[0]
+        CmdTask("sudo gpasswd -a {} docker".format(user)).run()
+        # CmdTask("newgrp docker",os_command=True).run()
 
         PrintUtils.print_info("安装完成,接下来你可以尝试使用docker --version指令测试是有正常回显~")
 
