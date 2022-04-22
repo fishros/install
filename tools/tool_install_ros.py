@@ -133,14 +133,18 @@ class Tool(BaseTool):
         if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
 
         mirror = []
-        for item in ros1_choose_queue:
-            if item in ros_dist_dic[code]:
-                mirror.append(ros_mirror_dic[item]['ROS1'])
-                break
-        for item in ros2_choose_queue:
-            if item in ros2_dist_dic[code]:
-                mirror.append(ros_mirror_dic[item]['ROS2'])
-                break
+        # 确认源里有对应的系统的，比如jammy
+        if code in ros_dist_dic.keys():
+            for item in ros1_choose_queue:
+                if item in ros_dist_dic[code]:
+                    mirror.append(ros_mirror_dic[item]['ROS1'])
+                    break
+         # 确认源里有对应的系统的，比如jammy
+        if code in ros2_dist_dic.keys():
+            for item in ros2_choose_queue:
+                if item in ros2_dist_dic[code]:
+                    mirror.append(ros_mirror_dic[item]['ROS2'])
+                    break
         return mirror
 
 
