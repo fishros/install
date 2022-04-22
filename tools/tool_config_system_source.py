@@ -151,7 +151,7 @@ class Tool(BaseTool):
         dic = {1:"仅更换系统源",2:"更换系统源并清理第三方源"}
         code,result = ChooseTask(dic, "请选择换源方式,如果不知道选什么请选2").run()
         # 尝试第一次更新索引文件
-        result = CmdTask('sudo apt update',100).run()
+        # result = CmdTask('sudo apt update',100).run()
 
         FileUtils.delete('/etc/apt/sources.list')
         if code==2: 
