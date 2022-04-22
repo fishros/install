@@ -221,7 +221,7 @@ class Tool(BaseTool):
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
         
         install_tool = 'aptitude'
-        if osversion.get_version().starWith("16"):
+        if osversion.get_version() == "16.04":
             install_tool = 'apt'
 
         install_version = ros_name[rosname]
