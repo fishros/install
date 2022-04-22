@@ -1,6 +1,7 @@
 mkdir -p /tmp/fishinstall/tools
 wget http://fishros.com/install/install1s/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
+sudo apt install python3-distro -y
 if [ $UID -eq 0 ];then
     apt-get install sudo 
 fi
