@@ -191,7 +191,7 @@ class Tool(BaseTool):
 
     def support_install(self):
         # check support
-        if (osversion.get_codename() not in ros_dist_dic.keys()) or (osversion.get_codename() not in ros2_dist_dic.keys()):
+        if (osversion.get_codename() not in ros_dist_dic.keys()) and (osversion.get_codename() not in ros2_dist_dic.keys()):
             PrintUtils.print_error("小鱼:检测当前系统{}{}:{} 暂不支持一键安装ROS,请关注公众号《鱼香ROS》获取帮助.".format(osversion.get_name(), osversion.get_version(),osversion.get_codename()))
             return False
         PrintUtils.print_success("小鱼:检测当前系统{}{}:{} 支持一键安装ROS".format(osversion.get_name(), osversion.get_version(),osversion.get_codename()))
