@@ -30,6 +30,7 @@ class RosVersions:
         RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, []),
         RosVersion('bouncy',  'ROS2', RosVersion.STATUS_EOL, []),
         RosVersion('ardent',  'ROS2', RosVersion.STATUS_EOL, []),
+        RosVersion('lunar', 'ROS2', RosVersion.STATUS_EOL, []),
     ]
 
     @staticmethod
