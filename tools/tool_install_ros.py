@@ -201,7 +201,7 @@ class Tool(BaseTool):
         检查某个版本的ROS是否安装成功
         """
         result = CmdTask("ls /opt/ros/{}/setup.bash".format(name), 0).run()
-        if len(result[1])==1:
+        if str(result[1]).find('setup.bash') >= 1:
             return True
         return False
 
@@ -220,6 +220,7 @@ class Tool(BaseTool):
         
 
         install_version = ros_name[rosname]
+        AptUtils.install_pkg('aptitude')
         AptUtils.install_pkg('aptitude')
 
         if code==2:
