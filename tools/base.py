@@ -881,7 +881,7 @@ class ChooseTask(Task):
         # 0 quit
         choose = -1 
         for key in dic:
-            PrintUtils.print_delay('[{}]:{}'.format(key,dic[key]))
+            PrintUtils.print_delay('[{}]:{}'.format(key,dic[key]),0.005)
         while True:
             choose = input("请输入[]内的数字以选择:")
             if choose.isdecimal() :
