@@ -922,7 +922,7 @@ class FileUtils():
         """
         users = CmdTask("users", 0).run() 
         if users[0]!=0:  return ['root']
-        return users[1].split(" ")[0]
+        return users[1][0].split(" ")[0]
 
 
     @staticmethod
