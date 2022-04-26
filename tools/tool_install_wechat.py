@@ -11,7 +11,8 @@ class Tool(BaseTool):
         self.autor = '小鱼'
 
     def get_wechat_scripts(self,name):
-        return """echo "请输入指令控制{}: 启动(s) 关闭(c) 重启(r) 删除(d):"
+        return """xhost +local: >> /dev/null
+echo "请输入指令控制{}: 启动(s) 关闭(c) 重启(r) 删除(d):"
 read choose
 case $choose in
 s) docker start {};;
