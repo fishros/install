@@ -157,6 +157,8 @@ class Tool(BaseTool):
         if code==2: 
             print("删除一个资源文件")
             FileUtils.delete('/etc/apt/sources.list.d')
+            # fix add source failed before config system source 
+            CmdTask('sudo mkdir -p /etc/apt/sources.list.d').run()
         
         # 选择源
         arch = AptUtils.getArch()
