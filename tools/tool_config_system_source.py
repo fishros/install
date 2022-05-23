@@ -160,7 +160,7 @@ class Tool(BaseTool):
         
         # 选择源
         arch = AptUtils.getArch()
-        PrintUtils.print_delay('检测到当前系统架构为[{}],正在为你更换对应源..'.format(arch))
+        PrintUtils.print_delay('检测到当前系统架构为[{}:{}],正在为你更换对应源..'.format(arch,osversion.get_codename()))
         source = normal
         if osversion.get_name().find("ubuntu")>=0:
             if arch=='amd64': source = normal

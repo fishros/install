@@ -141,7 +141,8 @@ def GetOsVersion():
 
         def get_codename(self):
             if self.is_os():
-                return self.lsb_info[2]
+                # fix Jammy Error
+                return self.lsb_info[2].split(" ")[0].lower()
             raise OsNotDetected('called in incorrect OS')
 
 
