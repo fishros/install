@@ -146,7 +146,7 @@ class Tool(BaseTool):
                     mirror.append(ros_mirror_dic[item]['ROS2'])
                     break
         if code in ['focal']:
-            mirror.append(ros_mirror_dic['repo-ros2']['ROS2'])
+            mirror.append(ros_mirror_dic['packages.ros']['ROS2'])
         return mirror
 
 
