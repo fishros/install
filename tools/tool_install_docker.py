@@ -40,6 +40,7 @@ class Tool(BaseTool):
         PrintUtils.print_info("下载完成,接下来升级apt索引~")
         CmdTask("sudo apt update").run()
         PrintUtils.print_info("开始安装最新版本docker CE~")
+        CmdTask("sudo apt --fix-broken install -y").run()
         CmdTask("sudo apt install docker-ce -y").run()
         CmdTask("sudo groupadd docker").run()
         user = FileUtils.getusers()[0]
