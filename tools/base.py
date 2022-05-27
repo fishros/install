@@ -69,7 +69,14 @@ class ConfigHelper():
             config_data = f.read()
         
         if config_data == None: return choose_queue
-        config_yaml = yaml.load(config_data,Loader=yaml.FullLoader)
+
+        if hasattr(yaml,'FullLoader'):
+            config_yaml = yaml.load(config_data,Loader=yaml.FullLoader)
+        else:
+            config_yaml = yaml.load(config_data)
+            
+        for choose in config_yaml['chooses']:
+            choose_queue.put(choose)
         for choose in config_yaml['chooses']:
             choose_queue.put(choose)
         
