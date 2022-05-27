@@ -1,16 +1,85 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import print_function
+from calendar import c
 import os
 import re
 import sys
 import time
 import subprocess
 import locale
+from queue import Queue
+import yaml
+
 
 encoding = locale.getpreferredencoding()
 encoding_utf8 = encoding.find("UTF")>-1
 
+
+class ConfigHelper():
+    def __init__(self,record_file=None):
+        self.record_input_queue = Queue()
+        
+        self.record_file = record_file
+        if self.record_file==None: self.record_file = "./fish_install.yaml"
+        self.default_input_queue = self.get_default_queue(self.record_file)
+
+    def record_input(self,item):
+        self.record_input_queue.put(item)
+        
+    def gen_config_file(self):
+        """生产配置文件
+        """
+        config_yaml = {}
+
+        chooses = []
+            
+        while self.record_input_queue.qsize()>0:
+            chooses.append(self.record_input_queue.get())
+            
+        config_yaml['chooses'] = chooses
+        config_yaml['time'] = str(time.time())
+        
+        with open("/tmp/fish_install.yaml", "w", encoding="utf-8") as f:
+            yaml.dump(config_yaml, f,allow_unicode=True)
+
+    def get_input_value(self):
+        if self.default_input_queue.qsize()>0:
+            return self.default_input_queue.get()
+        
+    def record_choose(self,data):
+        self.record_input_queue.put(data)
+    
+    def get_default_queue(self,param_file_path):
+        """获取默认的配置
+
+        Args:
+            param_file_path (string, optional): 参数文件路径. Defaults to None.
+
+        Returns:
+            Queue: 数据队列
+        """
+        config_data = None
+        choose_queue = Queue()
+        
+        if not os.path.exists(param_file_path): 
+            return choose_queue
+        
+        with open(param_file_path,"r",encoding="utf-8") as f:
+            config_data = f.read()
+        
+        if config_data == None: return choose_queue
+        config_yaml = yaml.load(config_data,Loader=yaml.FullLoader)
+        for choose in config_yaml['chooses']:
+            choose_queue.put(choose)
+        
+        return choose_queue
+
+config_helper = ConfigHelper()
+# config_helper.record_choose({"choose":1,"desc":"一键安装ROS"})
+# config_helper.record_choose({"choose":2,"desc":"还愿"})
+# print(config_helper.get_input_value())
+# config_helper.gen_config_file()
 
 def GetOsVersion():
     """
@@ -883,12 +952,23 @@ class ChooseTask(Task):
         choose = -1 
         for key in dic:
             PrintUtils.print_delay('[{}]:{}'.format(key,dic[key]),0.005)
+            
+        choose = None
+        choose_item = config_helper.get_input_value()
+
         while True:
-            choose = input("请输入[]内的数字以选择:")
+            if choose_item:
+                choose = str(choose_item['choose'])
+                print("为您从配置文件找到默认选项：",choose_item)
+            else:
+                choose = input("请输入[]内的数字以选择:")
+                choose_item = None
+            # Input From Queue
             if choose.isdecimal() :
                 if (int(choose) in dic.keys() ) or (int(choose)==0):
                     choose = int(choose)
                     break
+        config_helper.record_choose({"choose":choose,"desc":dic[choose]})
         PrintUtils.print_fish()
         return choose,dic[choose]
 
@@ -1102,8 +1182,6 @@ def download_tools(id,tools):
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
         os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
-
-
 
 
 

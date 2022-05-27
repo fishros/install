@@ -24,6 +24,16 @@
 wget http://fishros.com/install -O fishros && . fishros
 ```
 
+## 如何自动选择
+
+目前一键安装支持从配置文件自动输入选项，你需要手动运行一次一键安装，使用完毕后会自动产生 `/tmp/fishros.yaml`。
+
+使用下面的指令将配置文件拷贝到当前终端即可。
+
+```
+cp /tmp//tmp/fishros.yaml  ./
+```
+
 
 ## 贡献指南
 

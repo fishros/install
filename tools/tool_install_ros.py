@@ -223,9 +223,17 @@ class Tool(BaseTool):
         for a in dic_base.keys(): 
             ros_name[RosVersions.get_version_string(a)] = a
 
-        _,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
+        code,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
+        if code==0: 
+            print("你选择退出。。。。")
+            return
+        
         version_dic = {1:rosname+"桌面版",2:rosname+"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
+        
+        if code==0: 
+            print("你选择退出。。。。")
+            return
         
         install_tool = 'aptitude'
         if osversion.get_version() == "16.04":
