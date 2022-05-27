@@ -24,7 +24,7 @@
 wget http://fishros.com/install -O fishros && . fishros
 ```
 
-## 如何自动选择
+## 如何自动选择(Dockerfile中使用)
 
 目前一键安装支持从配置文件自动输入选项，你需要手动运行一次一键安装，使用完毕后会自动产生 `/tmp/fish_install.yaml`。
 
@@ -32,6 +32,26 @@ wget http://fishros.com/install -O fishros && . fishros
 
 ```
 cp /tmp/fish_install.yaml ./
+```
+
+### Dockerfile中使用
+
+使用样例如下
+
+```
+RUN apt update \ 
+    && apt install wget python3-yaml -y  \
+    # 安装melodic
+    && echo "chooses:\n" > fish_install.yaml \
+    && echo "- {choose: 1, desc: '一键安装:ROS(支持ROS和ROS2,树莓派Jetson)'}\n" >> fish_install.yaml \
+    && echo "- {choose: 1, desc: 更换源继续安装}\n" >> fish_install.yaml \
+    && echo "- {choose: 2, desc: 清理三方源}\n" >> fish_install.yaml \
+    && echo "- {choose: 1, desc: melodic(ROS1)}\n" >> fish_install.yaml \
+    && echo "- {choose: 1, desc: melodic(ROS1)桌面版}\n" >> fish_install.yaml \
+    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
+    # 进行最后的清理
+    && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
+    && apt-get clean && apt autoclean 
 ```
 
 
