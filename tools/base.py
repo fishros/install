@@ -9,8 +9,13 @@ import time
 import subprocess
 import locale
 from queue import Queue
-import yaml
-
+#TODO try import! failed skip
+have_yaml_module = False
+try:
+    import yaml
+    have_yaml_module = True
+except:
+    print('WARN:No Yaml Module!')
 
 encoding = locale.getpreferredencoding()
 encoding_utf8 = encoding.find("UTF")>-1
@@ -41,7 +46,8 @@ class ConfigHelper():
         config_yaml['time'] = str(time.time())
         
         with open("/tmp/fish_install.yaml", "w", encoding="utf-8") as f:
-            yaml.dump(config_yaml, f,allow_unicode=True)
+            if have_yaml_module:
+                yaml.dump(config_yaml, f,allow_unicode=True)
 
     def get_input_value(self):
         if self.default_input_queue.qsize()>0:
@@ -61,6 +67,8 @@ class ConfigHelper():
         """
         config_data = None
         choose_queue = Queue()
+
+        if not have_yaml_module:return choose_queue
         
         if not os.path.exists(param_file_path): 
             return choose_queue
@@ -83,10 +91,6 @@ class ConfigHelper():
         return choose_queue
 
 config_helper = ConfigHelper()
-# config_helper.record_choose({"choose":1,"desc":"一键安装ROS"})
-# config_helper.record_choose({"choose":2,"desc":"还愿"})
-# print(config_helper.get_input_value())
-# config_helper.gen_config_file()
 
 def GetOsVersion():
     """
