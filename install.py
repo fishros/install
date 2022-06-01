@@ -37,6 +37,7 @@ def main():
         CmdTask("sudo apt-get install apt-transport-https -y",0).run()
         FileUtils.append("/etc/profile",'export LANG="zh_CN.UTF-8"')
         print('Finish! Please Try Again!')
+        print('Solutions: https://fishros.org.cn/forum/topic/24 ')
         return False
     PrintUtils.print_success("基础检查通过...")
 
