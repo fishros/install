@@ -19,7 +19,7 @@ class Tool(BaseTool):
             CmdTask('sudo wget https://ghproxy.com/https://github.com/coder/code-server/releases/download/v4.4.0/code-server_4.4.0_arm64.deb -O /tmp/code-server.deb',os_command=True).run()
         else:
             return False
-        PrintUtils.print_info("下载完成,接下来为你安装Code-Server"~")
+        PrintUtils.print_info("下载完成,接下来为你安装Code-Server~")
         CmdTask("sudo dpkg -i /tmp/code-server").run()
         CmdTask("rm -rf /tmp/code-server").run()
         PrintUtils.print_info("安装完成~")
