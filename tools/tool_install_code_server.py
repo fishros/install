@@ -11,7 +11,7 @@ class Tool(BaseTool):
         self.autor = '小鱼'
 
     def install_code_server(self):
-        PrintUtils.print_info("开始根据系统架构,为你下载对应版本的Code-Server"~")
+        PrintUtils.print_info("开始根据系统架构,为你下载对应版本的Code-Server~")
         # 根据系统架构下载不同版本的安装包
         if osarch=='amd64':
             CmdTask('sudo wget https://ghproxy.com/https://github.com/coder/code-server/releases/download/v4.4.0/code-server_4.4.0_amd64.deb -O /tmp/code-server.deb',os_command=True).run()
