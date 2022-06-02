@@ -107,7 +107,7 @@ ros2_dist_dic = {
     'eoan':{"tsinghua","huawei","packages.ros"},
     'focal':{"tsinghua","huawei","packages.ros"},
     'jessie':{"tsinghua","huawei"},
-    'jammy':{"packages.ros"},
+    'jammy':{"tsinghua","huawei","packages.ros"},
     'stretch':{"tsinghua","huawei","packages.ros"},
     'trusty':{"tsinghua","huawei"},
     'xenial':{"tsinghua","huawei","packages.ros"},
