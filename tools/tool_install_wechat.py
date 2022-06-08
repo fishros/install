@@ -57,8 +57,8 @@ newgrp docker
             version_dic = {1:"ibus(系统默认)",2:"fcitx"}
             code,_ = ChooseTask(version_dic,"请选择系统输入法版本(如果不知道怎么选,请选1-ibus):",False).run()
             if code == 1: inputs='ibus'
-            file_path = '/home/{}/WeChatFiles'.format(user,name)
-            CmdTask('mkdir -p {}'.format(file_path),os_command=True).run()
+            # file_path = '/home/{}/WeChatFiles'.format(user,name)
+            # CmdTask('mkdir -p {}'.format(file_path),os_command=True).run()
             PrintUtils.print_info("正在为您拉取微信镜像")
             CmdTask('sudo docker pull bestwu/wechat ',os_command=True).run()
             CmdTask('sudo docker pull bestwu/wechat ',os_command=True).run()
