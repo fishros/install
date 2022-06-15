@@ -236,6 +236,7 @@ class Tool(BaseTool):
             return
         
         install_tool = 'aptitude'
+        install_tool_apt = 'apt'
         if osversion.get_version() == "16.04":
             install_tool = 'apt'
 
@@ -245,11 +246,12 @@ class Tool(BaseTool):
             AptUtils.install_pkg('aptitude')
             AptUtils.install_pkg('aptitude')
 
+        # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
-            cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool,dic_base[install_version]),300,os_command=True).run()
+            cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
         elif code==1:
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=True).run()
+            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=False).run()
 
         # apt broken error
