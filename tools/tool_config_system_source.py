@@ -65,61 +65,19 @@ class Tool(BaseTool):
         self.name = "一键更换系统源"
         self.autor = '小鱼'
 
-    def get_mirror_by_code(self,code,arch='amd64'):
-        """
-        获取镜像通过系统版本号
-        """
-        ros1_choose_queue = ["tsinghua","huawei","packages.ros"]
-        ros2_choose_queue = ["tsinghua","huawei","packages.ros"]
-        
-        # armhf架构，优先使用官方源
-        if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
 
-        mirror = []
-        for item in ros1_choose_queue:
-            if item in ros_dist_dic[code]:
-                mirror.append(ros_mirror_dic[item]['ROS1'])
-                break
-        for item in ros2_choose_queue:
-            if item in ros2_dist_dic[code]:
-                mirror.append(ros_mirror_dic[item]['ROS2'])
-                break
-        return mirror
-        
+    def add_ros_source(self):
+        dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
+        code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
+        if code==2: return
 
-    def add_key(self):
-        # check apt
-        if not AptUtils.checkapt(): return False
-        # pre-install
-        AptUtils.install_pkg('curl')
-        AptUtils.install_pkg('gnupg2')
+        import importlib
+        tool = importlib.import_module("tool_install_ros").Tool()
+        if not tool.support_install(): return False
+        tool.check_sys_source()
+        tool.add_key()
+        tool.add_source()
 
-        # add key
-        cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
-        if cmd_result[0]!=0:
-            cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
-        if cmd_result[0]!=0:
-            PrintUtils.print_info("导入密钥失败，开始更换导入方式并二次尝试...")
-            cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
-        return cmd_result
-
-
-    def add_source(self):
-        """
-        检查并添加ROS系统源
-        """
-        arch = AptUtils.getArch()
-        if arch==None: return False
-        #add source 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch)
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        # update
-        if not AptUtils.checkapt(): PrintUtils.print_error("换源后更新失败，请联系小鱼处理!") 
 
 
     def change_source(self):
@@ -198,6 +156,9 @@ class Tool(BaseTool):
         if result[0]==0: 
             PrintUtils.print_success("搞定了,不信你看,累死宝宝了，还不快去给小鱼点个赞~")
             PrintUtils.print_info(result[1])
+            # 添加 ROS Source
+            self.add_ros_source()
+
         PrintUtils.print_success("镜像修复完成.....")
 
     def run(self):

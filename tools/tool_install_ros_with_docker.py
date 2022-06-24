@@ -139,6 +139,13 @@ newgrp docker
         CmdTask('sudo docker pull {} '.format(RosVersions.get_image(name)),os_command=True).run()
         CmdTask('sudo docker pull {} '.format(RosVersions.get_image(name)),os_command=True).run()
 
+        # create image
+        # TODO 更换好系统源
+        # FROM xxx
+        # COPY 源
+        # update && install wget
+        # 一鍵還原添加ROS
+
     def create_container(self,name):
         """创建容器"""
         PrintUtils.print_success("================================4.生成容器======================================")

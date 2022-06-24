@@ -11,7 +11,7 @@ tools ={
     2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':0,     'tool':url_prefix+'tools/tool_install_github_desktop.py' ,'dep':[] },
     3: {'tip':'一键配置:rosdep(小鱼的rosdepc,又快又好用)',                 'type':2,    'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
     4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':2,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
-    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
+    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[1] },
     6: {'tip':'一键安装:nodejs',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
     7: {'tip':'一键安装:VsCode开发工具',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
     8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
