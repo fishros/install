@@ -72,7 +72,7 @@ class Tool(BaseTool):
         if code==2: return
 
         import importlib
-        tool = importlib.import_module("tool_install_ros").Tool()
+        tool = importlib.import_module("'tools.tool_install_ros").Tool()
         if not tool.support_install(): return False
         tool.check_sys_source()
         tool.add_key()
