@@ -7,20 +7,20 @@ base_url = url_prefix+'tools/base.py'
 
 tools ={
     1: {'tip':'一键安装:ROS(支持ROS和ROS2,树莓派Jetson)',                 'type':0,     'tool':url_prefix+'tools/tool_install_ros.py' ,'dep':[4,5] },
+    11: {'tip':'一键安装:ROS+Docker(支持所有版本ROS/ROS2)',                'type':0,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
     2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':0,     'tool':url_prefix+'tools/tool_install_github_desktop.py' ,'dep':[] },
-    3: {'tip':'一键配置:rosdep(小鱼的rosdepc,又快又好用)',                 'type':2,     'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
+    3: {'tip':'一键配置:rosdep(小鱼的rosdepc,又快又好用)',                 'type':2,    'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
     4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':2,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
-    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,     'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
+    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[] },
     6: {'tip':'一键安装:nodejs',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
     7: {'tip':'一键安装:VsCode开发工具',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
     8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
     9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
     10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':0,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
-    11: {'tip':'一键安装:Code-Server(网页版VsCode)',      'type':0,     'tool':url_prefix+'tools/tool_install_code_server.py' ,'dep':[] },
+    # 11: {'tip':'一键安装:Code-Server(网页版VsCode)',      'type':0,     'tool':url_prefix+'tools/tool_install_code_server.py' ,'dep':[] },
     77: {'tip':'测试模式:运行自定义工具测试'},
 }
 # 
-
 
 
 def main():
