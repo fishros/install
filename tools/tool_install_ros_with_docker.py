@@ -84,31 +84,33 @@ class Tool(BaseTool):
         self.autor = '小鱼'
 
     def get_container_scripts(self, name, rosversion, delete_file):
-        delete_command = "sudo rm -rf {}".format(delete_file)
+        delete_command = "docker stop {} && docker rm {} && sudo rm -rf {}".format(name,name,delete_file)
         ros1 = """xhost +local: >> /dev/null
-echo "请输入指令控制{}: 启动(s) 关闭(c) 重启(r) 删除(d) 测试(t):"
+echo "请输入指令控制{}: 重启(r) 进入(e) 启动(s) 关闭(c) 删除(d) 测试(t):"
 read choose
 case $choose in
 s) docker start {};;
 r) docker restart {};;
+e) docker exec -it {} /bin/bash;;
 c) docker stop {};;
 d) docker stop {} && docker rm {} && {};;
 t) docker exec -it {}  /bin/bash -c "roscore";;
 esac
 newgrp docker
-""".format(name,name,name,name,name,name,delete_command,name)
+""".format(name,name,name,name,name,name,name,delete_command,name)
         ros2 = """xhost +local: >> /dev/null
-echo "请输入指令控制{}: 启动(s) 关闭(c) 重启(r) 删除(d) 测试(t):"
+echo "请输入指令控制{}: 重启(r) 进入(e) 启动(s) 关闭(c) 删除(d) 测试(t):"
 read choose
 case $choose in
 s) docker start {};;
 r) docker restart {};;
+e) docker exec -it {} /bin/bash;;
 c) docker stop {};;
 d) docker stop {} && docker rm {} && {};;
 t) docker exec -it {}  /bin/bash -c "ros2";;
 esac
 newgrp docker
-""".format(name,name,name,name,name,name,delete_command,name)
+""".format(name,name,name,name,name,name,name,delete_command,name)
         if rosversion=="ROS1":
             return ros1
         return ros2
