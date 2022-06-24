@@ -157,7 +157,7 @@ class Tool(BaseTool):
             PrintUtils.print_success("搞定了,不信你看,累死宝宝了，还不快去给小鱼点个赞~")
             PrintUtils.print_info(result[1])
             # 添加 ROS Source
-            self.add_ros_source()
+            # self.add_ros_source()
 
         PrintUtils.print_success("镜像修复完成.....")
 
