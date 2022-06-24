@@ -93,7 +93,7 @@ s) docker start {};;
 r) docker restart {};;
 c) docker stop {};;
 d) docker stop {} && docker rm {} && {};;
-t) docker exec -it {}  /bin/bash -c "source /opt/ros/noetic/setup.bash  && roscore";;
+t) docker exec -it {}  /bin/bash -c "roscore";;
 esac
 newgrp docker
 """.format(name,name,name,name,name,name,delete_command,name)
@@ -105,7 +105,7 @@ s) docker start {};;
 r) docker restart {};;
 c) docker stop {};;
 d) docker stop {} && docker rm {} && {};;
-t) docker exec -it {}  /bin/bash -c "source /opt/ros/noetic/setup.bash  && ros2 --version";;
+t) docker exec -it {}  /bin/bash -c "ros2";;
 esac
 newgrp docker
 """.format(name,name,name,name,name,name,delete_command,name)
