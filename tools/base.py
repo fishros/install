@@ -1015,10 +1015,11 @@ class FileUtils():
         users = CmdTask("users", 0).run() 
         if users[0]!=0:  return ['root']
         # TODO 使用ls再次获取用户名
-        if len(users)==0:
-            user = input("请手动输入你的用户名\n>>")
-            users.append(user)
         users = users[1][0].split(" ")
+        if len(users[0])==0:
+            user = input("请手动输入你的用户名>>")
+            users.clear()
+            users.append(user)
         return users
 
 
