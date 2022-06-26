@@ -59,7 +59,14 @@ class RosVersions:
             PrintUtils.print_warn("小鱼，黄黄的提示：您安装的是ROS1，可以打开一个新的终端输入roscore测试！")
         elif version=="ROS2":
             PrintUtils.print_warn("小鱼：黄黄的提示：您安装的是ROS2,ROS2是没有roscore的，请打开新终端输入ros2测试！小鱼制作了ROS2课程，关注公众号《鱼香ROS》即可获取~")
-    
+
+    @staticmethod
+    def get_desktop_version(name):
+        version = RosVersions.get_version(name).version
+        if version=="ROS1":
+            return "ros-{}-desktop-full".format(name)
+        elif version=="ROS2":
+            return "ros-{}-desktop".format(name)
 
 ros_mirror_dic = {
     "tsinghua":{"ROS1":"http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu/"},
@@ -256,26 +263,26 @@ class Tool(BaseTool):
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
                 import time
                 input("确认了解情况，请输入回车继续安装")
-                cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
+                cmd_result = CmdTask("sudo {} install   {} ".format(install_tool,install_version),300,os_command=True).run()
                 cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
         
         elif code==1:
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=True).run()
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=False).run()
+            cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=True).run()
+            cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=False).run()
             if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
                 import time
                 input("确认了解情况，请输入回车继续安装")
-                cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
-                cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=False).run()
+                cmd_result = CmdTask("sudo {} install   {}".format(install_tool,RosVersions.get_desktop_version(install_version)),300,os_command=True).run()
+                cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,RosVersions.get_desktop_version(install_version)),300,os_command=False).run()
 
         # apt broken error
         if cmd_result[0]!=0:
             if FileUtils.check_result(cmd_result[1]+cmd_result[2],['apt --fix-broken install -y']):
                 if code==2: cmd_result = CmdTask("sudo {} install   {} -y".formatinstall_tool,(dic_base[rosname]),300,os_command=False).run()
-                elif code==1: cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,rosname),300,os_command=False).run()
+                elif code==1: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,rosname),300,os_command=False).run()
 
         # 安装额外的依赖
         RosVersions.install_depend(install_version)
