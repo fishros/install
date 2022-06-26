@@ -248,9 +248,16 @@ class Tool(BaseTool):
         # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
+
+            PrintUtils.print_success("请注意我，如果你在安装过程中出现依赖问题，请选择n之后再选择y,即可解决")
+            cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
         elif code==1:
             cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=True).run()
+            # 尝试使用aptitude解决依赖问题
+            print(cmd_result)
+            PrintUtils.print_success("请注意我，如果你在安装过程中出现依赖问题，请选择n之后再选择y,即可解决")
+            cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=False).run()
 
         # apt broken error
