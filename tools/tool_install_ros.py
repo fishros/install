@@ -247,18 +247,29 @@ class Tool(BaseTool):
 
         # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
+            # 第一次尝试
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
-
-            PrintUtils.print_success("请注意我，如果你在安装过程中出现依赖问题，请选择n之后再选择y,即可解决")
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
-            cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
+            cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=False).run()
+            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies']):
+                # 尝试使用aptitude解决依赖问题
+                PrintUtils.print_warn("============================================================")
+                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
+                import time
+                input("确认了解情况，请输入回车继续安装")
+                cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
+                cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
+        
         elif code==1:
             cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=True).run()
-            # 尝试使用aptitude解决依赖问题
-            print(cmd_result)
-            PrintUtils.print_success("请注意我，如果你在安装过程中出现依赖问题，请选择n之后再选择y,即可解决")
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
-            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=False).run()
+            cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool_apt,install_version),300,os_command=False).run()
+            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies']):
+                # 尝试使用aptitude解决依赖问题
+                PrintUtils.print_warn("============================================================")
+                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
+                import time
+                input("确认了解情况，请输入回车继续安装")
+                cmd_result = CmdTask("sudo {} install   ros-{}-desktop".format(install_tool,install_version),300,os_command=True).run()
+                cmd_result = CmdTask("sudo {} install   ros-{}-desktop -y".format(install_tool,install_version),300,os_command=False).run()
 
         # apt broken error
         if cmd_result[0]!=0:

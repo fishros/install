@@ -1109,6 +1109,7 @@ class FileUtils():
     def check_result(result,patterns):
         for line in result:
             for pattern in patterns:
+                line = str(line)
                 if len(re.findall(pattern, line))>0:
                     return True
 
