@@ -1180,12 +1180,15 @@ class BaseTool():
         pass
         # PrintUtils.print_delay("一键安装已开源，欢迎给个star/提出问题/帮助完善：https://github.com/fishros/install/ ")
 
-def run_tool_file(file):
+def run_tool_file(file,autorun=True):
+    """运行工具文件，可以获取其他工具的对象"""
     import importlib
     tool = importlib.import_module(file.replace(".py","")).Tool()
+    if not autorun: return tool
     if tool.init()==False: return False
     if tool.run()==False: return False
     if tool.uninit()==False: return False
+    return tool
 
 def run_tool_url(url,url_prefix):
     os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))

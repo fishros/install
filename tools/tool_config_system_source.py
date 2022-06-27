@@ -67,20 +67,18 @@ class Tool(BaseTool):
 
 
     def add_ros_source(self):
+        """快速添加ROS源"""
         dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
         code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
         if code==2: return
-
-        import importlib
-        tool = importlib.import_module("tools.tool_install_ros").Tool()
+        tool = run_tool_file('tools.tool_install_ros',autorun=False)
         if not tool.support_install(): return False
         tool.check_sys_source()
         tool.add_key()
         tool.add_source()
 
 
-
-    def change_source(self):
+    def change_sys_source(self):
         """
         一键换源
         """
@@ -156,11 +154,11 @@ class Tool(BaseTool):
         if result[0]==0: 
             PrintUtils.print_success("搞定了,不信你看,累死宝宝了，还不快去给小鱼点个赞~")
             PrintUtils.print_info(result[1])
-            # 添加 ROS Source
-            # self.add_ros_source()
 
         PrintUtils.print_success("镜像修复完成.....")
 
     def run(self):
-        #正式的运行
-        self.change_source()
+        # 正式的运行
+        self.change_sys_source()
+        # 添加 ROS Source
+        self.add_ros_source()
