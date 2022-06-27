@@ -73,7 +73,7 @@ class Tool(BaseTool):
         if code==2: return
         tool = run_tool_file('tools.tool_install_ros',autorun=False)
         if not tool.support_install(): return False
-        tool.check_sys_source()
+        # tool.check_sys_source()
         tool.add_key()
         tool.add_source()
 
