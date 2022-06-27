@@ -20,7 +20,7 @@ class RosVersions:
         RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:humble-desktop-full']),
         RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:foxy-desktop']),
         RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:galactic-desktop']),
-        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['ros:melodic']),
+        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:melodic-desktop-full']),
         RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:rolling-desktop-full']),
         RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:kinetic-desktop-full']),
         RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:eloquent-desktop']),
