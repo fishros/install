@@ -180,7 +180,8 @@ class Tool(BaseTool):
         PrintUtils.print_warn("=========接下来这一步很重要，如果不知道怎么选请选择1========")
         code,result = ChooseTask(dic, "首次安装一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
-            run_tool_file('tools.tool_config_system_source')
+            tool = run_tool_file('tools.tool_config_system_source',autorun=False)
+            tool.change_sys_source()
 
 
     def add_source(self):
