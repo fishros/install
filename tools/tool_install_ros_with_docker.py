@@ -7,29 +7,30 @@ from .base import run_tool_file
 class RosVersion:
     STATUS_EOL = 0
     STATUS_LTS = 1
-    def __init__(self,name,version,status,images=[]):
+    def __init__(self,name,version,status,images=[],arm_images=[]):
         self.name = name
         self.version = version
         self.status = status
         self.images = images
+        self.arm_images = arm_images
 
 
 class RosVersions:
     ros_version = [
-        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:noetic-desktop-full']),
-        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:humble-desktop-full']),
-        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:foxy-desktop']),
-        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:galactic-desktop']),
-        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:melodic-desktop-full']),
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:rolling-desktop-full']),
-        RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:kinetic-desktop-full']),
-        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:eloquent-desktop']),
-        RosVersion('dashing',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:dashing-desktop']),
-        RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:crystal-desktop']),
-        RosVersion('bouncy',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:bouncy-desktop']),
-        RosVersion('ardent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:ardent-desktop']),
-        RosVersion('lunar', 'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:lunar-desktop']),
-        RosVersion('indigo', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:indigo-desktop-full'])
+        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:noetic-desktop-full'],["ros:noetic"]),
+        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:humble-desktop-full'],["ros:humble"]),
+        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:foxy-desktop'],["ros:foxy"]),
+        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:galactic-desktop'],["ros:galactic"]),
+        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:melodic-desktop-full'],["ros:melodic"]),
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:rolling-desktop-full'],["ros:rolling"]),
+        RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:kinetic-desktop-full'],["ros:kinetic"]),
+        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:eloquent-desktop'],["ros:eloquent"]),
+        RosVersion('dashing',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:dashing-desktop'],["ros:dashing"]),
+        RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:crystal-desktop'],["ros:crystal"]),
+        RosVersion('bouncy',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:bouncy-desktop'],["ros:bouncy"]),
+        RosVersion('ardent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:ardent-desktop'],["ros:ardent"]),
+        RosVersion('lunar', 'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:lunar-desktop'],["ros:lunar"]),
+        RosVersion('indigo', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:indigo-desktop-full'],["ros:indigo"])
     ]
 
     @staticmethod
@@ -46,6 +47,8 @@ class RosVersions:
     def get_image(name):
         for version in RosVersions.ros_version:
             if version.name == name:
+                if osarch=="arm64"
+                    return version.arm_images[0]
                 return version.images[0]
 
     @staticmethod
