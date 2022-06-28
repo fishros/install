@@ -170,7 +170,7 @@ newgrp docker
 
         CmdTask(command_create_x11,os_command=True).run()
         # CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /ros_entrypoint.sh' >> ~/.bashrc" """.format(container_name),os_command=True).run()
-        CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /opt/ros/$ROS_DISTRO/setup.bash' >> ~/.bashrc" """.format(container_name),os_command=True).run()
+        CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /opt/ros/{}/setup.bash' >> ~/.bashrc" """.format(container_name,name),os_command=True).run()
         # docker exec -it noetic-test1  /bin/bash -c "source /opt/ros/noetic/setup.bash  && roscore"
         # test command
         CmdTask("xhost +local:",os_command=True).run()
