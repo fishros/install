@@ -32,14 +32,14 @@ class Tool(BaseTool):
             for bashrc in bashrc_result[1]:
                 FileUtils.find_replace(bashrc,"source\s+/opt/ros/[A-Za-z]+/setup.bash","")
                 FileUtils.find_replace_sub(bashrc,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "")
-                FileUtils.append(bashrc,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<")
+                FileUtils.append(bashrc,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<\n")
             return True
         elif len(result[1])==1 and len(result[1][0])>2:
             PrintUtils.print_info('检测到系统有1个ROS环境,以为你生成启动选择,修改~/.bashrc可关闭')
             for bashrc in bashrc_result[1]:
                 FileUtils.find_replace(bashrc,"source\s+/opt/ros/[A-Za-z]+/setup.bash","")
                 FileUtils.find_replace_sub(bashrc,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "")
-                FileUtils.append(bashrc,'# >>> fishros initialize >>>\n source {} \n# <<< fishros initialize <<<'.format(result[1][0]))
+                FileUtils.append(bashrc,'# >>> fishros initialize >>>\n source {} \n# <<< fishros initialize <<<\n'.format(result[1][0]))
             return True
         else:
             PrintUtils.print_error("当前系统并没有安装ROS，请使用一键安装安装~")
