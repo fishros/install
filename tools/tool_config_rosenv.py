@@ -34,7 +34,8 @@ class Tool(BaseTool):
                 FileUtils.find_replace_sub(bashrc,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "")
                 FileUtils.append(bashrc,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<")
             return True
-        elif len(result[1])==1:
+        elif len(result[1])==1 and len(result[1][0])>2:
+            PrintUtils.print_info('检测到系统有1个ROS环境,以为你生成启动选择,修改~/.bashrc可关闭')
             for bashrc in bashrc_result[1]:
                 FileUtils.find_replace(bashrc,"source\s+/opt/ros/[A-Za-z]+/setup.bash","")
                 FileUtils.find_replace_sub(bashrc,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "")
