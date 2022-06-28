@@ -17,9 +17,9 @@ class RosVersion:
 
 class RosVersions:
     ros_version = [
-        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:noetic-desktop-full'],["ros:noetic"]),
-        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:humble-desktop-full'],["ros:humble"]),
-        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:foxy-desktop'],["ros:foxy"]),
+        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['fishros2/ros:noetic-desktop-full'],["ros:noetic"]),
+        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['fishros2/ros:humble-desktop-full'],["ros:humble"]),
+        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['fishros2/ros:foxy-desktop'],["ros:foxy"]),
         RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:galactic-desktop'],["ros:galactic"]),
         RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['osrf/ros:melodic-desktop-full'],["ros:melodic"]),
         RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:rolling-desktop-full'],["ros:rolling"]),
