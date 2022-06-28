@@ -47,7 +47,7 @@ class RosVersions:
     def get_image(name):
         for version in RosVersions.ros_version:
             if version.name == name:
-                if osarch=="arm64"
+                if osarch=="arm64":
                     return version.arm_images[0]
                 return version.images[0]
 
