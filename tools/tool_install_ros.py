@@ -129,12 +129,12 @@ class Tool(BaseTool):
         self.autor = '小鱼'
 
 
-    def get_mirror_by_code(self,code,arch='amd64'):
+    def get_mirror_by_code(self,code,arch='amd64',first_choose="tsinghua"):
         """
         获取镜像通过系统版本号
         """
-        ros1_choose_queue = ["tsinghua","huawei","packages.ros"]
-        ros2_choose_queue = ["tsinghua","huawei","packages.ros"]
+        ros1_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
+        ros2_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
         
         # armhf架构，优先使用官方源
         if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
@@ -191,7 +191,8 @@ class Tool(BaseTool):
 
         arch = AptUtils.getArch()
         if arch==None: return False
-        #add source 
+
+        #add source 1
         mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch)
         PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
         source_data = ''
@@ -199,8 +200,31 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        # update
-        if not AptUtils.checkapt(): PrintUtils.print_error("换源后更新失败，请联系小鱼处理!") 
+        if  AptUtils.checkapt(): return
+        
+        #add source2 
+        PrintUtils.print_warn("换源后更新失败，尝试更换ROS2源为华为源！") 
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="huawei")
+        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
+        source_data = ''
+        for mirror in mirrors:
+            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
+        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
+        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
+        if  AptUtils.checkapt(): return
+
+        #add source2 
+        PrintUtils.print_warn("换源后更新失败，尝试更换ROS2源为ROS2官方源！") 
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="packages.ros")
+        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
+        source_data = ''
+        for mirror in mirrors:
+            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
+        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
+        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
+        if  AptUtils.checkapt(): PrintUtils.print_error("换源后更新失败，请及时联系小鱼处理！") 
+
+
 
 
     def support_install(self):
