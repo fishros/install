@@ -222,7 +222,8 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        if  AptUtils.checkapt(): PrintUtils.print_error("换源后更新失败，请及时联系小鱼处理！") 
+        if  not AptUtils.checkapt(): PrintUtils.print_error("换源后更新失败，请及时联系小鱼处理！") 
+        if  AptUtils.checkapt(): PrintUtils.print_error("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
 
 
 
