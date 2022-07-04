@@ -1165,11 +1165,11 @@ class AptUtils():
         result = AptUtils.install_pkg(name)
         if result:
             # 自动同意安装一次
+            AptUtils.install_pkg('aptitude')
             if FileUtils.check_result(result,['未满足的依赖关系','unmet dependencies']):
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
             # 还不行让用户手动安装
             while FileUtils.check_result(result,['未满足的依赖关系','unmet dependencies']):
-                AptUtils.install_pkg('aptitude')
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后选择解决方案（第一个解决方案不一定可以解决问题，如再遇到可以采用下一个解决方案）,即可解决")
