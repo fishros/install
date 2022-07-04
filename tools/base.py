@@ -1144,12 +1144,38 @@ class AptUtils():
         return dic
     
     @staticmethod 
-    def install_pkg(name):
+    def install_pkg(name,apt_tool="apt",auto_yes=True,os_command=False):
         dic = AptUtils().search_package(name,name)
+        yes = ""
+        if auto_yes: 
+            yes="-y"
+
         result = None
         for key in dic.keys():
-            result = CmdTask("sudo apt install {} -y".format(dic[key]), 0).run()
+            result = CmdTask("sudo {} install {} {}".format(apt_tool,dic[key],yes), 0, os_command=os_command).run()
+        if not result:
+            PrintUtils.print_warn("没有找到包：{}".format(name))
         return result
+
+    @staticmethod
+    def install_pkg_check_dep(name):
+        """
+        安装并检查依赖问题
+        """
+        result = AptUtils.install_pkg(name)
+        if result:
+            # 自动同意安装一次
+            if FileUtils.check_result(result,['未满足的依赖关系','unmet dependencies']):
+                result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
+            # 还不行让用户手动安装
+            while FileUtils.check_result(result,['未满足的依赖关系','unmet dependencies']):
+                AptUtils.install_pkg('aptitude')
+                # 尝试使用aptitude解决依赖问题
+                PrintUtils.print_warn("============================================================")
+                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后选择解决方案（第一个解决方案不一定可以解决问题，如再遇到可以采用下一个解决方案）,即可解决")
+                input("确认了解上述情况，请输入回车继续安装")
+                result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = True, auto_yes=False)
+                result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
 
 """
 定义基础任务

@@ -41,7 +41,8 @@ class Tool(BaseTool):
         CmdTask("sudo apt update").run()
         PrintUtils.print_info("开始安装最新版本docker CE~")
         CmdTask("sudo apt --fix-broken install -y").run()
-        CmdTask("sudo apt install docker-ce -y").run()
+        # CmdTask("sudo apt install docker-ce -y").run()
+        AptUtils.install_pkg_check_dep("docker-ce")
         CmdTask("sudo groupadd docker").run()
         user = FileUtils.getusers()[0]
         CmdTask("sudo gpasswd -a {} docker".format(user)).run()
