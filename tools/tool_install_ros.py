@@ -152,8 +152,8 @@ class Tool(BaseTool):
                 if item in ros2_dist_dic[code]:
                     mirror.append(ros_mirror_dic[item]['ROS2'])
                     break
-        if code in ['focal']:
-            mirror.append(ros_mirror_dic['packages.ros']['ROS2'])
+        # if code in ['focal']:
+        #     mirror.append(ros_mirror_dic['packages.ros']['ROS2'])
         return mirror
 
 
