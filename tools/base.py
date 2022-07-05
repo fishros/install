@@ -1116,8 +1116,14 @@ class FileUtils():
 class AptUtils():
     @staticmethod
     def checkapt():
-        apt_command = CmdTask('sudo apt update',100)
-        result = apt_command.run()
+        result = CmdTask('sudo apt update',100).run()
+        if result[0]!=0:
+            if FileUtils.check_result(result,['certificate','证书']):
+                PrintUtils.print_warn("检测到发生证书校验错误{}，自动取消https校验，如有需要请手动删除：rm /etc/apt/apt.conf.d/99verify-peer.conf".format(result[2]))
+                CmdTask('touch /etc/apt/apt.conf.d/99verify-peer.conf').run()
+                CmdTask('echo  "Acquire { https::Verify-Peer false }" > /etc/apt/apt.conf.d/99verify-peer.conf').run()
+                result = CmdTask('sudo apt update',100).run()
+                
         if result[0]!=0:
             PrintUtils.print_warn("当前apt存在问题，推荐使用一键换源处理...若无法处理，请将下列错误信息告知小鱼...,{}".format(result[2]))
             return False
