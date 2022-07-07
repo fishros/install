@@ -303,7 +303,7 @@ class Tool(BaseTool):
             # 第一次尝试
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=False).run()
-            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies']):
+            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies','but it is not installable']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
@@ -315,7 +315,7 @@ class Tool(BaseTool):
         elif code==1:
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=False).run()
-            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies']):
+            if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies','but it is not installable']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
