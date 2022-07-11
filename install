@@ -2,9 +2,10 @@ mkdir -p /tmp/fishinstall/tools
 wget http://fishros.com/install/install1s/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
 # 强制解锁，太多用户遇到这个问题了，没办法，后续想个办法解决下
-sudo rm /var/cache/apt/archives/lock
-sudo rm /var/lib/dpkg/lock
-sudo rm /var/lib/dpkg/lock-frontend
+# 强解可能会有依赖问题
+# sudo rm /var/cache/apt/archives/lock
+# sudo rm /var/lib/dpkg/lock
+# sudo rm /var/lib/dpkg/lock-frontend
 sudo apt install python3-distro python3-yaml  -y
 if [ $UID -eq 0 ];then
     apt-get install sudo 
