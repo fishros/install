@@ -172,6 +172,11 @@ class Tool(BaseTool):
         if cmd_result[0]!=0:
             PrintUtils.print_info("导入密钥失败，开始更换导入方式并二次尝试...")
             cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+        if FileUtils.check_result(cmd_result,['trusted.gpg.d']):
+            # curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import 
+            # sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg
+            cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import",10).run()
+            cmd_result = CmdTask("sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg",10).run()
         return cmd_result
 
 
