@@ -27,7 +27,7 @@ class Tool(BaseTool):
         bashrc_result = CmdTask("ls /home/*/.bashrc", 0).run() 
         if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run() 
         if len(result[1])>1:
-            PrintUtils.print_info('检测到系统有多个ROS环境,以为你生成启动选择,修改~/.bashrc可关闭')
+            PrintUtils.print_info('检测到系统有多个ROS环境,已为你生成启动选择,修改~/.bashrc可关闭')
             data = get_source_command(result[1])
             for bashrc in bashrc_result[1]:
                 FileUtils.find_replace(bashrc,"source\s+/opt/ros/[A-Za-z]+/setup.bash","")
@@ -35,7 +35,7 @@ class Tool(BaseTool):
                 FileUtils.append(bashrc,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<\n")
             return True
         elif len(result[1])==1 and len(result[1][0])>2:
-            PrintUtils.print_info('检测到系统有1个ROS环境,以为你生成启动选择,修改~/.bashrc可关闭')
+            PrintUtils.print_info('检测到系统有1个ROS环境,已为你生成启动选择,修改~/.bashrc可关闭')
             for bashrc in bashrc_result[1]:
                 FileUtils.find_replace(bashrc,"source\s+/opt/ros/[A-Za-z]+/setup.bash","")
                 FileUtils.find_replace_sub(bashrc,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "")

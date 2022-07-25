@@ -45,7 +45,7 @@ newgrp docker
             CmdTask('cd /tmp/wechaet_deb && cat wechat_* > wechat.deb',os_command=True).run()
             CmdTask('cd /tmp/wechaet_deb && sudo dpkg -i wechat.deb',os_command=True).run()
             CmdTask('rm -rf /tmp/wechaet_deb',os_command=True).run()
-            PrintUtils.print_success("以为你安装完成wechat~")
+            PrintUtils.print_success("已为你安装完成wechat~")
         if code == 1:
             run_tool_file('tools.tool_install_docker')
             user =  FileUtils.getusers()[0]
@@ -70,7 +70,7 @@ newgrp docker
 
             if result[0] != 0: PrintUtils.print_error("失败了。。请到社区或群聊反馈:{}".format(result[1]+result[2]))
             PrintUtils.print_info("===========================================")
-            PrintUtils.print_success("以为你安装完成wechat，稍后会弹窗登录")
+            PrintUtils.print_success("已为你安装完成wechat，稍后会弹窗登录")
             # 创建微信脚本
             FileUtils.new(bin_path,name,self.get_wechat_scripts(name,build))
             FileUtils.find_replace_sub(bashrc,"# >>> fishros scripts >>>","# <<< fishros scripts <<<", "")
