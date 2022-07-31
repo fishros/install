@@ -133,6 +133,8 @@ newgrp docker
     def install_docker(self):
         """安装Docker"""
         PrintUtils.print_success("================================2.安装Docker======================================")
+        result = CmdTask("docker version").run()
+        if(result[0]==0): return
         run_tool_file('tools.tool_install_docker')
         # TODO 检查是否安装成功
 
@@ -212,6 +214,7 @@ newgrp docker
     def install_ros_with_docker(self):
         rosname = self.choose_image_version()
         if not rosname: return
+
         self.install_docker()
         self.download_image(rosname)
         container_name = self.create_container(rosname)
