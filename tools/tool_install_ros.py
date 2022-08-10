@@ -208,8 +208,7 @@ class Tool(BaseTool):
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
 
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if  AptUtils.checkapt() or dic_base!=None: 
+        if  AptUtils.checkapt() and AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")!=None: 
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
         
@@ -222,8 +221,7 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if  AptUtils.checkapt() or dic_base!=None: 
+        if  AptUtils.checkapt() and AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")!=None: 
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
@@ -236,8 +234,7 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if  AptUtils.checkapt() or dic_base!=None: 
+        if  AptUtils.checkapt() and AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")!=None: 
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
@@ -249,8 +246,7 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if  AptUtils.checkapt() or dic_base!=None: 
+        if  AptUtils.checkapt() and AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")!=None: 
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
