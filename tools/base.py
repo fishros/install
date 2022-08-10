@@ -1147,6 +1147,7 @@ class AptUtils():
         for line in result[1]:
             temp = re.findall(pattern,line)      
             if len(temp)>0: dic[temp[0].replace(replace1,"").replace(replace2,"")] = temp[0]
+        if len(dic)==0: return None
         return dic
     
     @staticmethod 
