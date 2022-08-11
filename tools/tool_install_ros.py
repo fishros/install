@@ -218,7 +218,8 @@ class Tool(BaseTool):
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
 
-        if self.get_all_instsll_ros_pkgs():
+        ros_pkg = self.get_all_instsll_ros_pkgs()
+        if ros_pkg and len(ros_pkg)>1:
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
         
@@ -231,7 +232,8 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        if self.get_all_instsll_ros_pkgs():
+        ros_pkg = self.get_all_instsll_ros_pkgs()
+        if ros_pkg and len(ros_pkg)>1:
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
@@ -244,7 +246,8 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        if self.get_all_instsll_ros_pkgs():
+        ros_pkg = self.get_all_instsll_ros_pkgs()
+        if ros_pkg and len(ros_pkg)>1:
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
@@ -256,7 +259,8 @@ class Tool(BaseTool):
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
         FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
         FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        if self.get_all_instsll_ros_pkgs():
+        ros_pkg = self.get_all_instsll_ros_pkgs()
+        if ros_pkg and len(ros_pkg)>1:
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
