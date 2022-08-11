@@ -1125,7 +1125,7 @@ class AptUtils():
                 result = CmdTask('sudo apt update',100).run()
                 
         if result[0]!=0:
-            PrintUtils.print_warn("当前apt存在问题，推荐使用一键换源处理...若无法处理，请将下列错误信息告知小鱼...,{}".format(result[2]))
+            PrintUtils.print_warn("apt更新失败,后续程序可能会继续尝试...,{}".format(result[2]))
             return False
         return True
 
