@@ -16,7 +16,7 @@ class Tool(BaseTool):
         if osarch=='amd64':
             CmdTask('sudo wget http://vscode.cdn.azure.cn/stable/6d9b74a70ca9c7733b29f0456fd8195364076dda/code_1.70.1-1660113095_amd64.deb -O /tmp/vscode.deb',os_command=True).run()
         elif osarch=='arm64':
-            CmdTask('sudo wget http://vscode.cdn.azure.cn/stable/6d9b74a70ca9c7733b29f0456fd8195364076dda/code_1.70.1-1660113095_arm64.deb -O /tmp/vscode.deb',os_command=True).run()
+            CmdTask('sudo wget http://vscode.cdn.azure.cn/stable/e4503b30fc78200f846c62cf8091b76ff5547662/code_1.70.2-1660628199_arm64.deb -O /tmp/vscode.deb',os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成,接下来为你安装Vscode~")
