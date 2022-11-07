@@ -22,6 +22,7 @@ class Tool(BaseTool):
         PrintUtils.print_info("下载完成,接下来为你解压安装Nodejs~")
         CmdTask("rm -rf /opt/nodejs/").run()
         CmdTask("mkdir -p /opt/nodejs/").run()
+        CmdTask("sudo apt install xz-utils -y").run()
         CmdTask("sudo tar -xvf /tmp/nodejs.tar.xz  -C /opt/nodejs/").run()
         CmdTask("sudo chmod -R 777 /opt/nodejs/").run()
         CmdTask("rm -rf /tmp/nodejs.tar.xz").run()
