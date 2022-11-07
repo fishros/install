@@ -53,7 +53,24 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
     && apt-get clean && apt autoclean 
 ```
+一键换源
 
+```
+FROM ubuntu:22.04
+
+# 一键换源
+RUN apt update \
+    && apt install wget python3 python3-yaml -y python3-distro\
+    && echo "chooses:\n" > fish_install.yaml \
+    && echo "- {choose: 5, desc: '一键安装:ROS(支持ROS和ROS2,树莓派Jetson)'}\n" >> fish_install.yaml \
+    && echo "- {choose: 2, desc: 更换源继续安装}\n" >> fish_install.yaml \
+    && echo "- {choose: 1, desc: 清理三方源}\n" >> fish_install.yaml \
+    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
+    # 进行最后的清理
+    && rm -rf fish_install.yaml \
+    && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
+    && apt-get clean && apt autoclean 
+```
 
 ## 贡献指南
 
