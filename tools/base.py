@@ -1132,7 +1132,9 @@ class AptUtils():
     @staticmethod
     def getArch():
         result = CmdTask("dpkg --print-architecture",2).run()
-        if result[0]==0: return result[1][0].strip("\n")
+        arc = result[1][0].strip("\n")
+        if arc=='armhf': arc = 'arm64'
+        if result[0]==0: arc
         PrintUtils.print_error("小鱼提示:自动获取系统架构失败...请手动选择")
         # @TODO 提供架构选项 amd64,i386,arm
         return None

@@ -65,8 +65,7 @@ newgrp docker
             PrintUtils.print_info("正在为创建安装微信")
             build = 'sudo docker run -d --name wechat --device /dev/snd --ipc="host"  -v /tmp/.X11-unix:/tmp/.X11-unix  \
             -v {}:/WeChatFiles  -v {}:/home/wechat -e DISPLAY=unix$DISPLAY  -e XMODIFIERS=@im={}  -e QT_IM_MODULE={}  -e GTK_IM_MODULE={}  -e AUDIO_GID=`getent group audio | cut -d: -f3` bestwu/wechat'.format(file_path,home,inputs,inputs,inputs)
-            result = CmdTask(build,
-            os_command=False).run()
+            result = CmdTask(build,os_command=False).run()
 
             if result[0] != 0: PrintUtils.print_error("失败了。。请到社区或群聊反馈:{}".format(result[1]+result[2]))
             PrintUtils.print_info("===========================================")
