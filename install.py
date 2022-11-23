@@ -81,7 +81,7 @@ def main():
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
 
     config_helper.gen_config_file()
-    PrintUtils.print_delay("欢迎加入机器人学习交流QQ群：139707339(入群口令：一键安装)",0.1)
+    PrintUtils.print_delay("欢迎加入机器人学习交流QQ群：686914208(入群口令：一键安装)",0.1)
     PrintUtils.print_success("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",0.001)
 
 if __name__=='__main__':
