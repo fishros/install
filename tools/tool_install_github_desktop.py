@@ -16,7 +16,7 @@ class Tool(BaseTool):
         sudo dpkg -i  /tmp/github.deb
         sudo apt install /tmp/github.deb -y
         """
-        CmdTask('sudo wget https://mirror.ghproxy.com/https://github.com/shiftkey/desktop/releases/download/release-2.9.12-linux4/GitHubDesktop-linux-2.9.12-linux4.deb -O /tmp/github.deb',os_command=True).run()
+        CmdTask('sudo wget https://ghproxy.com/https://github.com/shiftkey/desktop/releases/download/release-2.9.12-linux4/GitHubDesktop-linux-2.9.12-linux4.deb -O /tmp/github.deb',os_command=True).run()
         CmdTask('sudo dpkg -i  /tmp/github.deb').run()
         CmdTask('sudo apt install /tmp/github.deb -y').run()
 
