@@ -11,6 +11,11 @@ class Tool(BaseTool):
         self.autor = 'alyssa'
 
     def install_docker(self):
+        """
+        $ curl -fsSL https://get.docker.com -o get-docker.sh
+        $ sudo sh get-docker.sh
+
+        """
         PrintUtils.print_info("开始根据系统架构,为你下载对应版本的docker~")
 
         # 更换系统源
