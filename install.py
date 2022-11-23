@@ -30,7 +30,7 @@ def main():
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper
-    PrintUtils.print_delay(f"检测到你的系统版本信息为{osversion.get_codename()},{osarch}",0.001)
+    # PrintUtils.print_delay(f"检测到你的系统版本信息为{osversion.get_codename()},{osarch}",0.001)
 
     # check base config
     if not encoding_utf8:

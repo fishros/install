@@ -34,6 +34,11 @@ class Tool(BaseTool):
         CmdTask('curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | sudo apt-key add -',10).run()
         #verify key
         CmdTask('sudo apt-key fingerprint 0EBFCD88',10).run()
+        if osarch=="bullseye":
+            CmdTask("curl -fsSL https://get.docker.com -o get-docker.sh").run()
+            CmdTask("sudo sh get-docker.sh").run()
+            PrintUtils.print_info("安装完成,接下来你可以尝试使用docker --version指令测试是有正常回显~")
+            return
 
         # 根据系统架构下载不同版本的安装包
         if osarch=='amd64':
