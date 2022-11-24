@@ -1009,6 +1009,14 @@ class FileUtils():
         return bashrc_result[1]
 
     @staticmethod
+    def exists(path):
+        if os.path.exists(path):
+            return True
+        else:
+            return False
+
+
+    @staticmethod
     def getusers():
         """
         优先home,没有home提供root

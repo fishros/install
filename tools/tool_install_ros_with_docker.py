@@ -163,12 +163,16 @@ newgrp docker
         user =  FileUtils.getusers()[0]
         home = "/home/{}".format(user)
 
+        use_dri = ""
+        if FileUtils.exists("/dev/dri/renderD128"):
+            use_dri = "--device=/dev/dri/renderD128"
+
         if container_name:
-            command_create_x11 = "sudo docker run -dit --name={} -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix --device=/dev/dri/renderD128 -v /dev/dri:/dev/dri --device /dev/snd -e DISPLAY=unix$DISPLAY -w {}  {}".format(
-                    container_name,home,home,home,RosVersions.get_image(name))
+            command_create_x11 = "sudo docker run -dit --name={} -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev/dri:/dev/dri --device /dev/snd -e DISPLAY=unix$DISPLAY -w {}  {}".format(
+                    container_name,home,home,use_dri,home,RosVersions.get_image(name))
         else:
-            command_create_x11 = "sudo docker run -dit  -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix --device=/dev/dri/renderD128 -v /dev/dri:/dev/dri --device /dev/snd -e DISPLAY=unix$DISPLAY -w {}  {}".format(
-                    home,home,home,RosVersions.get_image(name))
+            command_create_x11 = "sudo docker run -dit  -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev/dri:/dev/dri --device /dev/snd -e DISPLAY=unix$DISPLAY -w {}  {}".format(
+                    home,home,use_dri,home,RosVersions.get_image(name))
 
         CmdTask(command_create_x11,os_command=True).run()
         # CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /ros_entrypoint.sh' >> ~/.bashrc" """.format(container_name),os_command=True).run()
