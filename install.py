@@ -17,6 +17,7 @@ tools ={
     8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
     9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
     10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':0,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
+    12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':0,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
     # 11: {'tip':'一键安装:Code-Server(网页版VsCode)',      'type':0,     'tool':url_prefix+'tools/tool_install_code_server.py' ,'dep':[] },
     77: {'tip':'测试模式:运行自定义工具测试'},
 }
