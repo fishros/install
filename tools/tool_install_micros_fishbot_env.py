@@ -22,9 +22,9 @@ class Tool(BaseTool):
         for i in range(0,3):
             repo = f"platformio0{i}"
             tar = f"platformio.0{i}"
-            PrintUtils.print_info("正在下载第{i}部分数据~")
+            PrintUtils.print_info(f"正在下载第{i}部分数据~")
             CmdTask(f'git clone https://gitee.com/ohhuo/{repo}',os_command=True,path=target_path).run()
-            PrintUtils.print_info("下载完成第{i}部分数据,开始进行组装~")
+            PrintUtils.print_info(f"下载完成第{i}部分数据,开始进行组装~")
             CmdTask(f'cat {repo}/{repo}.* > {target_path}/{tar}',os_command=True,path=target_path).run()
             PrintUtils.print_info("组装完成~")
         CmdTask('cat platformio.* > platformio.tar.gz',os_command=True,path=target_path).run()
