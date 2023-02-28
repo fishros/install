@@ -14,9 +14,9 @@ class Tool(BaseTool):
         PrintUtils.print_info("开始根据系统架构,为你下载对应版本的nodejs~")
         # 根据系统架构下载不同版本的安装包
         if osarch=='amd64':
-            CmdTask('wget https://npmmirror.com/mirrors/node/v16.13.2/node-v16.13.2-linux-x64.tar.xz -O /tmp/nodejs.tar.xz',os_command=True).run()
+            CmdTask('wget https://npmmirror.com/mirrors/node/v18.12.1/node-v18.12.1-linux-x64.tar.xz -O /tmp/nodejs.tar.xz',os_command=True).run()
         elif osarch=='arm64':
-            CmdTask('wget https://npmmirror.com/mirrors/node/v16.13.2/node-v16.13.2-linux-arm64.tar.xz -O /tmp/nodejs.tar.xz',os_command=True).run()
+            CmdTask('wget https://npmmirror.com/mirrors/node/v18.12.1/node-v18.12.1-linux-arm64.tar.xz -O /tmp/nodejs.tar.xz',os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成,接下来为你解压安装Nodejs~")
