@@ -30,7 +30,7 @@ class Tool(BaseTool):
         # 配置环境
         for bashrc in FileUtils.getbashrc():
             FileUtils.find_replace_sub(bashrc,"# >>> nodejs initialize >>>","# <<< nodejs initialize <<<", "")
-            FileUtils.append(bashrc,"# >>> nodejs initialize >>>\n"+"export PATH=$PATH:/opt/nodejs/node-v16.13.2-linux-x64/bin/"+"\n# <<< nodejs initialize <<<")
+            FileUtils.append(bashrc,"# >>> nodejs initialize >>>\n"+"export PATH=$PATH:/opt/nodejs/node-v18.12.1-linux-x64/bin/"+"\n# <<< nodejs initialize <<<")
         PrintUtils.print_info("配置完成,接下来你可以尝试使用node和npm指令运行了~")
 
     def run(self):
