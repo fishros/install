@@ -84,6 +84,7 @@ def main():
 
     config_helper.gen_config_file()
     PrintUtils.print_delay("欢迎加入机器人学习交流QQ群：686914208(入群口令：一键安装)",0.1)
+    PrintUtils.print_success("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888",0.001)
     PrintUtils.print_success("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",0.001)
 
 if __name__=='__main__':
