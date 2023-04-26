@@ -161,7 +161,9 @@ class Tool(BaseTool):
 
     def add_key(self):
         # check apt
-        if not AptUtils.checkapt(): return False
+        if not AptUtils.checkapt(): 
+            pass
+            # 检查失败可能会造成后续安装失败
         # pre-install
         AptUtils.install_pkg('curl')
         AptUtils.install_pkg('gnupg2')

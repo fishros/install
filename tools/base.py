@@ -1131,8 +1131,8 @@ class AptUtils():
                 PrintUtils.print_warn("检测到发生证书校验错误{}，自动取消https校验，如有需要请手动删除：rm /etc/apt/apt.conf.d/99verify-peer.conf".format(result[2]))
                 CmdTask('touch /etc/apt/apt.conf.d/99verify-peer.conf').run()
                 CmdTask('echo  "Acquire { https::Verify-Peer false }" > /etc/apt/apt.conf.d/99verify-peer.conf').run()
+                CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
                 result = CmdTask('sudo apt update',100).run()
-                
         if result[0]!=0:
             PrintUtils.print_warn("apt更新失败,后续程序可能会继续尝试...,{}".format(result[2]))
             return False

@@ -141,6 +141,8 @@ class Tool(BaseTool):
             result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9",10).run()
             result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517",10).run()
             result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 54404762BBB6E853",10).run()
+            result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+            # sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 
             result = CmdTask("apt-get install debian-keyring debian-archive-keyring",10).run()
             result = CmdTask("apt-key update",10).run()
             result = CmdTask('sudo apt update',100).run()
