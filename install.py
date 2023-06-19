@@ -18,9 +18,9 @@ tools ={
     10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':0,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
     11: {'tip':'一键安装:ROS+Docker(支持所有版本ROS/ROS2)',                'type':0,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
     12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':0,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
-    # 11: {'tip':'一键安装:Code-Server(网页版VsCode)',      'type':0,     'tool':url_prefix+'tools/tool_install_code_server.py' ,'dep':[] },
+    13: {'tip':'一键配置:python国内源','type':2,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
     77: {'tip':'测试模式:运行自定义工具测试'},
-}
+    }
 # 
 
 
@@ -66,7 +66,7 @@ def main():
     """
     PrintUtils.print_delay(tip,0.001)
     PrintUtils.print_delay(book,0.001)
-    
+
 
     # download tools
     choose_dic = {}
@@ -77,6 +77,7 @@ def main():
         code,result = ChooseTask(choose_dic, "请选择你要测试的程序:").run()
         if  code<0 and code>=77:  return False
         # CmdTask("cp tools/* /tmp/fishinstall/tools/").run
+        print(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
     else: 
         download_tools(code,tools)
