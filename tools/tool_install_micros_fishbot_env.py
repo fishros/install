@@ -12,7 +12,7 @@ class Tool(BaseTool):
 
     def install_nodejs(self):
         PrintUtils.print_warn("注意:目前本工具仅在Ubuntu22.04上测试通过")
-
+        CmdTask(f'sudo apt update && sudo apt install git python3-venv -y',os_command=True).run()
         PrintUtils.print_info("开始下载小鱼配置好的PlateformIO核心包及开发库~")
 
         target_path = "/tmp/platformio"
@@ -33,8 +33,12 @@ class Tool(BaseTool):
         user = FileUtils.getusers()[0]
         if user!='root':
             CmdTask(f'tar -xzvf platformio.tar.gz -C /home/{user}/',os_command=True,path=target_path).run()
+            CmdTask(f"/bin/bash -c 'source /home/{user}/.platformio/penv/bin/activate && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio'",os_command=True).run()
         else:
             CmdTask(f'tar -xzvf platformio.tar.gz -C /root/',os_command=True,path=target_path).run()
+            CmdTask(f'source /root/.platformio/penv/bin/activate && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio').run()
+
+
         PrintUtils.print_info("解压完成,接下来你可以到vscode里下载platformio插件并新建工程了~!")
 
 
