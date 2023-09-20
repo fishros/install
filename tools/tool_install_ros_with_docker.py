@@ -197,8 +197,11 @@ newgrp docker
         PrintUtils.print_success("================================5.生成命令======================================")
         rosversion = RosVersions.get_ros_version(rosname).version
         user =  FileUtils.getusers()[0]
-        bashrc = '/home/{}/.bashrc'.format(user)
-        bin_path = "/home/{}/.fishros/bin/".format(user)
+        bin_path = "/root/.fishros/bin/"
+        bashrc = '/root/.bashrc'
+        if user!='root':
+            bin_path = "/home/{}/.fishros/bin/".format(user)
+            bashrc = '/home/{}/.bashrc'.format(user)
         home = "/home/{}".format(user)
 
         # create file
