@@ -1030,7 +1030,20 @@ class FileUtils():
             users.clear()
             users.append(user)
         return users
-
+    
+    @staticmethod
+    def getusershome():
+        """
+        优先home,没有home提供root
+        """
+        users = FileUtils.getusers()
+        user_homes = []
+        for user in users:
+            if user=='root':
+                user_homes.append("/root")
+            else:
+                user_homes.append("/home/"+str(user)+"/")
+        return user_homes
 
     @staticmethod
     def new(path,name=None,data=''):
