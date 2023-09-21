@@ -49,7 +49,7 @@ newgrp docker
             PrintUtils.print_success("已为你安装完成wechat~")
         if code==3:
             CmdTask('wget http://archive.ubuntukylin.com/software/pool/partner/ukylin-wine_70.6.3.25_amd64.deb -O /tmp/ukylin-wine_70.6.3.25_amd64.deb',os_command=True).run()
-            CmdTask('wget http://archive.ubuntukylin.com/software/pool/partner/ukylin-wechat_3.0.0_amd64.deb -O /tmp/ukylin-wechat_3.0.0_amd64.deb',os_command=True).run()/
+            CmdTask('wget http://archive.ubuntukylin.com/software/pool/partner/ukylin-wechat_3.0.0_amd64.deb -O /tmp/ukylin-wechat_3.0.0_amd64.deb',os_command=True).run()
             CmdTask('sudo apt install xdotool',os_command=True).run()
             CmdTask('sudo dpkg -i /tmp/ukylin-wine_70.6.3.25_amd64.deb',os_command=True).run()
             CmdTask('sudo dpkg -i /tmp/ukylin-wechat_3.0.0_amd64.deb',os_command=True).run()
