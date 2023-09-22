@@ -26,7 +26,7 @@ tools ={
     6: {'tip':'一键安装:NodeJS环境',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
     7: {'tip':'一键安装:VsCode开发工具',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
     8: {'tip':'一键安装:Docker',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
-    #9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
+    9: {'tip':'一键安装:Cartographer(内测版易失败)',      'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
     10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
     11: {'tip':'一键安装:ROS Docker版(支持所有版本ROS/ROS2)',                'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
     12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
