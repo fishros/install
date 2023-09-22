@@ -32,6 +32,7 @@ tools ={
     12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
     13: {'tip':'一键配置:python国内源','type':CONFIG_TOOL,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
     14: {'tip':'一键安装:科学上网代理工具','type':INSTALL_SOFTWARE,'tool':url_prefix+'tools/tool_install_proxy_tool.py' ,'dep':[] },
+    15: {'tip':'一键安装：搜狗输入法', 'type':INSTALL_SOFTWARE, 'tool': url_prefix+'tools/tool_install_sogou.py', 'dep':[]},
     # 77: {'tip':'测试模式:运行自定义工具测试'},
     }
 # 
