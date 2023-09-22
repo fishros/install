@@ -5,29 +5,55 @@ url_prefix = 'http://fishros.com/install/install1s/'
 
 base_url = url_prefix+'tools/base.py'
 
+INSTALL_ROS = 0  # 安装ROS相关
+INSTALL_SOFTWARE = 1  # 安装软件
+CONFIG_TOOL = 2  # 配置相关
+
+
+tools_type_map = {
+    INSTALL_ROS: "ROS相关",
+    INSTALL_SOFTWARE: "常用软件",
+    CONFIG_TOOL: "配置工具"
+}
+
+
 tools ={
-    1: {'tip':'一键安装:ROS(支持ROS和ROS2,树莓派Jetson)',                 'type':0,     'tool':url_prefix+'tools/tool_install_ros.py' ,'dep':[4,5] },
-    2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':0,     'tool':url_prefix+'tools/tool_install_github_desktop.py' ,'dep':[] },
-    3: {'tip':'一键配置:rosdep(小鱼的rosdepc,又快又好用)',                 'type':2,    'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
-    4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':2,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
-    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':2,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[1] },
-    6: {'tip':'一键安装:nodejs',      'type':0,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
-    7: {'tip':'一键安装:VsCode开发工具',      'type':0,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
-    8: {'tip':'一键安装:Docker',      'type':0,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
-    9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
-    10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':0,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
-    11: {'tip':'一键安装:ROS+Docker(支持所有版本ROS/ROS2)',                'type':0,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
-    12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':0,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
-    13: {'tip':'一键配置:python国内源','type':2,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
-    77: {'tip':'测试模式:运行自定义工具测试'},
+    1: {'tip':'一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)',                 'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_install_ros.py' ,'dep':[4,5] },
+    2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_github_desktop.py' ,'dep':[] },
+    4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
+    3: {'tip':'一键安装:rosdep(小鱼的rosdepc,又快又好用)',                 'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
+    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':CONFIG_TOOL,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[1] },
+    6: {'tip':'一键安装:NodeJS环境',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
+    7: {'tip':'一键安装:VsCode开发工具',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
+    8: {'tip':'一键安装:Docker',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
+    #9: {'tip':'一键安装:Cartographer(内测版v0.1)',      'type':0,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
+    10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
+    11: {'tip':'一键安装:ROS Docker版(支持所有版本ROS/ROS2)',                'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
+    12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
+    13: {'tip':'一键配置:python国内源','type':CONFIG_TOOL,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
+    14: {'tip':'一键安装:科学上网代理工具','type':INSTALL_SOFTWARE,'tool':url_prefix+'tools/tool_install_proxy_tool.py' ,'dep':[] },
+    # 77: {'tip':'测试模式:运行自定义工具测试'},
     }
 # 
+
+
+# 创建用于存储不同类型工具的字典
+tool_categories = {}
+
+# 遍历tools字典，根据type值进行分类
+for tool_id, tool_info in tools.items():
+    tool_type = tool_info['type']
+    # 如果该类型还没有在字典中创建，则创建一个新的列表来存储该类型的工具
+    if tool_type not in tool_categories:
+        tool_categories[tool_type] = {}
+    # 将工具信息添加到相应类型的列表中
+    tool_categories[tool_type][tool_id]=tool_info
 
 
 def main():
     # download base
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
-    from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask
+    from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper
@@ -70,8 +96,9 @@ def main():
 
     # download tools
     choose_dic = {}
-    for tool_id in tools.keys(): choose_dic[tool_id]  = tools[tool_id]["tip"]
-    code,result = ChooseTask(choose_dic, "---众多工具，等君来用---").run()
+    # for tool_id in tools.keys(): choose_dic[tool_id]  = tools[tool_id]["tip"]
+    code,result = ChooseWithCategoriesTask(tool_categories, tips="---众多工具，等君来用---",categories=tools_type_map).run()
+
     if code==0: PrintUtils().print_success("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
     elif code==77: 
         code,result = ChooseTask(choose_dic, "请选择你要测试的程序:").run()

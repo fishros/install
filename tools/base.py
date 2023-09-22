@@ -990,6 +990,55 @@ class ChooseTask(Task):
         return ChooseTask.__choose(self.dic,self.tips,self.array)
 
 
+class ChooseWithCategoriesTask(Task):
+    def __init__(self,dic,tips,categories,array=False) -> None:
+        self.tips= tips
+        self.dic = dic
+        self.array = array
+        self.categories = categories
+        super().__init__(Task.TASK_TYPE_CHOOSE)
+
+    @staticmethod
+    def __choose(data,tips,array,categories):
+        dic = data
+        # dic[0]="quit"
+        # 0 quit
+        choose_id = -1 
+
+        tool_ids = [0]
+        # 打印不同类型工具的分类结果
+        for tool_type, tools_list in dic.items():
+            PrintUtils.print_delay(f"{categories[tool_type]}:",0.005)
+            for tool_id,tool_info in tools_list.items():
+                PrintUtils.print_delay("  [{}]:{}".format(tool_id,tool_info['tip']),0.005)
+                tool_ids.append(tool_id)
+            print()
+        PrintUtils.print_delay("[0]:quit\n",0.005)
+
+        choose = None
+        choose_item = config_helper.get_input_value()
+
+        while True:
+            if choose_item:
+                choose_id = str(choose_item['choose'])
+                print("为您从配置文件找到默认选项：",choose_item)
+            else:
+                choose_id = input("请输入[]内的数字以选择:")
+                choose_item = None
+            # Input From Queue
+            if choose_id.isdecimal() :
+                if int(choose_id) in tool_ids :
+                    choose_id = int(choose_id)
+                    break
+        config_helper.record_choose({"choose":choose_id,"desc":""})
+        PrintUtils.print_fish()
+        return choose_id,""
+
+    def run(self):
+        PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
+        PrintUtils.print_delay(self.tips,0.001)
+        return ChooseWithCategoriesTask.__choose(self.dic,self.tips,self.array,self.categories)
+
 
 class FileUtils():
     @staticmethod
@@ -1047,6 +1096,7 @@ class FileUtils():
 
     @staticmethod
     def new(path,name=None,data=''):
+        PrintUtils.print_info("创建文件:{}".format(path+name))
         if not os.path.exists(path):
             CmdTask("sudo mkdir -p {}".format(path),3).run()
         if name!=None:
