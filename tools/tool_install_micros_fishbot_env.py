@@ -11,34 +11,30 @@ class Tool(BaseTool):
         self.autor = '小鱼'
 
     def install_nodejs(self):
-        PrintUtils.print_warn("注意:目前本工具仅在Ubuntu22.04上测试通过")
         CmdTask('sudo apt update && sudo apt install git python3-venv -y', os_command=True).run()
-        PrintUtils.print_info("开始下载小鱼配置好的PlateformIO核心包及开发库~")
+        PrintUtils.print_warn("注意:运行本指令前需要在VS Code 中安装 PlatformIO 插件后再运行本命令")
+        user_home = FileUtils.getusershome()[0]
+        PrintUtils.print_info("开始安装Platform IO~")
+        print(CmdTask('export HOME={} && $HOME.platformio/penv/bin/pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio'.format(user_home),os_command=True).run())
+        PrintUtils.print_info("开始下载ESP32开发依赖库~")
+        PrintUtils.print_warn("下载不使用代理会很慢（大约4小时左右），建议运行一键安装14开启代理后，导出终端代理可10分钟装好")
+        PrintUtils.print_info("当前进度: 1/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --platform "platformio/espressif32@^6.4.0"'.format(user_home),os_command=True).run()
+        PrintUtils.print_info("当前进度: 2/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/contrib-piohome"'.format(user_home), os_command=True).run()
+        PrintUtils.print_info("当前进度: 3/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/framework-arduinoespressif32"'.format(user_home), os_command=True).run()
+        PrintUtils.print_info("当前进度: 4/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-scons"'.format(user_home), os_command=True).run()
+        PrintUtils.print_info("当前进度: 5/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mkfatfs"'.format(user_home), os_command=True).run()
+        PrintUtils.print_info("当前进度: 6/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mkspiffs"'.format(user_home), os_command=True).run()
+        PrintUtils.print_info("当前进度: 7/7 ")
+        CmdTask('export HOME={} && $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mklittlefs"'.format(user_home), os_command=True).run()
 
-        target_path = "/tmp/platformio"
-        FileUtils.delete(target_path)
-        CmdTask('rm -rf {} && mkdir {}'.format(target_path, target_path), os_command=True).run()
-
-        for i in range(0, 3):
-            repo = "platformio0{}".format(i)
-            tar = "platformio.0{}".format(i)
-            PrintUtils.print_info("正在下载第{}部分数据~".format(i))
-            CmdTask('git clone https://gitee.com/ohhuo/{}'.format(repo), os_command=True, path=target_path).run()
-            PrintUtils.print_info("下载完成第{}部分数据,开始进行组装~".format(i))
-            CmdTask('cat {}/{}.{} > {}/{}'.format(repo, repo, '*', target_path, tar), os_command=True, path=target_path).run()
-            PrintUtils.print_info("组装完成~".format(i))
-        CmdTask('cat platformio.* > platformio.tar.gz', os_command=True, path=target_path).run()
-        PrintUtils.print_info("下载完成,接下来为你解压安装PlateformIO~")
-
-        user = FileUtils.getusers()[0]
-        if user != 'root':
-            CmdTask('tar -xzvf platformio.tar.gz -C /home/{}/'.format(user), os_command=True, path=target_path).run()
-            CmdTask("/bin/bash -c 'source /home/{}/.platformio/penv/bin/activate && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio'".format(user), os_command=True).run()
-        else:
-            CmdTask('tar -xzvf platformio.tar.gz -C /root/', os_command=True, path=target_path).run()
-            CmdTask('source /root/.platformio/penv/bin/activate && pip install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio').run()
-
-        PrintUtils.print_info("解压完成,接下来你可以到vscode里下载platformio插件并新建工程了~!")
+        PrintUtils.print_info("安装,接下来你可以到vscode里新建工程了~!")
 
     def run(self):
         self.install_nodejs()
+
