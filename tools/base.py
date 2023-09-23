@@ -877,21 +877,23 @@ class Progress():
 
 
 class CmdTask(Task):
-    def __init__(self,command,timeout=0,groups=False,os_command=False,path=None) -> None:
+    def __init__(self,command,timeout=0,groups=False,os_command=False,path=None,executable='/bin/sh') -> None:
         super().__init__(Task.TASK_TYPE_CMD)
         self.command = command
         self.timeout = timeout
         self.os_command = os_command
         self.cwd = path
+        self.executable = executable
 
     @staticmethod
-    def __run_command(command,timeout=10,cwd=None):
+    def __run_command(command,timeout=10,cwd=None,executable='/bin/sh'):
         out,err = [],[]
         sub = subprocess.Popen(command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=cwd,
-            shell=True)
+            shell=True,
+            executable=executable)
 
         # sub.communicate
         bar  = Progress(timeout=timeout)
@@ -938,7 +940,7 @@ class CmdTask(Task):
         PrintUtils.print_info("\033[32mRun CMD Task:[{}]".format(self.command))
         if self.os_command:
             return self._os_command(self.command,self.timeout,cwd=self.cwd)
-        return self.__run_command(self.command,self.timeout,cwd=self.cwd)
+        return self.__run_command(self.command,self.timeout,cwd=self.cwd,executable=self.executable)
 
 
 
