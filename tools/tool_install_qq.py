@@ -23,7 +23,7 @@ class Tool(BaseTool):
         CmdTask("sudo apt update").run()
         # 解压安装包
         CmdTask("sudo dpkg -i /tmp/qq.deb").run()
-        CmdTask("rm -rf /tmp/vscode.deb").run()
+        CmdTask("rm -rf /tmp/qq.deb").run()
         PrintUtils.print_info("安装完成~")
 
 
