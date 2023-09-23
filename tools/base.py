@@ -1010,7 +1010,7 @@ class ChooseWithCategoriesTask(Task):
         tool_ids = [0]
         # 打印不同类型工具的分类结果
         for tool_type, tools_list in dic.items():
-            PrintUtils.print_delay(f"{categories[tool_type]}:",0.005)
+            PrintUtils.print_delay("{}:".format(categories[tool_type]),0.005)
             for tool_id,tool_info in tools_list.items():
                 PrintUtils.print_delay("  [{}]:{}".format(tool_id,tool_info['tip']),0.005)
                 tool_ids.append(tool_id)
