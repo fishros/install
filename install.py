@@ -58,6 +58,8 @@ def main():
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper
     # PrintUtils.print_delay(f"检测到你的系统版本信息为{osversion.get_codename()},{osarch}",0.001)
+    # 使用量统计
+    CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q && rm -rf /tmp/t1733").run()
 
     # check base config
     if not encoding_utf8:
