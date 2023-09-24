@@ -7,7 +7,7 @@ from .base import run_tool_file
 class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
-        self.name = "一键安装Clash"
+        self.name = "一键安装QQ"
         self.autor = '五柳小生'
 
     def install_qq(self):
@@ -15,12 +15,13 @@ class Tool(BaseTool):
         if osarch == 'arm64':
             CmdTask('sudo wget https://down.qq.com/qqweb/LinuxQQ/linuxqq_2.0.0-b2-1089_arm64.deb -O /tmp/qq.deb',os_command=True).run()
         elif osarch == 'amd64':
-            CmdTask('sudo wget https://down.qq.com/qqweb/LinuxQQ/linuxqq_2.0.0-b2-1089_amd64.deb, -O /tmp/qq.deb',os_command=True).run()
+            CmdTask('sudo wget https://down.qq.com/qqweb/LinuxQQ/linuxqq_2.0.0-b2-1089_amd64.deb -O /tmp/qq.deb',os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成，接下来为您安装QQ")
-        # 更新源
-        CmdTask("sudo apt update").run()
+        # 安装依赖
+        CmdTask("sudo apt-get update")
+        CmdTask("sudo apt install libgtk2.0-0")
         # 解压安装包
         CmdTask("sudo dpkg -i /tmp/qq.deb").run()
         CmdTask("rm -rf /tmp/qq.deb").run()
