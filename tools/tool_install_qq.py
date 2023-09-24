@@ -13,9 +13,9 @@ class Tool(BaseTool):
     def install_qq(self):
         PrintUtils.print_info("开始根据系统架构，为你下载对应版本的QQ~")
         if osarch == 'arm64':
-            CmdTask('sudo wget https://down.qq.com/qqweb/LinuxQQ/linuxqq_2.0.0-b2-1089_arm64.deb -O /tmp/qq.deb',os_command=True).run()
+            CmdTask('sudo wget https://dldir1.qq.com/qqfile/qq/QQNT/b69de82d/linuxqq_3.2.1-17153_arm64.deb -O /tmp/qq.deb',os_command=True).run()
         elif osarch == 'amd64':
-            CmdTask('sudo wget https://down.qq.com/qqweb/LinuxQQ/linuxqq_2.0.0-b2-1089_amd64.deb -O /tmp/qq.deb',os_command=True).run()
+            CmdTask('sudo wget https://dldir1.qq.com/qqfile/qq/QQNT/b69de82d/linuxqq_3.2.1-17153_amd64.deb -O /tmp/qq.deb',os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成，接下来为您安装QQ")
