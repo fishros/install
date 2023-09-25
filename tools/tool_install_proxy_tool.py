@@ -107,12 +107,12 @@ class Tool(BaseTool):
             FileUtils.new(path=desktop_path,name="启动代理.desktop",data=start_clash_new_terminal_desktop.replace("{script_path}",clash_home+"start_clash.sh"))
             CmdTask('sudo chmod a+x {}启动代理.desktop'.format(desktop_path),os_command=True).run()
         
-        PrintUtils.print_info("==========使用方法===========")
-        PrintUtils.print_info("1.桌面快捷方式：需要先右击允许执行才能使用")
-        PrintUtils.print_info("2.可以在终端中直接运行脚本启动,启动脚本 $HOME/.clash/start_clash.sh")
-        PrintUtils.print_info("3.终端通过环境变量设置: export http_proxy=http://127.0.0.1:7890 && export https_proxy=http://127.0.0.1:7890")
-        PrintUtils.print_info("4.配置系统默认代理方式: 系统设置->网络->网络代理->手动->HTTP(127.0.0.1 7890)->HTTPS(127.0.0.1 7890)")
-        PrintUtils.print_info("5.其他系统（Android/IOS/Windows）下载软件:https://repo.trojan-cdn.com/")
+        PrintUtils.print_delay("==========使用方法===========")
+        PrintUtils.print_delay("1.桌面快捷方式：需要先右击允许执行才能使用")
+        PrintUtils.print_delay("2.可以在终端中直接运行脚本启动,直接输入:$HOME/.clash/start_clash.sh")
+        PrintUtils.print_delay("3.终端通过环境变量设置: export http_proxy=http://127.0.0.1:7890 && export https_proxy=http://127.0.0.1:7890")
+        PrintUtils.print_delay("4.配置系统默认代理方式: 系统设置->网络->网络代理->手动->HTTP(127.0.0.1 7890)->HTTPS(127.0.0.1 7890)")
+        PrintUtils.print_delay("5.其他系统（Android/IOS/Windows/MacOS）下载软件:https://repo.trojan-cdn.com/")
         
     def run(self):
         self.install_proxy_tool()
