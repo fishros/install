@@ -28,7 +28,7 @@ if [ ! -e "${target_dir}Country.mmdb" ]; then
 else
     echo "文件已存在，无需下载。"
 fi
-xdg-open http://yacd.haishan.me/ >> /dev/null &
+xdg-open http://fishros.org:1234/ >> /dev/null &
 ./clash
 """
 
@@ -85,7 +85,7 @@ class Tool(BaseTool):
         PrintUtils.print_info("正在配置启动脚本....")
         FileUtils.new(path=clash_home,name="start_clash.sh",data=start_clash_sh.replace("{clash_home}",clash_home).replace("{server_url}",serve_url))
         CmdTask('sudo chmod a+x {}start_clash.sh'.format(clash_home),os_command=True).run()
-        PrintUtils.print_info("启动脚本配置完成，你可以在目录: {}  运行 start_clash.sh 启动工具，启动后可通过网页：http://yacd.haishan.me/ 进行管理".format(clash_home))
+        PrintUtils.print_info("启动脚本配置完成，你可以在目录: {}  运行 start_clash.sh 启动工具，启动后可通过网页：http://fishros.org:1234/ 进行管理".format(clash_home))
 
         PrintUtils.print_info("==========进行启动项配置...===========")
         dic = {1:"设置开机自启动",2:"不设置开机自启动"}
