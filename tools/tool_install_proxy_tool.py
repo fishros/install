@@ -29,6 +29,12 @@ else
     echo "文件已存在，无需下载。"
 fi
 xdg-open http://fishros.org:1234/ >> /dev/null &
+sleep 3
+echo "==============================================="
+echo "终端通过环境变量设置: export http_proxy=http://127.0.0.1:7890 && export https_proxy=http://127.0.0.1:7890"
+echo "配置系统默认代理方式: 系统设置->网络->网络代理->手动->HTTP(127.0.0.1 7890)->HTTPS(127.0.0.1 7890)"
+echo "管理页面方法：https://fishros.org.cn/forum/topic/668 "
+echo "=============================================="
 ./clash
 """
 
