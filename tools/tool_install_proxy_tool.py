@@ -10,6 +10,7 @@ start_clash_sh = """export CLASH_SERVER="{server_url}"
 cd {clash_home}
 export http_proxy=''
 export https_proxy=''
+mkdir -p $HOME/.config/clash
 wget $CLASH_SERVER -O $HOME/.config/clash/config.yaml
 #sed -i 's/127.0.0.1:9090/0.0.0.0:9090/g'  $HOME/.config/clash/config.yaml
 sed -i 's/allow-lan: false/allow-lan: true/g'  $HOME/.config/clash/config.yaml
