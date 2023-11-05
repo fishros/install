@@ -73,8 +73,8 @@ class Tool(BaseTool):
         """安装Docker"""
         PrintUtils.print_success("================================安装Docker======================================")
         result = CmdTask("docker version").run()
-        if(result[0]==0): return
-        run_tool_file('tools.tool_install_docker')
+        if(result[0]!=0): 
+            run_tool_file('tools.tool_install_docker')
         PrintUtils.print_success("================================安装管理工具======================================")
         CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
         CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
