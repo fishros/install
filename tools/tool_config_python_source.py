@@ -14,7 +14,7 @@ class Tool(BaseTool):
     def run(self):
         #正式的运行
         PrintUtils.print_delay('runing python_source')
-        port = "https://pypi.mirrors.ustc.edu.cn/simple/"
+        port = "https://pypi.tuna.tsinghua.edu.cn/simple"
         
         path = '~/.pip/pip.conf'
         # delete 
