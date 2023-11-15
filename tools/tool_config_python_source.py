@@ -22,6 +22,7 @@ class Tool(BaseTool):
             FileUtils.delete(path)
 
         data = "[global]\nindex-url = {}".format(port)
+        CmdTask(f"sudo mkdir ~/.pip ").run()
         CmdTask(f"sudo touch {path}").run()
         CmdTask(f"sudo chmod 777 {path}").run()
         CmdTask(f'sudo echo "{data}" > {path}').run()
