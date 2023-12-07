@@ -9,6 +9,7 @@ class Tool(BaseTool):
         self.type = BaseTool.TYPE_INSTALL
         self.name = "一键安装系统自带ROS，仅在Ubuntu 22.04 及以上版本系统中使用。"
         self.autor = 'Elysia'
+        PrintUtils.print_warn("警告！！此工具安装的ROS与从ROS官方软件源安装的ROS冲突！")
 
     def run(self):
         #正式的运行
@@ -50,7 +51,7 @@ class Tool(BaseTool):
             if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies','but it is not installable']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
-                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
+                PrintUtils.print_delay("请注意，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
                 import time
                 input("确认了解情况，请输入回车继续安装")
                 cmd_result = CmdTask("sudo {} install   {} ".format(install_tool,"ros-base-dev"),300,os_command=True).run()
@@ -62,7 +63,7 @@ class Tool(BaseTool):
             if FileUtils.check_result(cmd_result,['未满足的依赖关系','unmet dependencies','but it is not installable']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
-                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决（若无法解决，清在稍后手动运行命令: sudo aptitude install {})".format(RosVersions.get_desktop_version(install_version)))
+                PrintUtils.print_delay("请注意，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决（若无法解决，清在稍后手动运行命令: sudo aptitude install {})".format(RosVersions.get_desktop_version(install_version)))
                 import time
                 input("确认了解情况，请输入回车继续安装")
                 cmd_result = CmdTask("sudo {} install   {}".format(install_tool,"ros-desktop-full-dev"),300,os_command=True).run()
