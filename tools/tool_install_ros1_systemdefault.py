@@ -25,7 +25,7 @@ class Tool(BaseTool):
             tool = run_tool_file('tools.tool_config_system_source',autorun=False)
             tool.change_sys_source()
 
-    def install_system_ros():
+    def install_system_ros(self):
         dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
         if dic_base== None: return False
 
