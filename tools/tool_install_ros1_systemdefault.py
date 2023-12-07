@@ -26,9 +26,6 @@ class Tool(BaseTool):
             tool.change_sys_source()
 
     def install_system_ros(self):
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if dic_base== None: return False
-
         version_dic = {1:"完整版",2:"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
 
