@@ -3,22 +3,22 @@
 ## 各个版本的下载链接
 
 ### Windows
-- [typora-0-11-18.exe  68.1 MB](https://ghproxy.com/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.exe)
+- [typora-0-11-18.exe  68.1 MB](http://github.fishros.org/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.exe)
 
 ### Ubuntu
-- [Typora_Linux_0.11.18_amd64.deb  67 MB](https://ghproxy.com/https://github.com/iuxt/src/releases/download/2.0/Typora_Linux_0.11.18_amd64.deb)
+- [Typora_Linux_0.11.18_amd64.deb  67 MB](http://github.fishros.org/https://github.com/iuxt/src/releases/download/2.0/Typora_Linux_0.11.18_amd64.deb)
 
 ```
 sudo dpkg -i Typora_Linux_0.11.18_amd64.deb
 ```
 
 ### Mac
-- [typora-0-11-18.dmg  9.79 MB](https://ghproxy.com/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.dmg)
+- [typora-0-11-18.dmg  9.79 MB](http://github.fishros.org/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.dmg)
 
 ### 其他平台
-- [typora-0-11-18.tar.gz  89.4 MB](https://ghproxy.com/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.tar.gz)
-- [Source code (zip)](https://ghproxy.com/https://github.com/iuxt/src/archive/refs/tags/2.0.zip)
-- [Source code (tar.gz)](https://ghproxy.com/https://github.com/iuxt/src/archive/refs/tags/2.0.tar.gz)
+- [typora-0-11-18.tar.gz  89.4 MB](http://github.fishros.org/https://github.com/iuxt/src/releases/download/2.0/typora-0-11-18.tar.gz)
+- [Source code (zip)](http://github.fishros.org/https://github.com/iuxt/src/archive/refs/tags/2.0.zip)
+- [Source code (tar.gz)](http://github.fishros.org/https://github.com/iuxt/src/archive/refs/tags/2.0.tar.gz)
 
 
 参考文档：
