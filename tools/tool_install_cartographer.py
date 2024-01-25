@@ -9,7 +9,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装Cartographer"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '众筹'
+        self.autor = 'catalpa'
 
     def get_sys_default_ros_version(self):
         if osversion.get_version().find('18')>=0:
@@ -40,19 +40,14 @@ class Tool(BaseTool):
         CmdTask('git clone https://gitee.com/yuzi99url/cartographer_ros.git',path='cartographer_ws/src').run()
         CmdTask('git clone https://gitee.com/yuzi99url/cartographer.git',path='cartographer_ws/src').run()
         # 3
-        run_tool_file('tools.tool_config_rosdep')
-        CmdTask('rosdepc update --include-eol-distros').run()
-        CmdTask('rosdepc install --from-paths src --ignore-src --rosdistro={} -y'.format(ros_version),path='cartographer_ws').run()
+        CmdTask("sudo apt-get install libamd2 libatlas3-base libbtf1 libcamd2 libccolamd2 libceres-dev libceres1 libcholmod3 libcxsparse3 libgflags-dev libgflags2.2 libgoogle-glog-dev libgoogle-glog0v5 libklu1 libldl2 liblua5.2-0 liblua5.2-dev libmetis5 libncurses5 libncursesw5 librbio2 libreadline-dev libspqr2 libsuitesparse-dev libtinfo-dev libtinfo5 libtool-bin libumfpack5 -y").run()
+        if ros_version == "melodic":
+            CmdTask('sudo apt-get libgraphblas1 -y').run()
         # 4
         CmdTask("sudo apt-get remove ros-{}-abseil-cpp -y".format(ros_version)).run()
         FileUtils.find_replace("cartographer_ws/src/cartographer/scripts/install_abseil.sh", "https://github.com/abseil/abseil-cpp.git", "https://gitee.com/yuzi99url/abseil-cpp.git")
         CmdTask('bash src/cartographer/scripts/install_abseil.sh',path='cartographer_ws').run()
         # 5
-        CmdTask("sudo mv /usr/bin/protoc /usr/bin/protoc.bk").run()
-        CmdTask("sudo ln -s /usr/local/bin/protoc /usr/bin/protoc").run()
-        FileUtils.find_replace("cartographer_ws/src/cartographer/scripts/install_proto3.sh", "https://github.com/google/protobuf.git", "https://gitee.com/yuzi99url/protobuf.git")
-        CmdTask('bash src/cartographer/scripts/install_proto3.sh',path='cartographer_ws').run()
-        # 6
         CmdTask("catkin_make_isolated --install --use-ninja",'cartographer_ws').run()
         CmdTask("sudo chmod -R 777 cartographer_ws").run()
 
