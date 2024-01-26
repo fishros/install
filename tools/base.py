@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import print_function
 from calendar import c
 import os
 import re
@@ -1011,8 +1009,9 @@ class ChooseWithCategoriesTask(Task):
         # 打印不同类型工具的分类结果
         for tool_type, tools_list in dic.items():
             PrintUtils.print_delay("{}:".format(categories[tool_type]),0.005)
-            for tool_id,tool_info in tools_list.items():
-                PrintUtils.print_delay("  [{}]:{}".format(tool_id,tool_info['tip']),0.005)
+            sortkeys = sorted(tools_list.keys())
+            for tool_id in sortkeys:
+                PrintUtils.print_delay("  [{}]:{}".format(tool_id,tools_list[tool_id]['tip']),0.005)
                 tool_ids.append(tool_id)
             print()
         PrintUtils.print_delay("[0]:quit\n",0.005)
