@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-url_prefix = 'http://fishros.com/install/install1s/'
+url_prefix = 'http://mirror.fishros.com/install/'
 
 base_url = url_prefix+'tools/base.py'
 

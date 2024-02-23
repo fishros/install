@@ -1,5 +1,5 @@
 mkdir -p /tmp/fishinstall/tools
-wget http://fishros.com/install/install1s/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
+wget http://mirror.fishros.com/install/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
 # 强制解锁，太多用户遇到这个问题了，没办法，后续想个办法解决下
 # 强解可能会有依赖问题
