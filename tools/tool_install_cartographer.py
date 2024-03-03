@@ -42,7 +42,7 @@ class Tool(BaseTool):
         # 3
         CmdTask("sudo apt-get install libamd2 libatlas3-base libbtf1 libcamd2 libccolamd2 libceres-dev libceres1 libcholmod3 libcxsparse3 libgflags-dev libgflags2.2 libgoogle-glog-dev libgoogle-glog0v5 libklu1 libldl2 liblua5.2-0 liblua5.2-dev libmetis5 libncurses5 libncursesw5 librbio2 libreadline-dev libspqr2 libsuitesparse-dev libtinfo-dev libtinfo5 libtool-bin libumfpack5 -y").run()
         if ros_version == "melodic":
-            CmdTask('sudo apt-get libgraphblas1 -y').run()
+            CmdTask('sudo apt-get install libgraphblas1 -y').run()
         # 4
         CmdTask("sudo apt-get remove ros-{}-abseil-cpp -y".format(ros_version)).run()
         FileUtils.find_replace("cartographer_ws/src/cartographer/scripts/install_abseil.sh", "https://github.com/abseil/abseil-cpp.git", "https://gitee.com/yuzi99url/abseil-cpp.git")
