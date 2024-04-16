@@ -6,10 +6,10 @@ source /etc/profile
 # sudo rm /var/cache/apt/archives/lock
 # sudo rm /var/lib/dpkg/lock
 # sudo rm /var/lib/dpkg/lock-frontend
-sudo apt install python3-distro python3-yaml  -y
 if [ $UID -eq 0 ];then
     apt-get install sudo 
 fi
+sudo apt install python3-distro python3-yaml  -y
 sudo python3 /tmp/fishinstall/install.py
 sudo rm -rf /tmp/fishinstall/
 sudo rm fishros
