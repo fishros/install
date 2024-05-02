@@ -37,7 +37,7 @@ newgrp docker
         # sudo apt remove wechat-linux-spark
 
         """
-        wechat_version_dic = {1:"Docker版本",2:"桌面版本(v2.1.1)",3:"推荐:wine版本(v3.0.0)",4:"一键清理"}
+        wechat_version_dic = {1:"Docker版本",2:"桌面版本(v2.1.1)",3:"推荐:Linux版本(1.0.0.145)",4:"一键清理"}
         code,_ = ChooseTask(wechat_version_dic,"请选择微信版本(两个版本区别对比:https://fishros.org.cn/forum/topic/195):",False).run()
         if code==2:
             AptUtils.install_pkg("git")
@@ -48,13 +48,10 @@ newgrp docker
             CmdTask('rm -rf /tmp/wechat_deb',os_command=True).run()
             PrintUtils.print_success("已为你安装完成wechat~")
         if code==3:
-            CmdTask('wget http://archive.ubuntukylin.com/software/pool/partner/ukylin-wine_70.6.3.25_amd64.deb -O /tmp/ukylin-wine_70.6.3.25_amd64.deb',os_command=True).run()
-            CmdTask('wget http://archive.ubuntukylin.com/software/pool/partner/ukylin-wechat_3.0.0_amd64.deb -O /tmp/ukylin-wechat_3.0.0_amd64.deb',os_command=True).run()
-            CmdTask('sudo apt install xdotool',os_command=True).run()
-            CmdTask('sudo dpkg -i /tmp/ukylin-wine_70.6.3.25_amd64.deb',os_command=True).run()
-            CmdTask('sudo dpkg -i /tmp/ukylin-wechat_3.0.0_amd64.deb',os_command=True).run()
+            CmdTask('wget https://mirror.ghproxy.com/https://github.com/lovechoudoufu/wechat_for_linux/releases/download/wechat-beta-%E7%BB%95%E8%BF%87%E7%99%BB%E5%BD%95%E6%A3%80%E6%B5%8B/wechat-beta_1.0.0.145_amd64.fixed.deb -O /tmp/wechat.deb',os_command=True).run()
+            CmdTask('sudo dpkg -i /tmp/wechat.deb',os_command=True).run()
             CmdTask('apt --fix-broken install -y',os_command=True).run()
-            PrintUtils.print_success("已为你安装完成wechat-wine版本~")
+            PrintUtils.print_success("已为你安装完成wechat-linux版本~")
         if code == 1:
             run_tool_file('tools.tool_install_docker')
             user =  FileUtils.getusers()[0]

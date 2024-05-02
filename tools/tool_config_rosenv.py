@@ -9,8 +9,6 @@ class Tool(BaseTool):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "一键配置ROS开发环境"
         self.autor = '小鱼'
-
-
     def config_rosenv(self):
         def get_source_command(dic):
             choose = 'echo "<tips>?"\nread choose\ncase $choose in\n'
