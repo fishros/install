@@ -91,7 +91,7 @@ newgrp docker
         if code==4:
             try:
                 CmdTask("sudo apt remove wechat-linux-spark -y",os_command=True).run()
-                CmdTask("sudo apt remove ukylin-wechat -y",os_command=True).run()
+                CmdTask("sudo apt remove wechat-* -y",os_command=True).run()
                 CmdTask("sudo docker stop wechat",os_command=True).run()
                 CmdTask("sudo docker rm wechat",os_command=True).run()
                 CmdTask("sudo docker image rm  bestwu/wechat",os_command=True).run()
