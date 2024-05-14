@@ -243,9 +243,9 @@ class Tool(BaseTool):
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
-        #add source2 
-        PrintUtils.print_warn("换源后更新失败，第三次开始切换源，尝试更换ROS2源为ROS2官方源！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="packages.ros")
+
+        PrintUtils.print_warn("换源后更新失败，第三次开始切换源，尝试使用https-ROS官方源～！") 
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="https.packages.ros")
         PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
         source_data = ''
         for mirror in mirrors:
@@ -257,8 +257,9 @@ class Tool(BaseTool):
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
 
-        PrintUtils.print_warn("换源后更新失败，第四次开始切换源，尝试使用https-ROS2官方源～！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="https.packages.ros")
+        #add source2 
+        PrintUtils.print_warn("换源后更新失败，第四次开始切换源，尝试更换ROS源为http-ROS官方源！") 
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="packages.ros")
         PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
         source_data = ''
         for mirror in mirrors:
@@ -272,7 +273,6 @@ class Tool(BaseTool):
 
         # echo >>/etc/apt/apt.conf.d/99verify-peer.conf "Acquire { https::Verify-Peer false }"
         if  not AptUtils.checkapt(): PrintUtils.print_error("四次换源后都失败了，请及时联系小鱼获取解决方案并处理！") 
-
 
 
     def support_install(self):
