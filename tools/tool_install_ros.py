@@ -26,9 +26,11 @@ class RosVersions:
         RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22
         RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-
+        # ubuntu 22 & 24
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        # ubuntu 24
+        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('dashing',  'ROS2', RosVersion.STATUS_EOL, []),
         RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, []),
