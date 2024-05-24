@@ -87,8 +87,8 @@ class Tool(BaseTool):
         CmdTask("mkdir -p {}".format(clash_home),os_command=True).run()
         if osarch=='amd64':
             CmdTask('sudo wget http://github.fishros.org/https://raw.githubusercontent.com/tuomasiy/mlash/main/clash -O {}clash'.format(clash_home),os_command=True).run()
-        # elif osarch=='arm64':
-            # CmdTask('sudo wget http://github.fishros.org/https://github.com/Dreamacro/clash/releases/download/v1.17.0/clash-linux-arm64-v1.17.0.gz -O {}clash.gz'.format(clash_home),os_command=True).run()
+        elif osarch=='arm64':
+            CmdTask('sudo wget https://down.clash.la/Clash/Core/Premium/clash-linux-arm64-latest.gz -O {}clash.gz'.format(clash_home),os_command=True).run()
         else:
             return False
         PrintUtils.print_info("下载完成~")
@@ -99,8 +99,6 @@ class Tool(BaseTool):
         PrintUtils.print_warn("请输入CLASH订阅地址(若无请访问:https://fishros.org.cn/forum/topic/668 获取)")
         serve_url = input("订阅地址:")
 
-        
-        # docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master
 
         PrintUtils.print_info("正在配置启动脚本....")
         self.install_docker()
