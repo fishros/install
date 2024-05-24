@@ -1214,7 +1214,7 @@ class AptUtils():
     
     @staticmethod
     def search_package(name,pattern,replace1="",replace2=""):
-        result = CmdTask("sudo apt-cache search {} ".format(name),20).run()
+        result = CmdTask("sudo apt search {} ".format(name),20).run()
         if result[0]!=0: 
             PrintUtils.print_error("搜索不到任何{}相关的包".format(name))
             return None
