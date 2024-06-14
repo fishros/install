@@ -16,7 +16,8 @@ class RosVersion:
 
 
 class RosVersions:
-    ros_version = [
+    ros_version = [ 
+        RosVersion('jazzy', 'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:jazzy-desktop-full'],["ros:jazzy"]),
         RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['fishros2/ros:noetic-desktop-full'],["ros:noetic"]),
         RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['fishros2/ros:humble-desktop-full'],["ros:humble"]),
         RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['fishros2/ros:foxy-desktop'],["ros:foxy"]),
@@ -78,7 +79,7 @@ class RosVersions:
         """获取可安装的ROS版本列表"""
         names = []
         for version in RosVersions.ros_version:
-            names.append(version.name)
+            names.append(f'{version.name}    {version.version}')
         return names
 
 
