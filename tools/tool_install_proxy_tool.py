@@ -29,14 +29,17 @@ if [ ! -e "${target_dir}Country.mmdb" ]; then
 else
     echo "文件已存在，无需下载。"
 fi
-xdg-open http://127.0.0.1:1234/ >> /dev/null &
+./clash &
 sleep 3
+cd  $HOME/.clash/public && python3 -m http.server --bind 0.0.0.0 8088 &
+xdg-open http://127.0.0.1:8088/ >> /dev/null &
 echo "==============================================="
 echo "终端通过环境变量设置: export http_proxy=http://127.0.0.1:7890 && export https_proxy=http://127.0.0.1:7890"
 echo "配置系统默认代理方式: 系统设置->网络->网络代理->手动->HTTP(127.0.0.1 7890)->HTTPS(127.0.0.1 7890)"
 echo "管理页面方法：https://fishros.org.cn/forum/topic/668 "
 echo "=============================================="
-./clash
+echo "===========该页面持续运行中，请误关闭！============"
+echo "=============================================="
 """
 
 start_clash_desktop ="""[Desktop Entry]
@@ -69,15 +72,20 @@ class Tool(BaseTool):
         self.type = BaseTool.TYPE_INSTALL
         self.autor = '小鱼'
 
-    def install_docker(self):
-        """安装Docker"""
-        PrintUtils.print_success("================================安装Docker======================================")
-        result = CmdTask("docker version").run()
-        if(result[0]!=0): 
-            run_tool_file('tools.tool_install_docker')
-        PrintUtils.print_success("================================安装管理工具======================================")
-        CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
-        CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
+    # def install_docker(self):
+    #     """安装Docker"""
+    #     PrintUtils.print_success("================================安装Docker======================================")
+    #     result = CmdTask("docker version").run()
+    #     if(result[0]!=0): 
+    #         run_tool_file('tools.tool_install_docker')
+    #     PrintUtils.print_success("================================安装管理工具======================================")
+    #     CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
+    #     CmdTask('sudo docker run -p 1234:80 -d --name yacd --rm ghcr.io/haishanh/yacd:master',os_command=True).run()
+
+    def install_web_tool(self,clash_home):
+        CmdTask('sudo apt update  && sudo apt install xz-utils -y',os_command=True).run()
+        CmdTask('wget http://github.fishros.org/https://github.com/haishanh/yacd/releases/download/v0.3.8/yacd.tar.xz -O {}yacd.tar.xz'.format(clash_home),os_command=True).run()
+        CmdTask('cd {} && tar -xf yacd.tar.xz'.format(clash_home),os_command=True).run()
 
     def install_proxy_tool(self):
         PrintUtils.print_info("开始根据系统架构,为你下载对应版本的clash~")
@@ -101,10 +109,10 @@ class Tool(BaseTool):
 
 
         PrintUtils.print_info("正在配置启动脚本....")
-        self.install_docker()
+        self.install_web_tool(clash_home)
         FileUtils.new(path=clash_home,name="start_clash.sh",data=start_clash_sh.replace("{clash_home}",clash_home).replace("{server_url}",serve_url))
         CmdTask('sudo chmod a+x {}start_clash.sh'.format(clash_home),os_command=True).run()
-        PrintUtils.print_info("启动脚本配置完成，你可以在目录: {}  运行 start_clash.sh 启动工具，启动后可通过网页：http://127.0.0.1:1234/ 进行管理".format(clash_home))
+        PrintUtils.print_info("启动脚本配置完成，你可以在目录: {}  运行 start_clash.sh 启动工具，启动后可通过网页：http://127.0.0.1:8088/ 进行管理".format(clash_home))
         
 
         PrintUtils.print_info("==========进行启动项配置...===========")
