@@ -29,17 +29,15 @@ if [ ! -e "${target_dir}Country.mmdb" ]; then
 else
     echo "文件已存在，无需下载。"
 fi
-./clash &
-sleep 3
 cd  $HOME/.clash/public && python3 -m http.server --bind 0.0.0.0 8088 &
-xdg-open http://127.0.0.1:8088/ >> /dev/null &
+sleep 1
 echo "==============================================="
 echo "终端通过环境变量设置: export http_proxy=http://127.0.0.1:7890 && export https_proxy=http://127.0.0.1:7890"
 echo "配置系统默认代理方式: 系统设置->网络->网络代理->手动->HTTP(127.0.0.1 7890)->HTTPS(127.0.0.1 7890)"
 echo "管理页面方法：https://fishros.org.cn/forum/topic/668 "
 echo "=============================================="
-echo "===========该页面持续运行中，请误关闭！============"
-echo "=============================================="
+xdg-open http://127.0.0.1:8088/ >> /dev/null &
+./clash 
 """
 
 start_clash_desktop ="""[Desktop Entry]
@@ -121,6 +119,7 @@ class Tool(BaseTool):
         auto_start_path = "{}.config/autostart/".format(user_home)
         if code==2: FileUtils.delete(auto_start_path+"start_clash.desktop")
         if code==1: 
+            CmdTask('sudo apt install gnome-terminal -y',os_command=True).run()
             FileUtils.new(path=auto_start_path,name="start_clash.desktop",data=start_clash_desktop.replace("{script_path}",clash_home+"start_clash.sh"))
             CmdTask('sudo chmod a+x {}start_clash.desktop'.format(auto_start_path),os_command=True).run()
 
