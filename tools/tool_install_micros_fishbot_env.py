@@ -42,6 +42,22 @@ echo "当前进度: 6/7"
 $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mkspiffs"
 echo "当前进度: 7/7"
 $HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mklittlefs"
+echo "\n开始确认ESP32开发依赖库安装状态~"
+export http_proxy= && export https_proxy=
+echo "当前进度: 1/7"
+$HOME.platformio/penv/bin/pio pkg install --global --platform "platformio/espressif32"
+echo "当前进度: 2/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/contrib-piohome"
+echo "当前进度: 3/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/framework-arduinoespressif32"
+echo "当前进度: 4/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-scons"
+echo "当前进度: 5/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mkfatfs"
+echo "当前进度: 6/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mkspiffs"
+echo "当前进度: 7/7"
+$HOME.platformio/penv/bin/pio pkg install --global --tool "platformio/tool-mklittlefs"
 """.format(user_home)
         FileUtils.new('/tmp/', 'install_pio.sh',install_sh)
         CmdTask('sudo -u {} bash /tmp/install_pio.sh'.format(user), os_command=True).run()
