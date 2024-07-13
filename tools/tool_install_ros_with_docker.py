@@ -129,7 +129,7 @@ newgrp docker
             PrintUtils.print_error("你选择退出。。。。")
             return 
         PrintUtils.print_info("你选择了{}".format(RosVersions.get_version_string(rosname)))
-        return rosname
+        return rosname.split()[0]
         # TODO 检查是系统架构
 
     def install_docker(self):
