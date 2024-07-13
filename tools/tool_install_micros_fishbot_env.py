@@ -25,7 +25,7 @@ class Tool(BaseTool):
         #     code,result = ChooseTask(dic,"请选择用户目录",array=True).run()    
 
         PrintUtils.print_info("开始生成安装脚本~")
-        install_sh = """export HOME={} && $HOME.platformio/penv/bin/pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio
+        install_sh = """export HOME={} && $HOME/.platformio/penv/bin/pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple platformio
 echo "开始下载ESP32开发依赖库~"
 rm -rf /tmp/pio
 mkdir -p /tmp/pio/
