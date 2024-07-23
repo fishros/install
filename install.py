@@ -30,7 +30,7 @@ tools ={
     10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
     11: {'tip':'一键安装:ROS Docker版(支持所有版本ROS/ROS2)',                'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
     12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
-    13: {'tip':'一键配置:python国内源','type':CONFIG_TOOL,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
+    13: {'tip':'一键配置:python清华源','type':CONFIG_TOOL,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
     14: {'tip':'一键安装:科学上网代理工具','type':INSTALL_SOFTWARE,'tool':url_prefix+'tools/tool_install_proxy_tool.py' ,'dep':[8] },
     15: {'tip':'一键安装：QQ for Linux', 'type':INSTALL_SOFTWARE, 'tool': url_prefix+'tools/tool_install_qq.py', 'dep':[]},
     16: {'tip':'一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)', 'type':INSTALL_ROS, 'tool': url_prefix+'tools/tool_install_ros1_systemdefault.py', 'dep':[5]},
