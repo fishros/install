@@ -26,7 +26,8 @@ class Linguist:
             self._translations = importlib.import_module(_import_command).translations
         except Exception:
             # If the translation file does not exist, use the default translation file.
-            pass
+            _import_command = f"tools.translation.assets.en_US"
+            self._translations = importlib.import_module(_import_command).translations
 
     def tr(self, string) -> str:
         # Check whether the string exists in the translation file.
