@@ -40,5 +40,6 @@ For more tool tutorials, please visit Yuxiang ROS official website :http://fishr
     "没有找到包：{}": "Package not found: {}",
     "请注意我，检测你在安装过程中出现依赖问题，请在稍后选择解决方案（第一个解决方案不一定可以解决问题，如再遇到可以采用下一个解决方案）,即可解决": "PLEASE NOTE that I have detected dependency problems during the installation process. Please select a solution later (the first solution may not solve the problem, please try the next solution if you encounter it again) to resolve it.",
     "确认了解上述情况，请输入回车继续安装": "Confirm that you understand the above situation, please press Enter to continue the installation",
-    "欢迎使用{},本工具由作者{}提供": "Welcome to use {}, this tool is brought to you by {}"
+    "欢迎使用{},本工具由作者{}提供": "Welcome to use {}, this tool is brought to you by {}",
+    '一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)': "Install: System shipped ROS (!!Warning!! Only for special cases)",
 }

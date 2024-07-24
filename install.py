@@ -2,8 +2,7 @@
 import os
 import importlib
 
-# url_prefix = 'http://mirror.fishros.com/install/'
-url_prefix = 'http://127.0.0.1:8000/'
+url_prefix = 'http://mirror.fishros.com/install/'
 
 base_url = url_prefix+'tools/base.py'
 
