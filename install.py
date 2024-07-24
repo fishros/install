@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
+import importlib
 
-url_prefix = 'http://mirror.fishros.com/install/'
+# url_prefix = 'http://mirror.fishros.com/install/'
+url_prefix = 'http://127.0.0.1:8000/'
 
 base_url = url_prefix+'tools/base.py'
+
+_suported_languages = ['zh_CN', 'en_US']
+lang_url = url_prefix+'tools/translation/assets/{}.py'
+_translator_files = ['translator']
+translator_url = url_prefix+'tools/translation/{}.py'
 
 INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
@@ -56,10 +63,22 @@ for tool_id, tool_info in tools.items():
 def main():
     # download base
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
+
     from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper
+
+    # download translations
+    for files in _translator_files:
+        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url.format(files),translator_url.format(files).replace(url_prefix,'')))
+
+    for lang in _suported_languages:
+        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,'')))
+
+    # Import translations
+    tr = importlib.import_module("tools.translation.translator").Linguist()
+
     # PrintUtils.print_delay(f"检测到你的系统版本信息为{osversion.get_codename()},{osarch}",0.001)
     # 使用量统计
     CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q && rm -rf /tmp/t1733").run()
@@ -73,7 +92,7 @@ def main():
         print('Finish! Please Try Again!')
         print('Solutions: https://fishros.org.cn/forum/topic/24 ')
         return False
-    PrintUtils.print_success("基础检查通过...")
+    PrintUtils.print_success(tr.tr("基础检查通过..."))
 
     book = """
                         .-~~~~~~~~~-._       _.-~~~~~~~~~-.

@@ -1,4 +1,4 @@
-mkdir -p /tmp/fishinstall/tools
+mkdir -p /tmp/fishinstall/tools/translation/assets
 wget http://mirror.fishros.com/install/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
 # 强制解锁，太多用户遇到这个问题了，没办法，后续想个办法解决下

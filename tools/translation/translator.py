@@ -13,27 +13,24 @@ class Linguist:
         # Initialize the current locale.
         self._currentLocale = locale.getdefaultlocale()[0]
         if self._currentLocale is None:
-            self._currentLocale = 'en_US'
+            self._currentLocale = "en_US"
         
         # Load the translation file.
         self.loadTranslationFlile()
 
     def loadTranslationFlile(self):
         # Load the translation file.
-        global_vars = {}
+        import importlib
         try :
-            _import_command = f"from assets.{self._currentLocale} import translations as _translations"
-            exec(_import_command, global_vars)
+            _import_command = f"tools.translation.assets.{self._currentLocale}"
+            self._translations = importlib.import_module(_import_command).translations
         except Exception:
             # If the translation file does not exist, use the default translation file.
-            _import_command = f"from assets.en_US import translations as _translations"
-            exec(_import_command, global_vars)
+            pass
 
-        self._translations = global_vars['_translations']
-
-    def tr(self, string):
+    def tr(self, string) -> str:
         # Check whether the string exists in the translation file.
-        if string in self._translations:
+        if self._currentLocale is not None and string in self._translations:
             return self._translations[string]
         else:
             # If the string does not exist, return the original string.
