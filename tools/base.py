@@ -5,6 +5,7 @@ import re
 import sys
 import time
 import subprocess
+import importlib
 import locale
 from queue import Queue
 #TODO try import! failed skip
@@ -18,6 +19,8 @@ except:
 encoding = locale.getpreferredencoding()
 encoding_utf8 = encoding.find("UTF")>-1
 
+# Import translations
+tr = importlib.import_module("tools.translation.translator").Linguist()
 
 class ConfigHelper():
     def __init__(self,record_file=None):
@@ -985,7 +988,7 @@ class ChooseTask(Task):
         return choose,dic[choose]
 
     def run(self):
-        PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
+        PrintUtils.print_delay(tr.tr("RUN Choose Task:[请输入括号内的数字]"))
         PrintUtils.print_delay(self.tips,0.001)
         return ChooseTask.__choose(self.dic,self.tips,self.array)
 
@@ -1036,7 +1039,7 @@ class ChooseWithCategoriesTask(Task):
         return choose_id,""
 
     def run(self):
-        PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
+        PrintUtils.print_delay(tr.tr("RUN Choose Task:[请输入括号内的数字]"))
         PrintUtils.print_delay(self.tips,0.001)
         return ChooseWithCategoriesTask.__choose(self.dic,self.tips,self.array,self.categories)
 

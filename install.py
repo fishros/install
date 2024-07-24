@@ -94,7 +94,7 @@ def main():
         return False
     PrintUtils.print_success(tr.tr("基础检查通过..."))
 
-    book = """
+    book = tr.tr("""
                         .-~~~~~~~~~-._       _.-~~~~~~~~~-.
                     __.'              ~.   .~              `.__
                 .'//     开卷有益        \./     书山有路     \\ `.
@@ -103,17 +103,17 @@ def main():
             .'//.-"                 `-.  |  .-'                 "-.\\`.
         .'//______.============-..   \ | /   ..-============.______\\`.
         .'______________________________\|/______________________________`
-        ----------------------------------------------------------------------"""
+        ----------------------------------------------------------------------""")
 
-    tip = """===============================================================================
+    tip =tr.tr("""===============================================================================
 ======欢迎使用一键安装工具，人生苦短，三省吾身，省时省力省心!=======
 ======一键安装已开源，请放心使用：https://github.com/fishros/install =======
 ===============================================================================
-    """
-    end_tip = """===============================================================================
+    """)
+    end_tip = tr.tr("""===============================================================================
 如果觉得工具好用,请给个star,如果你想和小鱼一起编写工具,请关注微信公众号<鱼香ROS>,联系小鱼
 更多工具教程，请访问鱼香ROS官方网站:http://fishros.com
-    """
+    """)
     PrintUtils.print_delay(tip,0.001)
     PrintUtils.print_delay(book,0.001)
 
@@ -121,9 +121,9 @@ def main():
     # download tools
     choose_dic = {}
     # for tool_id in tools.keys(): choose_dic[tool_id]  = tools[tool_id]["tip"]
-    code,result = ChooseWithCategoriesTask(tool_categories, tips="---众多工具，等君来用---",categories=tools_type_map).run()
+    code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
 
-    if code==0: PrintUtils().print_success("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
+    if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
     elif code==77: 
         code,result = ChooseTask(choose_dic, "请选择你要测试的程序:").run()
         if  code<0 and code>=77:  return False
