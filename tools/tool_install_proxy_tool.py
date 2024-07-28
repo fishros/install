@@ -14,7 +14,7 @@ mkdir -p $HOME/.config/clash
 wget $CLASH_SERVER -O $HOME/.config/clash/config.yaml
 sed -i 's/127.0.0.1:9090/0.0.0.0:9090/g'  $HOME/.config/clash/config.yaml
 sed -i 's/allow-lan: false/allow-lan: true/g'  $HOME/.config/clash/config.yaml
-file_url="http://github.fishros.org/https://github.com/Dreamacro/maxmind-geoip/releases/download/20230912/Country.mmdb"
+file_url="https://github.fishros.workers.dev/https://github.com/Dreamacro/maxmind-geoip/releases/download/20230912/Country.mmdb"
 target_dir="$HOME/.config/clash/"
 # 检查文件是否存在
 if [ ! -e "${target_dir}Country.mmdb" ]; then
@@ -82,7 +82,7 @@ class Tool(BaseTool):
 
     def install_web_tool(self,clash_home):
         CmdTask('sudo apt update  && sudo apt install xz-utils -y',os_command=True).run()
-        CmdTask('wget http://github.fishros.org/https://github.com/haishanh/yacd/releases/download/v0.3.8/yacd.tar.xz -O {}yacd.tar.xz'.format(clash_home),os_command=True).run()
+        CmdTask('wget https://github.fishros.workers.dev/https://github.com/haishanh/yacd/releases/download/v0.3.8/yacd.tar.xz -O {}yacd.tar.xz'.format(clash_home),os_command=True).run()
         CmdTask('cd {} && tar -xf yacd.tar.xz'.format(clash_home),os_command=True).run()
 
     def install_proxy_tool(self):
@@ -92,7 +92,7 @@ class Tool(BaseTool):
         clash_home = "{}.clash/".format(user_home)
         CmdTask("mkdir -p {}".format(clash_home),os_command=True).run()
         if osarch=='amd64':
-            CmdTask('sudo wget http://github.fishros.org/https://raw.githubusercontent.com/tuomasiy/mlash/main/clash -O {}clash'.format(clash_home),os_command=True).run()
+            CmdTask('sudo wget https://github.fishros.workers.dev/https://raw.githubusercontent.com/tuomasiy/mlash/main/clash -O {}clash'.format(clash_home),os_command=True).run()
         elif osarch=='arm64':
             CmdTask('sudo wget https://down.clash.la/Clash/Core/Premium/clash-linux-arm64-latest.gz -O {}clash.gz'.format(clash_home),os_command=True).run()
         else:
