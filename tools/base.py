@@ -1057,6 +1057,16 @@ class FileUtils():
         bashrc_result = CmdTask("ls /home/*/.bashrc", 0).run() 
         if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run()
         return bashrc_result[1]
+        
+    @staticmethod
+    def get_shell():
+        shell = CmdTask("echo $SHELL", 0).run()[1][0].strip()
+        if 'bash' in shell:
+            return 'bash'
+        elif 'zsh' in shell:
+            return 'zsh'
+        else:
+            return 'sh'
 
     @staticmethod
     def exists(path):
