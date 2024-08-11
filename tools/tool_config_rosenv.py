@@ -16,7 +16,6 @@ class Tool(BaseTool):
             choose = 'echo "<tips>?"\nread choose\ncase $choose in\n'
             tips = "ros:"
             count = 0
-            shell = CmdTask("echo $SHELL", 0).run()[1][0].strip()
             for i in range(len(dic)):
                 count += 1
                 choose += "{}) source  {};;\n".format(count,dic[i])
