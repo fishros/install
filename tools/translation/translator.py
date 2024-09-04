@@ -24,11 +24,11 @@ class Linguist:
 
     def __init__(self):
         # Initialize the current locale.
+        self.country = 'CN'
         self._currentLocale = self.getLocalFromIP()
         if self._currentLocale is None:
             self._currentLocale = locale.getdefaultlocale()[0]
         # Load the translation file.
-        self.country = 'CN'
         self.lang = self._currentLocale
         for lang in _suported_languages:
             CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,''))).run()

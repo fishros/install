@@ -55,6 +55,7 @@ for tool_id, tool_info in tools.items():
 
 def main():
     # download base
+    url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
 
     from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask
