@@ -2,9 +2,9 @@
 import os
 import importlib
 
-url_prefix = os.environ.get('FISHROS_URL')+'/'
-base_url = url_prefix+'tools/base.py'
-translator_url = url_prefix+'tools/translation/translator.py'
+url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
+base_url = os.path.join(url_prefix,'tools/base.py')
+translator_url = os.path.join(url_prefix,'tools/translation/translator.py')
 
 INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
@@ -19,23 +19,23 @@ tools_type_map = {
 
 
 tools ={
-    1: {'tip':'一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)',                 'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_install_ros.py' ,'dep':[4,5] },
-    2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_github_desktop.py' ,'dep':[] },
-    3: {'tip':'一键安装:rosdep(小鱼的rosdepc,又快又好用)',                 'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_config_rosdep.py' ,'dep':[] },
-    4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_config_rosenv.py' ,'dep':[] },
-    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':CONFIG_TOOL,    'tool':url_prefix+'tools/tool_config_system_source.py' ,'dep':[1] },
-    6: {'tip':'一键安装:NodeJS环境',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_nodejs.py' ,'dep':[] },
-    7: {'tip':'一键安装:VsCode开发工具',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_vscode.py' ,'dep':[] },
-    8: {'tip':'一键安装:Docker',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_docker.py' ,'dep':[] },
-    9: {'tip':'一键安装:Cartographer(18 20测试通过,16未测. updateTime 20240125)',      'type':INSTALL_ROS,     'tool':url_prefix+'tools/tool_install_cartographer.py' ,'dep':[3] },
-    10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_wechat.py' ,'dep':[8] },
-    11: {'tip':'一键安装:ROS Docker版(支持所有版本ROS/ROS2)',                'type':INSTALL_ROS,    'tool':url_prefix+'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
-    12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':url_prefix+'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
-    13: {'tip':'一键配置:python国内源','type':CONFIG_TOOL,'tool':url_prefix+'tools/tool_config_python_source.py' ,'dep':[] },
-    14: {'tip':'一键安装:科学上网代理工具','type':INSTALL_SOFTWARE,'tool':url_prefix+'tools/tool_install_proxy_tool.py' ,'dep':[8] },
-    15: {'tip':'一键安装：QQ for Linux', 'type':INSTALL_SOFTWARE, 'tool': url_prefix+'tools/tool_install_qq.py', 'dep':[]},
-    16: {'tip':'一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)', 'type':INSTALL_ROS, 'tool': url_prefix+'tools/tool_install_ros1_systemdefault.py', 'dep':[5]},
-    17: {'tip':'一键配置: Docker代理(支持VPN+代理服务两种模式)', 'type':CONFIG_TOOL, 'tool': url_prefix+'tools/tool_config_docker_proxy.py', 'dep':[]},
+    1: {'tip':'一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)',                 'type':INSTALL_ROS,     'tool':'tools/tool_install_ros.py' ,'dep':[4,5] },
+    2: {'tip':'一键安装:github桌面版(小鱼常用的github客户端)',             'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_github_desktop.py' ,'dep':[] },
+    3: {'tip':'一键安装:rosdep(小鱼的rosdepc,又快又好用)',                 'type':INSTALL_ROS,    'tool':'tools/tool_config_rosdep.py' ,'dep':[] },
+    4: {'tip':'一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)',     'type':INSTALL_ROS,     'tool':'tools/tool_config_rosenv.py' ,'dep':[] },
+    5: {'tip':'一键配置:系统源(更换系统源,支持全版本Ubuntu系统)',           'type':CONFIG_TOOL,    'tool':'tools/tool_config_system_source.py' ,'dep':[1] },
+    6: {'tip':'一键安装:NodeJS环境',      'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_nodejs.py' ,'dep':[] },
+    7: {'tip':'一键安装:VsCode开发工具',      'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_vscode.py' ,'dep':[] },
+    8: {'tip':'一键安装:Docker',      'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_docker.py' ,'dep':[] },
+    9: {'tip':'一键安装:Cartographer(18 20测试通过,16未测. updateTime 20240125)',      'type':INSTALL_ROS,     'tool':'tools/tool_install_cartographer.py' ,'dep':[3] },
+    10: {'tip':'一键安装:微信(可以在Linux上使用的微信)',      'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_wechat.py' ,'dep':[8] },
+    11: {'tip':'一键安装:ROS Docker版(支持所有版本ROS/ROS2)',                'type':INSTALL_ROS,    'tool':'tools/tool_install_ros_with_docker.py' ,'dep':[7,8] },
+    12: {'tip':'一键安装:PlateformIO MicroROS开发环境(支持Fishbot)',      'type':INSTALL_SOFTWARE,     'tool':'tools/tool_install_micros_fishbot_env.py' ,'dep':[] },
+    13: {'tip':'一键配置:python国内源','type':CONFIG_TOOL,'tool':'tools/tool_config_python_source.py' ,'dep':[] },
+    14: {'tip':'一键安装:科学上网代理工具','type':INSTALL_SOFTWARE,'tool':'tools/tool_install_proxy_tool.py' ,'dep':[8] },
+    15: {'tip':'一键安装：QQ for Linux', 'type':INSTALL_SOFTWARE, 'tool': 'tools/tool_install_qq.py', 'dep':[]},
+    16: {'tip':'一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)', 'type':INSTALL_ROS, 'tool': 'tools/tool_install_ros1_systemdefault.py', 'dep':[5]},
+    17: {'tip':'一键配置: Docker代理(支持VPN+代理服务两种模式)', 'type':CONFIG_TOOL, 'tool': 'tools/tool_config_docker_proxy.py', 'dep':[]},
     }
 # 
 
@@ -107,14 +107,12 @@ def main():
 
 
     # download tools
-    choose_dic = {}
-    # for tool_id in tools.keys(): choose_dic[tool_id]  = tools[tool_id]["tip"]
     code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
 
     if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
     else: 
-        download_tools(code,tools)
-        run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
+        download_tools(code,tools,url_prefix)
+        run_tool_file(tools[code]['tool'].replace("/","."))
 
     config_helper.gen_config_file()
     PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.1)

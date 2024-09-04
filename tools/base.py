@@ -1416,9 +1416,10 @@ def run_tool_url(url,url_prefix):
     CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
     run_tool_file(url.replace(url_prefix,'').replace("/","."))
 
-def download_tools(id,tools):
+def download_tools(id,tools,url_prefix):
     # download tool 
     url = tools[id]['tool']
+    url = os.path.join(url_prefix,url)
     CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
     # download dep 
     for dep in  tools[id]['dep']:
