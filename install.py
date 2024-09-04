@@ -2,14 +2,9 @@
 import os
 import importlib
 
-url_prefix = 'http://mirror.fishros.com/install/'
-
+url_prefix = os.environ.get('FISHROS_URL')+'/'
 base_url = url_prefix+'tools/base.py'
-
-_suported_languages = ['zh_CN', 'en_US']
-lang_url = url_prefix+'tools/translation/assets/{}.py'
-_translator_files = ['translator']
-translator_url = url_prefix+'tools/translation/{}.py'
+translator_url = url_prefix+'tools/translation/translator.py'
 
 INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
@@ -65,22 +60,17 @@ def main():
     from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
-    from tools.base import config_helper
+    from tools.base import config_helper,tr
 
     # download translations
-    for files in _translator_files:
-        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url.format(files),translator_url.format(files).replace(url_prefix,'')))
+    CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,''))).run()
+    importlib.import_module("tools.translation.translator").Linguist()
+    from tools.base import tr
 
-    for lang in _suported_languages:
-        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,'')))
-
-    # Import translations
-    tr = importlib.import_module("tools.translation.translator").Linguist()
-
-    # PrintUtils.print_delay(f"检测到你的系统版本信息为{osversion.get_codename()},{osarch}",0.001)
     # 使用量统计
     CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q && rm -rf /tmp/t1733").run()
 
+    PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:")+tr._currentLocale)
     # check base config
     if not encoding_utf8:
         print("Your system encoding not support ,will install some packgaes..")
@@ -122,12 +112,6 @@ def main():
     code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
 
     if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
-    elif code==77: 
-        code,result = ChooseTask(choose_dic, tr.tr("请选择你要测试的程序:")).run()
-        if  code<0 and code>=77:  return False
-        # CmdTask("cp tools/* /tmp/fishinstall/tools/").run
-        print(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
-        run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))
     else: 
         download_tools(code,tools)
         run_tool_file(tools[code]['tool'].replace(url_prefix,'').replace("/","."))

@@ -138,3 +138,5 @@ class Tool(BaseTool):
 - 一键安装nodejs [小鱼](https://github.com/fishros)
 - 一键安装vscode [小鱼](https://github.com/fishros)
 - 一键安装:Docker(支持amd64和arm64) [@alyssa](https://github.com/alyssa1024)
+
+

@@ -25,8 +25,8 @@ except:
 encoding = locale.getpreferredencoding()
 encoding_utf8 = encoding.find("UTF")>-1
 
-# Import translations
-tr = importlib.import_module("tools.translation.translator").Linguist()
+
+tr = None
 
 class ConfigHelper():
     def __init__(self,record_file=None):
@@ -975,12 +975,14 @@ class CmdTask(Task):
         self.command_thread = threading.Thread(target=self.command_thread)
         self.command_thread.start()
         time.sleep(0.5) # 等待线程启动
-        while self.is_command_finish()!=0:
+        while self.is_command_finish()==-1:
             self.bar.update_time()
             time.sleep(0.1)
+
         return (self.ret_code,self.ret_out,self.ret_err)
 
     def is_command_finish(self):
+        # poll 是返回码
         if self.sub.poll() == None:
             return -1
         return self.sub.poll()
@@ -1411,17 +1413,17 @@ def run_tool_file(file,autorun=True):
     return tool
 
 def run_tool_url(url,url_prefix):
-    os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
+    CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
     run_tool_file(url.replace(url_prefix,'').replace("/","."))
 
 def download_tools(id,tools):
     # download tool 
     url = tools[id]['tool']
-    os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
+    CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
     # download dep 
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
-        os.system("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:]))
+        CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
 
 
 
