@@ -67,10 +67,16 @@ def main():
     importlib.import_module("tools.translation.translator").Linguist()
     from tools.base import tr
 
+
     # 使用量统计
     CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q && rm -rf /tmp/t1733").run()
 
-    PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:")+tr._currentLocale)
+    PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:")+tr.lang)
+    if tr.country != 'CN':
+        PrintUtils.print_success(tr.tr("检测到当前不在CN,切换服务地址为:https://raw.githubusercontent.com/fishros/install/master/"))
+        url_prefix = 'https://raw.githubusercontent.com/fishros/install/master/'
+
+
     # check base config
     if not encoding_utf8:
         print("Your system encoding not support ,will install some packgaes..")

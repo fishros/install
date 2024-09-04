@@ -1427,6 +1427,4 @@ def download_tools(id,tools,url_prefix):
         url = os.path.join(url_prefix,url)
         CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
 
-
-
 osarch = AptUtils.getArch()

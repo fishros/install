@@ -10,9 +10,8 @@ import tools.base
 from tools.base import CmdTask
 
 _suported_languages = ['zh_CN', 'en_US']
-url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')+'/'
-lang_url = url_prefix+'tools/translation/assets/{}.py'
-
+url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
+lang_url = os.path.join(url_prefix,'tools/translation/assets/{}.py')
 
 COUNTRY_CODE_MAPPING = {
     "CN": "zh_CN",
@@ -29,6 +28,8 @@ class Linguist:
         if self._currentLocale is None:
             self._currentLocale = locale.getdefaultlocale()[0]
         # Load the translation file.
+        self.country = 'CN'
+        self.lang = self._currentLocale
         for lang in _suported_languages:
             CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,''))).run()
         
@@ -61,6 +62,7 @@ class Linguist:
             with open('/tmp/fishros_check_country.json', 'r') as json_file:  
                 data = json.loads(json_file.read())
                 self.ip_info = data
+                self.country = data['location']['countryCode']
                 if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
                     local_str = COUNTRY_CODE_MAPPING[data['location']['countryCode']]
                 else:
