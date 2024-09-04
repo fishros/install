@@ -8,6 +8,12 @@ import subprocess
 import importlib
 import locale
 from queue import Queue
+import threading
+import http.client
+import time
+from urllib.parse import urlparse
+
+
 #TODO try import! failed skip
 have_yaml_module = False
 try:
@@ -833,47 +839,52 @@ class Task():
 
 
 class Progress():
+    import shutil
+
+    # 获取终端的行宽
+    terminal_size = shutil.get_terminal_size()
+    line_width = terminal_size.columns
+
     def __init__(self,timeout=10,scale=20) -> None:
         self.timeout = timeout
         self.start = time.perf_counter()
         self.dur  = time.perf_counter() -self.start 
         self.scale = scale
         self.i = 0
+        self.latest_log = ""
 
     def update(self,log=""):
-        # length = 60
-        # if len(log)>length: log = log[:length]
-        # log = log+"                "
         if (self.i%4) == 0: 
-            print('\r[/]{}'.format(log),end="")
+            print('\r[/][{:.2f}s] {}'.format(self.dur,log),end="")
         elif(self.i%4) == 1: 
-            print('\r[\\]{}'.format(log),end="")
+            print('\r[\\][{:.2f}s] {}'.format(self.dur,log),end="")
         elif (self.i%4) == 2: 
-            print('\r[|]{}'.format(log),end="")
+            print('\r[|][{:.2f}s] {}'.format(self.dur,log),end="")
         elif (self.i%4) == 3: 
-            print('\r[-]{}'.format(log),end="")
+            print('\r[-][{:.2f}s] {}'.format(self.dur,log),end="")
         sys.stdout.flush()
         self.i += 1
         # update time
-        # self.dur  = time.perf_counter() -self.start 
-        # self.i = int(self.dur/(self.timeout/self.scale))
-        # a = "🐟" * self.i
-        # b = ".." * (self.scale - self.i)
-        # c = (self.i / self.scale) * 100
-        # 
-        # log += " "*()
-        # print("\r{:^3.0f}%[{}->{}]{:.2f}s {}".format(c,a,b,self.dur,log),end = "")
-    
-    def finsh(self,log=""):
-        length = 60
-        if len(log)>length: log = log[:length]
-        log = log+"                           " 
-        print('\r[-]{}'.format(log),end="")
-        # i = self.scale
-        # a = "🐟" * i
-        # b = ".." * (self.scale - i)
-        # c = (i / self.scale) * 100
-        # print("\r{:^3.0f}%[{}->{}]{:.2f}s {}".format(c,a,b,self.dur,log),end = "")
+        self.latest_log = log
+        self.dur  = time.perf_counter() -self.start 
+
+    def update_time(self):
+        log = self.latest_log
+        if (self.i%4) == 0: 
+            print('\r[/][{:.2f}s] {}'.format(self.dur,log),end="")
+        elif(self.i%4) == 1: 
+            print('\r[\\][{:.2f}s] {}'.format(self.dur,log),end="")
+        elif (self.i%4) == 2: 
+            print('\r[|][{:.2f}s] {}'.format(self.dur,log),end="")
+        elif (self.i%4) == 3: 
+            print('\r[-][{:.2f}s] {}'.format(self.dur,log),end="")
+        sys.stdout.flush()
+        self.dur  = time.perf_counter() -self.start 
+
+
+    def finsh(self,log="",color='\033[32m'):
+        log = log+" "*(Progress.line_width-len(log)-15) 
+        print('\r{}[-][{:.2f}s] {}'.format(color,self.dur, log), end="\r\n\r\n")
 
 
 
@@ -886,63 +897,106 @@ class CmdTask(Task):
         self.cwd = path
         self.executable = executable
 
-    @staticmethod
-    def __run_command(command,timeout=10,cwd=None,executable='/bin/sh'):
-        out,err = [],[]
-        sub = subprocess.Popen(command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=cwd,
-            shell=True,
-            executable=executable)
+    def getlog(self,callback=None):
+        stdout_line = ""
+        for line in iter(self.sub.stdout.readline,'b'):
+            line = line.rstrip()#.decode('utf8', errors="ignore")
+            if callback:
+                callback(line,'out')
+            if(subprocess.Popen.poll(self.sub) is not None):
+                if(line==""):
+                    break
 
-        # sub.communicate
-        bar  = Progress(timeout=timeout)
-        bar.update()
+        for line in iter(self.sub.stderr.readline,'b'):
+            line = line.rstrip()#.decode('utf8', errors="ignore")
+            if callback:
+                callback(line,'err')
+            if(subprocess.Popen.poll(self.sub) is not None):
+                if(line==""):
+                    break
 
-        while sub.poll()==None:
-            line = sub.stdout.readline()
-            line = line.decode("utf-8").strip("\n")
-            out.append(line)
-            bar.update(line)
-            time.sleep(0.01)
-
-        lines = sub.stdout.readlines()
+    def getlogs(self):
+        out = []
+        lines = self.sub.stdout.readlines()
         for line in lines:
-            line = line.decode("utf-8").strip("\n")
+            line = line.decode("utf-8", errors="ignore").strip("\n")
             out.append(line)
-            bar.update(line)
+            time.sleep(0.01)
+        lines = self.sub.stderr.readlines()
+        for line in lines:
+            line = line.decode("utf-8", errors="ignore").strip("\n")
+            out.append(line)
             time.sleep(0.01)
 
+        logstr = ""
+        for log in out:
+            logstr += log
+        return logstr
 
-        if sub.poll()==None:
-            sub.kill()
-            print("\033[31mTimeOut!:{}".format(timeout))
-            return None,'',tr.tr('运行超时:请切换网络后重试')
 
-        code = sub.returncode
+    def command_thread(self,executable='/bin/sh'):
+        out,err = [],[]
+        self.sub = subprocess.Popen(self.command,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    cwd=self.cwd,
+                                    shell=True,
+                                    bufsize=1,  # Line buffered
+                                    universal_newlines=True)
+        self.bar = Progress()
+        err = []
+        out = []
+        def log_callback(log,log_type):
+            self.bar.update(log)
+            if log_type=='out':
+                out.append(log)
+            else:
+                err.append(log)
+
+        self.getlog(log_callback)
+        code = self.sub.returncode
+
         msg = 'code:{}'.format(code)
         if code == 0: msg="success"
-        bar.finsh('Result:{}'.format(msg))
 
-        for line in  sub.stderr.readlines():
-            err.append(line.decode('utf-8'))
-        print("\n")
-        return (code,out,err)
-    
-    @staticmethod
-    def _os_command(command,timeout=10,cwd=None):
-        if cwd is not None:
-            os.system("cd {} && {}".format(cwd,command))
+        if code==0:
+            self.bar.finsh('CMD Result:{}'.format(msg),'\033[37m')
         else:
-            os.system(command)
+            self.bar.finsh('CMD Result:{}'.format(msg),'\033[31m')
+
+
+        self.ret_code = code
+        self.ret_out = out
+        self.ret_err = err
+
+    def run_command(self,executable='/bin/sh'):
+        self.command_thread = threading.Thread(target=self.command_thread)
+        self.command_thread.start()
+        time.sleep(0.5) # 等待线程启动
+        while self.is_command_finish()!=0:
+            self.bar.update_time()
+            time.sleep(0.1)
+        return (self.ret_code,self.ret_out,self.ret_err)
+
+    def is_command_finish(self):
+        if self.sub.poll() == None:
+            return -1
+        return self.sub.poll()
+
+    def run_os_command(self):
+        """
+        退出即结束
+        """
+        if self.cwd is not None:
+            os.system("cd {} && {}".format(self.cwd,self.command))
+        else:
+            os.system(self.command)
 
     def run(self):
         PrintUtils.print_info("\033[32mRun CMD Task:[{}]".format(self.command))
         if self.os_command:
-            return self._os_command(self.command,self.timeout,cwd=self.cwd)
-        return self.__run_command(self.command,self.timeout,cwd=self.cwd,executable=self.executable)
-
+            return self.run_os_command()
+        return self.run_command()
 
 
 class ChooseTask(Task):
@@ -1060,6 +1114,16 @@ class FileUtils():
         bashrc_result = CmdTask("ls /home/*/.bashrc", 0).run() 
         if bashrc_result[0]!=0:  bashrc_result = CmdTask("ls /root/.bashrc", 0).run()
         return bashrc_result[1]
+        
+    @staticmethod
+    def get_shell():
+        shell = CmdTask("echo $SHELL", 0).run()[1][0].strip()
+        if 'bash' in shell:
+            return 'bash'
+        elif 'zsh' in shell:
+            return 'zsh'
+        else:
+            return 'sh'
 
     @staticmethod
     def exists(path):
@@ -1261,6 +1325,49 @@ class AptUtils():
                 input(tr.tr("确认了解上述情况，请输入回车继续安装"))
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = True, auto_yes=False)
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
+                
+    @staticmethod
+    def get_fast_url(urls):
+        """
+        遍历请求 urls 中的地址，按照从快到慢排序返回。
+        参数:
+        - urls (list): 要测试的 URL 列表。
+        返回:
+        - sorted_urls (list): 按照响应时间从快到慢排序的 URL 列表。
+        """
+        latencies = {}
+        for url in urls:
+            parsed_url = urlparse(url)
+            host = parsed_url.netloc
+            path = parsed_url.path
+            try:
+                # 记录开始时间
+                start_time = time.time()
+                # 创建连接并发送请求
+                conn = http.client.HTTPSConnection(host, timeout=1.5)  # 使用 HTTPS 连接
+                conn.request("GET", path)
+                response = conn.getresponse()
+                # 记录结束时间
+                end_time = time.time()
+                # 计算延时（以秒为单位）
+                latency = end_time - start_time
+                # 将延时保存到字典中
+                latencies[url] = latency
+                PrintUtils.print_success("- {}\t\t延时:{:.2f}s".format(url,latency))
+                # 关闭连接
+                conn.close()
+            except Exception as e:
+                # 如果请求失败，记录为 None 或者一个很大的延时
+                # print(f"Error accessing {url}: {e}")
+                PrintUtils.print_info("- {}\t\t超时".format(url))
+                latencies[url] = float('inf')
+
+        # 按照延时从小到大排序 URL
+        sorted_urls = sorted(latencies, key=latencies.get)
+
+        return sorted_urls
+
+
 
 """
 定义基础任务

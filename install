@@ -14,3 +14,4 @@ sudo python3 /tmp/fishinstall/install.py
 sudo rm -rf /tmp/fishinstall/
 sudo rm fishros
 . ~/.bashrc
+. ~/.zshrc 2>/dev/null
