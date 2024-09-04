@@ -42,4 +42,6 @@ For more tool tutorials, please visit Yuxiang ROS official website :http://fishr
     "确认了解上述情况，请输入回车继续安装": "Confirm that you understand the above situation, please press Enter to continue the installation",
     "欢迎使用{},本工具由作者{}提供": "Welcome to use {}, this tool is brought to you by {}",
     '一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)': "Install: System shipped ROS (!!Warning!! Only for special cases)",
+    '已为您切换语言至当前所在国家语言:': "Language switched to the current country's language:':",
+    '检测到当前不在CN,切换服务地址为:https://raw.githubusercontent.com/fishros/install/master/': "Detected that you are not in CN, switching service address to: https://raw.githubusercontent.com/fishros/install/master/",
 }
