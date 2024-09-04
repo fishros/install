@@ -10,7 +10,7 @@ import tools.base
 from tools.base import CmdTask
 
 _suported_languages = ['zh_CN', 'en_US']
-url_prefix = os.environ.get('FISHROS_URL')
+url_prefix = os.environ.get('FISHROS_URL')+'/'
 lang_url = url_prefix+'tools/translation/assets/{}.py'
 
 
