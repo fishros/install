@@ -5,7 +5,7 @@ Author: Elysia
 '''
 import locale
 import json
-import requests
+import os
 
 COUNTRY_CODE_MAPPING = {
     "CN": "zh_CN",
@@ -45,14 +45,24 @@ class Linguist:
             return string
 
     def getLocalFromIP(self) -> str:
+        local_str = ""
         try:
-            res = requests.get(url="https://ip.renfei.net/", headers={"Accept": "application/json"}, 
-                            verify=False)
-            data = json.loads(res.text)
+            os.system("""wget --header="Accept: application/json" --no-check-certificate "https://ip.renfei.net/" -O /tmp/fishros_check_country.json""")
+            
+            with open('/tmp/fishros_check_country.json', 'r') as json_file:  
+                data = json.loads(json_file.read())
 
-            if data['countryCode'] in COUNTRY_CODE_MAPPING:
-                return COUNTRY_CODE_MAPPING[data['countryCode']]
-            else:
-                return "en_US"
+                if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
+                    local_str = COUNTRY_CODE_MAPPING[data['countryCode']]
+                else:
+                    local_str = "en_US"
         except Exception:
-            return "en_US"
+            local_str = "en_US"
+        finally:
+            os.system("rm -f /tmp/fishros_check_country.json")
+
+        return local_str
+
+if __name__ == "__main__":
+    # Test funcs
+    tr = Linguist()
