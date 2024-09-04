@@ -5,6 +5,7 @@ import re
 import sys
 import time
 import subprocess
+import importlib
 import locale
 from queue import Queue
 import threading
@@ -24,6 +25,8 @@ except:
 encoding = locale.getpreferredencoding()
 encoding_utf8 = encoding.find("UTF")>-1
 
+# Import translations
+tr = importlib.import_module("tools.translation.translator").Linguist()
 
 class ConfigHelper():
     def __init__(self,record_file=None):
@@ -930,7 +933,7 @@ class CmdTask(Task):
             logstr += log
         return logstr
 
-    
+
     def command_thread(self,executable='/bin/sh'):
         out,err = [],[]
         self.sub = subprocess.Popen(self.command,
@@ -1017,7 +1020,7 @@ class ChooseTask(Task):
         # 0 quit
         choose = -1 
         for key in dic:
-            PrintUtils.print_delay('[{}]:{}'.format(key,dic[key]),0.005)
+            PrintUtils.print_delay('[{}]:{}'.format(key,tr.tr(dic[key])),0.005)
             
         choose = None
         choose_item = config_helper.get_input_value()
@@ -1025,9 +1028,9 @@ class ChooseTask(Task):
         while True:
             if choose_item:
                 choose = str(choose_item['choose'])
-                print("为您从配置文件找到默认选项：",choose_item)
+                print(tr.tr("为您从配置文件找到默认选项："),choose_item)
             else:
-                choose = input("请输入[]内的数字以选择:")
+                choose = input(tr.tr("请输入[]内的数字以选择:"))
                 choose_item = None
             # Input From Queue
             if choose.isdecimal() :
@@ -1039,7 +1042,7 @@ class ChooseTask(Task):
         return choose,dic[choose]
 
     def run(self):
-        PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
+        PrintUtils.print_delay(tr.tr("RUN Choose Task:[请输入括号内的数字]"))
         PrintUtils.print_delay(self.tips,0.001)
         return ChooseTask.__choose(self.dic,self.tips,self.array)
 
@@ -1062,10 +1065,10 @@ class ChooseWithCategoriesTask(Task):
         tool_ids = [0]
         # 打印不同类型工具的分类结果
         for tool_type, tools_list in dic.items():
-            PrintUtils.print_delay("{}:".format(categories[tool_type]),0.005)
+            PrintUtils.print_delay("{}:".format(tr.tr(categories[tool_type])),0.005)
             sortkeys = sorted(tools_list.keys())
             for tool_id in sortkeys:
-                PrintUtils.print_delay("  [{}]:{}".format(tool_id,tools_list[tool_id]['tip']),0.005)
+                PrintUtils.print_delay("  [{}]:{}".format(tool_id,tr.tr(tools_list[tool_id]['tip'])),0.005)
                 tool_ids.append(tool_id)
             print()
         PrintUtils.print_delay("[0]:quit\n",0.005)
@@ -1076,9 +1079,9 @@ class ChooseWithCategoriesTask(Task):
         while True:
             if choose_item:
                 choose_id = str(choose_item['choose'])
-                print("为您从配置文件找到默认选项：",choose_item)
+                print(tr.tr("为您从配置文件找到默认选项："),choose_item)
             else:
-                choose_id = input("请输入[]内的数字以选择:")
+                choose_id = input(tr.tr("请输入[]内的数字以选择:"))
                 choose_item = None
             # Input From Queue
             if choose_id.isdecimal() :
@@ -1090,7 +1093,7 @@ class ChooseWithCategoriesTask(Task):
         return choose_id,""
 
     def run(self):
-        PrintUtils.print_delay("RUN Choose Task:[请输入括号内的数字]")
+        PrintUtils.print_delay(tr.tr("RUN Choose Task:[请输入括号内的数字]"))
         PrintUtils.print_delay(self.tips,0.001)
         return ChooseWithCategoriesTask.__choose(self.dic,self.tips,self.array,self.categories)
 
@@ -1140,7 +1143,7 @@ class FileUtils():
         # TODO 使用ls再次获取用户名
         users = users[1][0].split(" ")
         if len(users[0])==0:
-            user = input("请手动输入你的用户名>>")
+            user = input(tr.tr("请手动输入你的用户名>>"))
             users.clear()
             users.append(user)
         return users
@@ -1161,7 +1164,7 @@ class FileUtils():
 
     @staticmethod
     def new(path,name=None,data=''):
-        PrintUtils.print_info("创建文件:{}".format(path+name))
+        PrintUtils.print_info(tr.tr("创建文件:{}").format(path+name))
         if not os.path.exists(path):
             CmdTask("sudo mkdir -p {}".format(path),3).run()
         if name!=None:
@@ -1256,13 +1259,13 @@ class AptUtils():
         result = CmdTask('sudo apt update',100).run()
         if result[0]!=0:
             if FileUtils.check_result(result,['certificate','证书']):
-                PrintUtils.print_warn("检测到发生证书校验错误{}，自动取消https校验，如有需要请手动删除：rm /etc/apt/apt.conf.d/99verify-peer.conf".format(result[2]))
+                PrintUtils.print_warn(tr.tr("检测到发生证书校验错误{}，自动取消https校验，如有需要请手动删除：rm /etc/apt/apt.conf.d/99verify-peer.conf").format(result[2]))
                 CmdTask('touch /etc/apt/apt.conf.d/99verify-peer.conf').run()
                 CmdTask('echo  "Acquire { https::Verify-Peer false }" > /etc/apt/apt.conf.d/99verify-peer.conf').run()
                 CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
                 result = CmdTask('sudo apt update',100).run()
         if result[0]!=0:
-            PrintUtils.print_warn("apt更新失败,后续程序可能会继续尝试...,{}".format(result[2]))
+            PrintUtils.print_warn(tr.tr("apt更新失败,后续程序可能会继续尝试...,{}").format(result[2]))
             return False
         return True
 
@@ -1272,7 +1275,7 @@ class AptUtils():
         arc = result[1][0].strip("\n")
         if arc=='armhf': arc = 'arm64'
         if result[0]==0: return arc
-        PrintUtils.print_error("小鱼提示:自动获取系统架构失败...请手动选择")
+        PrintUtils.print_error(tr.tr("小鱼提示:自动获取系统架构失败...请手动选择"))
         # @TODO 提供架构选项 amd64,i386,arm
         return None
     
@@ -1280,7 +1283,7 @@ class AptUtils():
     def search_package(name,pattern,replace1="",replace2=""):
         result = CmdTask("sudo apt search {} ".format(name),20).run()
         if result[0]!=0: 
-            PrintUtils.print_error("搜索不到任何{}相关的包".format(name))
+            PrintUtils.print_error(tr.tr("搜索不到任何{}相关的包").format(name))
             return None
         dic = {}
         for line in result[1]:
@@ -1300,7 +1303,7 @@ class AptUtils():
         for key in dic.keys():
             result = CmdTask("sudo {} install {} {}".format(apt_tool,dic[key],yes), 0, os_command=os_command).run()
         if not result:
-            PrintUtils.print_warn("没有找到包：{}".format(name))
+            PrintUtils.print_warn(tr.tr("没有找到包：{}").format(name))
         return result
 
     @staticmethod
@@ -1318,8 +1321,8 @@ class AptUtils():
             while FileUtils.check_result(result,['未满足的依赖关系','unmet dependencies']):
                 # 尝试使用aptitude解决依赖问题
                 PrintUtils.print_warn("============================================================")
-                PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后选择解决方案（第一个解决方案不一定可以解决问题，如再遇到可以采用下一个解决方案）,即可解决")
-                input("确认了解上述情况，请输入回车继续安装")
+                PrintUtils.print_delay(tr.tr("请注意我，检测你在安装过程中出现依赖问题，请在稍后选择解决方案（第一个解决方案不一定可以解决问题，如再遇到可以采用下一个解决方案）,即可解决"))
+                input(tr.tr("确认了解上述情况，请输入回车继续安装"))
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = True, auto_yes=False)
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
                 
@@ -1384,7 +1387,7 @@ class BaseTool():
 
     def init(self):
         # 初始化部分
-        PrintUtils.print_delay("欢迎使用{},本工具由作者{}提供".format(self.name,self.autor))
+        PrintUtils.print_delay(tr.tr("欢迎使用{},本工具由作者{}提供").format(self.name,self.autor))
     
     def run(self):
         # 运行该任务
