@@ -183,10 +183,10 @@ newgrp docker
             use_snd = "--device=/dev/snd"
 
         if container_name:
-            command_create_x11 = "sudo docker run -dit --name={} -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
+            command_create_x11 = "sudo docker run -dit --name={} --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
                     container_name,home,home,use_dri,use_snd,home,RosVersions.get_image(name))
         else:
-            command_create_x11 = "sudo docker run -dit  -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {}  -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
+            command_create_x11 = "sudo docker run -dit --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {}  -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
                     home,home,use_dri,use_snd,home,RosVersions.get_image(name))
 
         CmdTask(command_create_x11,os_command=True).run()
