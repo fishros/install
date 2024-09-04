@@ -901,7 +901,7 @@ class CmdTask(Task):
         stdout_line = ""
         for line in iter(self.sub.stdout.readline,'b'):
             line = line.rstrip()#.decode('utf8', errors="ignore")
-            if callback:
+            if callback and line:
                 callback(line,'out')
             if(subprocess.Popen.poll(self.sub) is not None):
                 if(line==""):
@@ -909,7 +909,7 @@ class CmdTask(Task):
 
         for line in iter(self.sub.stderr.readline,'b'):
             line = line.rstrip()#.decode('utf8', errors="ignore")
-            if callback:
+            if callback and line:
                 callback(line,'err')
             if(subprocess.Popen.poll(self.sub) is not None):
                 if(line==""):
@@ -919,14 +919,16 @@ class CmdTask(Task):
         out = []
         lines = self.sub.stdout.readlines()
         for line in lines:
-            line = line.decode("utf-8", errors="ignore").strip("\n")
-            out.append(line)
-            time.sleep(0.01)
+            line = line.decode("utf-8", errors="ignore").strip()
+            if line:
+                out.append(line)
+            time.sleep(0.001)
         lines = self.sub.stderr.readlines()
         for line in lines:
-            line = line.decode("utf-8", errors="ignore").strip("\n")
-            out.append(line)
-            time.sleep(0.01)
+            line = line.decode("utf-8", errors="ignore").strip()
+            if line:
+                out.append(line)
+            time.sleep(0.001)
 
         logstr = ""
         for log in out:
@@ -1117,7 +1119,7 @@ class FileUtils():
         
     @staticmethod
     def get_shell():
-        shell = CmdTask("echo $SHELL", 0).run()[1][0].strip()
+        shell = os.environ.get('SHELL')
         if 'bash' in shell:
             return 'bash'
         elif 'zsh' in shell:
