@@ -53,7 +53,7 @@ class Linguist:
                 data = json.loads(json_file.read())
 
                 if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
-                    local_str = COUNTRY_CODE_MAPPING[data['countryCode']]
+                    local_str = COUNTRY_CODE_MAPPING[data['location']['countryCode']]
                 else:
                     local_str = "en_US"
         except Exception:
@@ -66,3 +66,4 @@ class Linguist:
 if __name__ == "__main__":
     # Test funcs
     tr = Linguist()
+    
