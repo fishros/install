@@ -1424,6 +1424,7 @@ def download_tools(id,tools,url_prefix):
     # download dep 
     for dep in  tools[id]['dep']:
         url = tools[dep]['tool']
+        url = os.path.join(url_prefix,url)
         CmdTask("wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(url,url[url.rfind('/')+1:])).run()
 
 
