@@ -33,10 +33,10 @@ class Linguist:
         for lang in _suported_languages:
             CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,''))).run()
         
-        self.loadTranslationFlile()
+        self.loadTranslationFile()
         tools.base.tr = self
 
-    def loadTranslationFlile(self):
+    def loadTranslationFile(self):
         # Load the translation file.
         import importlib
         try:
