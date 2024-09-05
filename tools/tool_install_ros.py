@@ -4,6 +4,7 @@ from .base import BaseTool
 from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
 from .base import osversion
 from .base import run_tool_file
+from .base import tr
 
 
 class RosVersion:
@@ -18,21 +19,23 @@ class RosVersion:
 
 class RosVersions:
     ros_version = [
-        RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['python-catkin-tools','python-rosdep']),
-        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['python-catkin-tools','python-rosdep']),
-        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['python3-catkin-tools','python3-rosdep']),
-        # ubuntu 20
-        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        # ubuntu 24
+        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        # ubuntu 22 & 24
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22
         RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        # ubuntu 22 & 24
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        # ubuntu 24
-        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        # ubuntu 20
+        RosVersion('foxy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['python3-catkin-tools','python3-rosdep']),
+        # ubuntu 18
+        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['python-catkin-tools','python-rosdep']),
         RosVersion('dashing',  'ROS2', RosVersion.STATUS_EOL, []),
+        # ubuntu 16
+        RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['python-catkin-tools','python-rosdep']),
         RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, []),
         RosVersion('bouncy',  'ROS2', RosVersion.STATUS_EOL, []),
         RosVersion('ardent',  'ROS2', RosVersion.STATUS_EOL, []),
@@ -73,6 +76,12 @@ class RosVersions:
             return "ros-{}-desktop-full".format(name)
         elif version=="ROS2":
             return "ros-{}-desktop".format(name)
+
+
+key_urls = [
+    'https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc',
+    'https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc',
+]
 
 ros_mirror_dic = {
     "tsinghua":{"ROS1":"http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu/"},
@@ -166,26 +175,36 @@ class Tool(BaseTool):
 
 
     def add_key(self):
+        PrintUtils.print_success(tr.tr('============正在添加ROS源密钥================='))
         # check apt
         if not AptUtils.checkapt(): 
             pass
-            # 检查失败可能会造成后续安装失败
-        # pre-install
+        # install dep
         AptUtils.install_pkg('curl')
         AptUtils.install_pkg('gnupg2')
 
         # add key
-        cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
+        PrintUtils.print_success(tr.tr('正在挑选最快的密钥服务:{}').format(key_urls))
+        key_url = AptUtils.get_fast_url(key_urls)
+        if not key_url: 
+            PrintUtils.print_error(tr.tr("获取密钥失败"))
+            return
+        key_url = key_url[0]
+        PrintUtils.print_success(tr.tr('已自动选择最快密钥服务:{}').format(key_url))
+
+        cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
+        if cmd_result[0]!=0: 
+            cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
+            
         if cmd_result[0]!=0:
-            cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo apt-key add -",10).run()
-        if cmd_result[0]!=0:
-            PrintUtils.print_info("导入密钥失败，开始更换导入方式并二次尝试...")
+            PrintUtils.print_info(tr.tr("导入密钥失败，开始更换导入方式并二次尝试..."))
             cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+
+        # 针对trusted.gpg.d问题解决方案
         if FileUtils.check_result(cmd_result,['trusted.gpg.d']):
-            # curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import 
-            # sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg
-            cmd_result = CmdTask("curl -s https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import",10).run()
+            cmd_result = CmdTask("curl -s {} | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import".format(key_url)).run()
             cmd_result = CmdTask("sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg",10).run()
+
         return cmd_result
 
 
@@ -213,7 +232,6 @@ class Tool(BaseTool):
         """
         检查并添加ROS系统源
         """
-
         arch = AptUtils.getArch()
         if arch==None: return False
 
@@ -325,7 +343,6 @@ class Tool(BaseTool):
 
         if install_tool=='aptitude':
             AptUtils.install_pkg('aptitude')
-            AptUtils.install_pkg('aptitude')
 
         # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
@@ -355,7 +372,8 @@ class Tool(BaseTool):
 
         # apt broken error
         if cmd_result[0]!=0:
-            if FileUtils.check_result(cmd_result[1]+cmd_result[2],['sudo apt --fix-broken install -y']):
+            if FileUtils.check_result(cmd_result,['--fix-broken install']):
+                CmdTask("sudo apt --fix-broken install -y").run()
                 if code==2: cmd_result = CmdTask("sudo {} install   {} -y".formatinstall_tool,(dic_base[rosname]),300,os_command=False).run()
                 elif code==1: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,rosname),300,os_command=False).run()
 

@@ -71,7 +71,8 @@ class Tool(BaseTool):
 
         # apt broken error
         if cmd_result[0]!=0:
-            if FileUtils.check_result(cmd_result[1]+cmd_result[2],['sudo apt --fix-broken install -y']):
+            if FileUtils.check_result(cmd_result,['--fix-broken']):
+                CmdTask("sudo apt --fix-broken install -y").run()
                 if code==2: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,"ros-base-dev"),300,os_command=False).run()
                 elif code==1: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,"ros-desktop-full-dev"),300,os_command=False).run()
 

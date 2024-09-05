@@ -114,13 +114,12 @@ def main():
 
     # download tools
     code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
-
     if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
     else: 
         download_tools(code,tools,url_prefix)
         run_tool_file(tools[code]['tool'].replace("/","."))
-
     config_helper.gen_config_file()
+    
     PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.1)
     PrintUtils.print_success(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
     PrintUtils.print_success(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)

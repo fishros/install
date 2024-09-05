@@ -937,6 +937,7 @@ class CmdTask(Task):
 
 
     def command_thread(self,executable='/bin/sh'):
+        self.ret_ok = False
         out,err = [],[]
         self.sub = subprocess.Popen(self.command,
                                     stdout=subprocess.PIPE,
@@ -970,12 +971,13 @@ class CmdTask(Task):
         self.ret_code = code
         self.ret_out = out
         self.ret_err = err
+        self.ret_ok = True
 
     def run_command(self,executable='/bin/sh'):
         self.command_thread = threading.Thread(target=self.command_thread)
         self.command_thread.start()
         time.sleep(0.5) # 等待线程启动
-        while self.is_command_finish()==-1:
+        while self.is_command_finish()==-1 and not self.ret_ok:
             self.bar.update_time()
             time.sleep(0.1)
 
@@ -1251,6 +1253,8 @@ class FileUtils():
                     
     @staticmethod
     def check_result(result,patterns):
+        if len(result)==3:
+            result = result[1]+result[2]
         for line in result:
             for pattern in patterns:
                 line = str(line)
@@ -1331,7 +1335,7 @@ class AptUtils():
                 result = AptUtils.install_pkg(name,apt_tool="aptitude", os_command = False, auto_yes=True)
                 
     @staticmethod
-    def get_fast_url(urls):
+    def get_fast_url(urls,timeout=1.5):
         """
         遍历请求 urls 中的地址，按照从快到慢排序返回。
         参数:
@@ -1348,7 +1352,7 @@ class AptUtils():
                 # 记录开始时间
                 start_time = time.time()
                 # 创建连接并发送请求
-                conn = http.client.HTTPSConnection(host, timeout=1.5)  # 使用 HTTPS 连接
+                conn = http.client.HTTPSConnection(host, timeout=timeout)  # 使用 HTTPS 连接
                 conn.request("GET", path)
                 response = conn.getresponse()
                 # 记录结束时间

@@ -55,6 +55,9 @@ class Linguist:
             # If the string does not exist, return the original string.
             return string
 
+    def isCN(self) -> bool:
+        return self.country=='CN'
+    
     def getLocalFromIP(self) -> str:
         local_str = ""
         try:
