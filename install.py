@@ -10,7 +10,6 @@ INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
 CONFIG_TOOL = 2  # 配置相关
 
-
 tools_type_map = {
     INSTALL_ROS: "ROS相关",
     INSTALL_SOFTWARE: "常用软件",
