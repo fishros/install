@@ -7,10 +7,10 @@ from .base import run_tool_file
 
 
 ubuntu_ports_sources_template = """
-deb <sources>-ports/ <code-name> main restricted universe multiverse
-deb <sources>-ports/ <code-name>-updates main restricted universe multiverse
-deb <sources>-ports/ <code-name>-backports main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu-ports/ <code-name>-security main restricted universe multiverse
+deb <sources>/ <code-name> main restricted universe multiverse
+deb <sources>/ <code-name>-updates main restricted universe multiverse
+deb <sources>/ <code-name>-backports main restricted universe multiverse
+deb <sources>/ <code-name>-security main restricted universe multiverse
 """
 ubuntu_amd64_sources_template = """
 deb <sources>/ <code-name> main restricted universe multiverse
