@@ -831,7 +831,7 @@ class PrintUtils():
         PrintUtils.print_text("\033[33m{}\033[37m".format(data),end=end)
 
     @staticmethod
-    def print_text(values: object="",end: str | None = "\n",flush= False):
+    def print_text(values="",end="\n",flush= False):
         print(values,end=end,flush=flush)
         Tracking.put_log(values,end=end)
         
