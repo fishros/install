@@ -345,7 +345,6 @@ class Tool(BaseTool):
         if install_tool=='aptitude':
             AptUtils.install_pkg('aptitude')
 
-        # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
             # 第一次尝试
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()

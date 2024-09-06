@@ -1284,14 +1284,26 @@ class FileUtils():
                         f.write(data)
                     
     @staticmethod
-    def check_result(result,patterns):
-        if len(result)==3:
-            result = result[1]+result[2]
+    def check_result(result, patterns:list):
+        # 处理 result 如果其长度正好为 3
+        if len(result) == 3:
+            # 将 result[1] 和 result[2] 安全转换为字符串并拼接
+            result = str(result[1]) + str(result[2])
+        
+        # 如果 result 是字符串，确保它是一个可迭代对象
+        if isinstance(result, str):
+            result = [result]
+        
+        # 遍历 result 中的每一行
         for line in result:
+            line = str(line)  # 确保 line 是字符串
+            # 对每个 pattern 进行检查
             for pattern in patterns:
-                line = str(line)
-                if len(re.findall(pattern, line))>0:
-                    return True
+                # 如果找到一个匹配
+                if len(re.findall(pattern, line)) == 1:
+                    return True  # 返回 True 表示匹配成功
+        # 如果所有行和所有模式都未匹配，返回 False
+        return False
 
 class AptUtils():
     @staticmethod
@@ -1338,13 +1350,19 @@ class AptUtils():
         yes = ""
         if auto_yes: 
             yes="-y"
-
-        result = None
-        for key in dic.keys():
-            result = CmdTask("sudo {} install {} {}".format(apt_tool,dic[key],yes), 0, os_command=os_command).run()
-        if not result:
+        
+        cmd_result = None
+        if dic:
+            for key in dic.keys():
+                cmd_result = CmdTask("sudo {} install {} {}".format(apt_tool,dic[key],yes), 0, os_command=os_command).run()
+                if os_command==False:
+                    if FileUtils.check_result(cmd_result,["apt --fix-broken install"]):
+                        print(cmd_result)
+                        CmdTask("sudo apt --fix-broken install -y", os_command=True).run()
+                        cmd_result = CmdTask("sudo {} install {} {}".format(apt_tool,dic[key],yes), 0, os_command=os_command).run()
+        else:
             PrintUtils.print_warn(tr.tr("没有找到包：{}").format(name))
-        return result
+        return cmd_result
 
     @staticmethod
     def install_pkg_check_dep(name):
