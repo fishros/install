@@ -14,7 +14,7 @@ class Tool(BaseTool):
     def run(self):
         # 正式的运行
         port = "https://pypi.mirrors.ustc.edu.cn/simple/"
-        
+        AptUtils.install_pkg('python3-pip')
         homes = FileUtils.getusershome()
         for home in homes:
             pip_dir = os.path.join(home, '.pip')
@@ -33,7 +33,7 @@ class Tool(BaseTool):
                 f.write(data)
 
             # Set the appropriate permissions
-            CmdTask(f"sudo chmod 777 {pip_conf}").run()
+            CmdTask("sudo chmod 777 {}".format(pip_conf)).run()
 
             # Verify pip configuration
             CmdTask('pip config list').run()
