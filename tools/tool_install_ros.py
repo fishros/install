@@ -325,7 +325,8 @@ class Tool(BaseTool):
 
         code,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
         if code==0: 
-            PrintUtils.print_error("你选择退出。。。。")
+            PrintUtils.print_error("你选择退出")
+            PrintUtils.print_delay('是因为没有自己想要的ROS版本吗？ROS版本和操作系统版本是有对应关系的哦，所以可能是你的系统版本{}不对!具体请查看：https://fishros.org.cn/forum/topic/96'.format(str(str(osversion.get_name())+str(osversion.get_version()))))
             return
         version_dic = {1:rosname+"桌面版",2:rosname+"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
@@ -402,6 +403,8 @@ class Tool(BaseTool):
         self.add_source()
 
         ros_version = self.choose_and_install_ros()
+        if not ros_version:
+            return
         self.config_env_and_tip(ros_version)
         if self.install_success(ros_version):
             RosVersions.tip_test_command(ros_version)
