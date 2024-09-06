@@ -1174,16 +1174,23 @@ class FileUtils():
     @staticmethod
     def getusers():
         """
-        优先home,没有home提供root
+        优先获取有home目录的普通用户, 没有普通用户则返回root
         """
-        users = CmdTask("users", 0).run() 
-        if users[0]!=0:  return ['root']
-        # TODO 使用ls再次获取用户名
-        users = users[1][0].split(" ")
-        if len(users[0])==0:
-            user = input(tr.tr("请手动输入你的用户名>>"))
-            users.clear()
-            users.append(user)
+        users = []
+        
+        # 遍历 /etc/passwd 文件来获取用户名和UID
+        with open('/etc/passwd', 'r') as passwd_file:
+            for line in passwd_file:
+                user_info = line.split(':')
+                username = user_info[0]
+                home_dir = user_info[5]
+                uid = int(user_info[2])
+                
+                # 过滤出有home目录且UID大于等于1000的普通用户
+                if home_dir.startswith('/home') and uid >= 1000:
+                    users.append(username)
+        
+        users.append('root')
         return users
     
     @staticmethod
