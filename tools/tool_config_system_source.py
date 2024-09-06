@@ -57,7 +57,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "一键更换系统源"
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
 
     def add_ros_source(self):
@@ -65,7 +65,7 @@ class Tool(BaseTool):
         dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
         code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
         if code==2: return
-        tool = run_tool_file('tools.tool_install_ros',autorun=False)
+        tool = run_tool_file('tools.tool_install_ros',authorun=False)
         if not tool.support_install(): return False
         tool.add_key()
         tool.add_source()

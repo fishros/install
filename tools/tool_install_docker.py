@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装Docker，支持amd64和arm64架构系统"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = 'alyssa'
+        self.author = 'alyssa'
 
     def install_docker(self):
         """

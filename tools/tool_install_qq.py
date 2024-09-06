@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
         self.name = "一键安装QQ"
-        self.autor = '五柳小生'
+        self.author = '五柳小生'
 
     def install_qq(self):
         PrintUtils.print_info("开始根据系统架构，为你下载对应版本的QQ~")

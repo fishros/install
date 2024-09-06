@@ -1422,12 +1422,12 @@ class BaseTool():
 
         self.name = name
         self.type = tool_type
-        self.autor = '小鱼'
-        self.autor_email = 'fishros@foxmail.com'
+        self.author = '小鱼'
+        self.author_email = 'fishros@foxmail.com'
 
     def init(self):
         # 初始化部分
-        PrintUtils.print_delay(tr.tr("欢迎使用{},本工具由作者{}提供").format(self.name,self.autor))
+        PrintUtils.print_delay(tr.tr("欢迎使用{},本工具由作者{}提供").format(self.name,self.author))
     
     def run(self):
         # 运行该任务
@@ -1438,11 +1438,11 @@ class BaseTool():
         pass
         # PrintUtils.print_delay("一键安装已开源，欢迎给个star/提出问题/帮助完善：https://github.com/fishros/install/ ")
 
-def run_tool_file(file,autorun=True):
+def run_tool_file(file,authorun=True):
     """运行工具文件，可以获取其他工具的对象"""
     import importlib
     tool = importlib.import_module(file.replace(".py","")).Tool()
-    if not autorun: return tool
+    if not authorun: return tool
     if tool.init()==False: return False
     if tool.run()==False: return False
     if tool.uninit()==False: return False

@@ -143,7 +143,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装ROS和ROS2,支持树莓派Jetson"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
 
     def get_mirror_by_code(self,code,arch='amd64',first_choose="tsinghua"):
@@ -214,7 +214,7 @@ class Tool(BaseTool):
         PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
         code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
-            tool = run_tool_file('tools.tool_config_system_source',autorun=False)
+            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
             tool.change_sys_source()
 
     def get_all_instsll_ros_pkgs(self):

@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装nodejs并配置环境"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def install_nodejs(self):
         PrintUtils.print_info("开始根据系统架构,为你下载对应版本的nodejs~")

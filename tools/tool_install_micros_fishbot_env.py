@@ -10,7 +10,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "安装PlateformIO MicroROS开发环境(支持Fishbot)"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def install_nodejs(self):
         CmdTask('sudo apt update && sudo apt install git python3-venv -y', os_command=True).run()

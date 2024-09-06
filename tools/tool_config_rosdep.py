@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "模板工程"
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def install_rosdepc(self):
         CmdTask("sudo apt install python3-pip -y", 0).run()

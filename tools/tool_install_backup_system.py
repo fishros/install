@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "快速备份还原系统工具"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def install_nodejs(self):
         wechat_version_dic = {1:"备份磁盘",2:"还原磁盘"}

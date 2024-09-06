@@ -9,7 +9,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装Cartographer"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = 'catalpa'
+        self.author = 'catalpa'
 
     def get_sys_default_ros_version(self):
         if osversion.get_version().find('18')>=0:

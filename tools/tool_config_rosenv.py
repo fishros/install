@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "一键配置ROS开发环境"
-        self.autor = '小鱼'
+        self.author = '小鱼'
     def config_rosenv(self):
         shell = FileUtils.get_shell()
 
