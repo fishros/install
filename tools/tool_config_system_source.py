@@ -105,6 +105,12 @@ class Tool(BaseTool):
             "https://ports.ubuntu.com/ubuntu-ports",
             # "https://mirrors.aliyun.com/ubuntu-ports",
             "https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
+             "http://ports.ubuntu.com/ubuntu-ports",
+            # "https://mirrors.aliyun.com/ubuntu-ports",
+            "http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
+            "http://ports.ubuntu.com/ubuntu-ports",
+            # "https://mirrors.aliyun.com/ubuntu-ports",
+            "http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
         ]
         debian_amd64_sources = [
             "https://mirrors.tuna.tsinghua.edu.cn/debian",
