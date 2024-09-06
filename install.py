@@ -51,13 +51,13 @@ for tool_id, tool_info in tools.items():
     # 将工具信息添加到相应类型的列表中
     tool_categories[tool_type][tool_id]=tool_info
 
-
+tracking = None
 def main():
     # download base
     url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
 
-    from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask
+    from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask,Tracking
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper,tr
@@ -66,6 +66,10 @@ def main():
     CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,''))).run()
     importlib.import_module("tools.translation.translator").Linguist()
     from tools.base import tr
+    import copy
+
+    global tracing
+    tracing = copy.copy(Tracking)
 
 
     # 使用量统计
@@ -87,7 +91,7 @@ def main():
         print('Solutions: https://fishros.org.cn/forum/topic/24 ')
         return False
     PrintUtils.print_success(tr.tr("基础检查通过..."))
-
+    
     book = tr.tr("""
                         .-~~~~~~~~~-._       _.-~~~~~~~~~-.
                     __.'              ~.   .~              `.__
@@ -110,8 +114,6 @@ def main():
     """)
     PrintUtils.print_delay(tip,0.001)
     PrintUtils.print_delay(book,0.001)
-
-
     # download tools
     code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
     if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
@@ -121,8 +123,42 @@ def main():
     config_helper.gen_config_file()
     
     PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.1)
-    PrintUtils.print_success(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
-    PrintUtils.print_success(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)
+    PrintUtils.print_delay(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
+    PrintUtils.print_delay(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)
 
 if __name__=='__main__':
-    main()
+    run_exc = []
+
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        print('\r\n检测到程序发生异常退出，请打开：https://fishros.org.cn/forum 携带如下内容进行反馈\n\n')
+        print("标题：使用一键安装过程中遇到程序崩溃")
+        print("```")
+        traceback.print_exc()
+        run_exc.append(traceback.format_exc())
+        print("```")
+        print('本次运行详细日志文件已保存至 /tmp/fishros_install.log')
+
+    try:
+        with open("/tmp/fishros_install.log", "w", encoding="utf-8") as f:
+            for exec in run_exc:
+                print(exec, file=f)  # 打印异常输出到文件中
+            for text,end in tracing.logs:
+                print(text, file=f,end=end)  # 打印输出到文件中
+            for text in tracing.err_logs:
+                print(text, file=f)  # 打印输出到文件中     
+        if tracing.need_report:
+            print("")
+            input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
+            ret = os.system("""curl -s -F "file=@/tmp/fishros_install.log" http://103.226.124.73:5000/upload > /tmp/fishros_upload 2>&1""")
+            if ret == 0:
+                with open("/tmp/fishros_upload","r") as f:
+                    print("错误日志上传成功，反馈码:",f.read())
+            else:
+                print("日志上传失败，若还需反馈请手动发帖!")
+    except:
+        pass
+
+    

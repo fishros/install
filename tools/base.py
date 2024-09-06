@@ -781,32 +781,60 @@ def GetOsVersion():
 
 osversion = GetOsVersion()
 
+class Tracking():
+    """
+    日志跟踪模块
+    """
+    logs = []
+    err_logs = []
+    need_report = False
+    def put_log(values,end=""):
+        Tracking.logs.append((values,end))
+    
+    def put_cmd_result(code,out,err,command):
+        if code!=0:
+            Tracking.need_report = True
+            Tracking.err_logs.append("Execute Command: {} Error Code{}".format(command,code))
+            Tracking.err_logs.append('====================OUT====================')
+            for line in out:
+                Tracking.err_logs.append(line)
+            Tracking.err_logs.append('====================ERR====================')
+            for line in err:
+                Tracking.err_logs.append(line)
+
+
 class PrintUtils():
+    
     @staticmethod
     def print_delay(data,delay=0.03,end="\n"):
+        PrintUtils.print_text("\033[37m",end="")
         for d in data:
             d = d.encode("utf-8").decode("utf-8")
-            print("\033[37m{}".format(d),end="",flush=True)
+            PrintUtils.print_text("{}".format(d),end="",flush=True)
             time.sleep(delay)
-        print(end=end)
+        PrintUtils.print_text(end=end)
 
     @staticmethod
     def print_error(data,end="\n"):
-        print("\033[31m{}\033[37m".format(data),end=end)
+        PrintUtils.print_text("\033[31m{}\033[37m".format(data),end=end)
 
     @staticmethod
     def print_info(data,end="\n"):
-        print("\033[37m{}".format(data))
+        PrintUtils.print_text("\033[37m{}".format(data),end=end)
 
     @staticmethod
     def print_success(data,end="\n"):
-        print("\033[32m{}\033[37m".format(data))
+        PrintUtils.print_text("\033[32m{}\033[37m".format(data),end=end)
 
     @staticmethod
     def print_warn(data,end="\n"):
-        print("\033[33m{}\033[37m".format(data))
+        PrintUtils.print_text("\033[33m{}\033[37m".format(data),end=end)
 
-
+    @staticmethod
+    def print_text(values: object="",end: str | None = "\n",flush= False):
+        print(values,end=end,flush=flush)
+        Tracking.put_log(values,end=end)
+        
     @staticmethod
     def print_fish(timeout=1,scale=30):
         return 
@@ -819,6 +847,9 @@ class PrintUtils():
             print("\r{:^3.0f}%[{}->{}]{:.2f}s".format(c,a,b,dur),end = "")
             time.sleep(timeout/scale)
         print("\n")
+
+
+
 
 class Task():
     """
@@ -855,13 +886,13 @@ class Progress():
 
     def update(self,log=""):
         if (self.i%4) == 0: 
-            print('\r[/][{:.2f}s] {}'.format(self.dur,log),end="")
+            PrintUtils.print_text('\r[/][{:.2f}s] {}'.format(self.dur,log),end="")
         elif(self.i%4) == 1: 
-            print('\r[\\][{:.2f}s] {}'.format(self.dur,log),end="")
+            PrintUtils.print_text('\r[\\][{:.2f}s] {}'.format(self.dur,log),end="")
         elif (self.i%4) == 2: 
-            print('\r[|][{:.2f}s] {}'.format(self.dur,log),end="")
+            PrintUtils.print_text('\r[|][{:.2f}s] {}'.format(self.dur,log),end="")
         elif (self.i%4) == 3: 
-            print('\r[-][{:.2f}s] {}'.format(self.dur,log),end="")
+            PrintUtils.print_text('\r[-][{:.2f}s] {}'.format(self.dur,log),end="")
         sys.stdout.flush()
         self.i += 1
         # update time
@@ -884,7 +915,7 @@ class Progress():
 
     def finsh(self,log="",color='\033[32m'):
         log = log+" "*(Progress.line_width-len(log)-15) 
-        print('\r{}[-][{:.2f}s] {}'.format(color,self.dur, log), end="\r\n\r\n")
+        PrintUtils.print_text('\r{}[-][{:.2f}s] {}'.format(color,self.dur, log), end="\r\n\r\n")
 
 
 
@@ -981,6 +1012,7 @@ class CmdTask(Task):
             self.bar.update_time()
             time.sleep(0.1)
 
+        Tracking.put_cmd_result(self.ret_code,self.ret_out,self.ret_err,self.command)
         return (self.ret_code,self.ret_out,self.ret_err)
 
     def is_command_finish(self):
@@ -1034,7 +1066,7 @@ class ChooseTask(Task):
         while True:
             if choose_item:
                 choose = str(choose_item['choose'])
-                print(tr.tr("为您从配置文件找到默认选项："),choose_item)
+                PrintUtils.print_text(tr.tr("为您从配置文件找到默认选项："),choose_item)
             else:
                 choose = input(tr.tr("请输入[]内的数字以选择:"))
                 choose_item = None
