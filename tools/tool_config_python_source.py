@@ -14,7 +14,8 @@ class Tool(BaseTool):
     def run(self):
         # 正式的运行
         port = "https://pypi.mirrors.ustc.edu.cn/simple/"
-        AptUtils.install_pkg('python3-pip')
+        AptUtils.install_pkg('python3-pip',os_command=True)
+        AptUtils.install_pkg('python-pip',os_command=True)
         homes = FileUtils.getusershome()
         for home in homes:
             pip_dir = os.path.join(home, '.pip')
@@ -36,6 +37,6 @@ class Tool(BaseTool):
             CmdTask("sudo chmod 777 {}".format(pip_conf)).run()
 
             # Verify pip configuration
-            CmdTask('pip config list').run()
+            # CmdTask('pip config list').run()
 
         PrintUtils.print_delay('配置成功（如果使用国内源下载包，记得关闭代理）')
