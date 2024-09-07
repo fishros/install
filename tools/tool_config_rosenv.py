@@ -36,17 +36,16 @@ class Tool(BaseTool):
         shell_file = ".{}rc".format(shell)
         for userhome in usershomes:
             shell_path = os.path.join(userhome,shell_file)
-            PrintUtils.print_delay('正在准备配置用户目录:{}'.format(userhome))
+            PrintUtils.print_delay('正在准备配置用户目录:{}'.format(shell_path))
             if FileUtils.exists(shell_path):
+                PrintUtils.print_info('当前系统包含{}个ROS,已为您完成启动终端自动激活ROS环境,修改{}可关闭'.format(ros_count,shell_path))
                 if ros_count>1:
-                    PrintUtils.print_info('当前系统包含{}个ROS,已为您完成启动终端自动激活ROS环境,修改{}可关闭'.format(ros_count,shell_path))
-                    if ros_count>1:
-                        data = get_source_command(ros_sourcefile)
-                    else:
-                        data = 'source {}'.format(ros_sourcefile[0])
-                    FileUtils.find_replace(shell_path,"source\s+/opt/ros/[A-Za-z]+/setup.{}".format(shell),"") # 删除旧source
-                    FileUtils.find_replace_sub(shell_path,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "") # 替换
-                    FileUtils.append(shell_path,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<\n") # 添加
+                    data = get_source_command(ros_sourcefile)
+                else:
+                    data = 'source {}'.format(ros_sourcefile[0])
+                FileUtils.find_replace(shell_path,"source\s+/opt/ros/[A-Za-z]+/setup.{}".format(shell),"") # 删除旧source
+                FileUtils.find_replace_sub(shell_path,"# >>> fishros initialize >>>","# <<< fishros initialize <<<", "") # 替换
+                FileUtils.append(shell_path,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<\n") # 添加
             PrintUtils.print_text("")
 
     def run(self):
