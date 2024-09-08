@@ -992,6 +992,7 @@ class CmdTask(Task):
 
         msg = 'code:{}'.format(code)
         if code == 0: msg="success"
+        self.ret_code = code
 
         if code==0:
             self.bar.finsh('CMD Result:{}'.format(msg),'\033[37m')
@@ -999,7 +1000,6 @@ class CmdTask(Task):
             self.bar.finsh('CMD Result:{}'.format(msg),'\033[31m')
 
 
-        self.ret_code = code
         self.ret_out = out
         self.ret_err = err
         self.ret_ok = True
@@ -1008,8 +1008,12 @@ class CmdTask(Task):
         self.command_thread = threading.Thread(target=self.command_thread)
         self.command_thread.start()
         time.sleep(0.5) # 等待线程启动
-        while self.is_command_finish()==-1 and not self.ret_ok:
+        while self.is_command_finish()==-1:
             self.bar.update_time()
+            time.sleep(0.1)
+
+        start_time = time.time()
+        while not self.ret_ok and time.time()-start_time < 2.0: # 2s timeout wait  command_thread end
             time.sleep(0.1)
 
         Tracking.put_cmd_result(self.ret_code,self.ret_out,self.ret_err,self.command)
