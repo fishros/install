@@ -64,6 +64,7 @@ def main():
 
     # download translations
     CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,''))).run()
+
     importlib.import_module("tools.translation.translator").Linguist()
     from tools.base import tr
     import copy
@@ -72,8 +73,8 @@ def main():
     tracing = copy.copy(Tracking)
 
 
-    # 使用量统计
-    CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q && rm -rf /tmp/t1733").run()
+    # 使用量统计 
+    CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q  --timeout 10 && rm -rf /tmp/t1733").run()
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:")+tr.lang)
     if tr.country != 'CN':
