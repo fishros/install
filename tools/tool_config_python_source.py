@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .base import BaseTool
-from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
+from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask
 from .base import osversion
 from .base import run_tool_file
 from .base import os
@@ -9,23 +9,34 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "python change source"
-        self.autor = 'songHat'
+        self.author = 'songHat'
 
     def run(self):
-        #正式的运行
-        PrintUtils.print_delay('runing python_source')
+        # 正式的运行
         port = "https://pypi.mirrors.ustc.edu.cn/simple/"
-        
-        path = '~/.pip/pip.conf'
-        # delete 
-        if FileUtils.exists(path):
-            FileUtils.delete(path)
+        AptUtils.install_pkg('python3-pip',os_command=True)
+        AptUtils.install_pkg('python-pip',os_command=True)
+        homes = FileUtils.getusershome()
+        for home in homes:
+            pip_dir = os.path.join(home, '.pip')
+            pip_conf = os.path.join(pip_dir, 'pip.conf')
 
-        data = "[global]\nindex-url = {}".format(port)
-        CmdTask(f"sudo touch {path}").run()
-        CmdTask(f"sudo chmod 777 {path}").run()
-        CmdTask(f'sudo echo "{data}" > {path}').run()
-        CmdTask(f'pip config list').run()
+            # Delete .pip directory if it exists
+            if FileUtils.exists(pip_dir):
+                FileUtils.delete(pip_dir)
+
+            # Create the .pip directory
+            os.mkdir(pip_dir)
+
+            # Write the configuration to pip.conf
+            data = "[global]\nindex-url = {}".format(port)
+            with open(pip_conf, 'w') as f:
+                f.write(data)
+
+            # Set the appropriate permissions
+            CmdTask("sudo chmod 777 {}".format(pip_conf)).run()
+
+            # Verify pip configuration
+            # CmdTask('pip config list').run()
+
         PrintUtils.print_delay('配置成功（如果使用国内源下载包，记得关闭代理）')
-
-

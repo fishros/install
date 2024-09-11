@@ -10,7 +10,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键配置Docker代理(支持VPN+代理服务两种模式)"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
 
     def config_docker_proxy(self):

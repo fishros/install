@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装Docker，支持amd64和arm64架构系统"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = 'alyssa'
+        self.author = 'alyssa'
 
     def install_docker(self):
         """
@@ -45,8 +45,9 @@ class Tool(BaseTool):
 
         # Post-installation steps
         CmdTask('sudo groupadd docker', 10,os_command=True).run()
-        user = FileUtils.getusers()[0]
-        CmdTask('sudo gpasswd -a {} docker'.format(user), 10,os_command=True).run()
+        users = FileUtils.getusers()
+        for user in users:
+            CmdTask('sudo gpasswd -a {} docker'.format(user), 10,os_command=True).run()
 
         PrintUtils.print_info("安装完成,接下来你可以尝试使用docker --version指令测试是有正常回显~")
 

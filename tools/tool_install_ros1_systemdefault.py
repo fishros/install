@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
         self.name = "一键安装系统自带ROS，仅在Ubuntu 22.04 及以上版本系统中使用。"
-        self.autor = 'Elysia'
+        self.author = 'Elysia'
         PrintUtils.print_warn("警告！！此工具安装的ROS与从ROS官方软件源安装的ROS冲突！")
 
     def run(self):
@@ -23,7 +23,7 @@ class Tool(BaseTool):
         PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
         code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
-            tool = run_tool_file('tools.tool_config_system_source',autorun=False)
+            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
             tool.change_sys_source()
 
     def install_system_ros(self):

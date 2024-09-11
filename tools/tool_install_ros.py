@@ -143,7 +143,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装ROS和ROS2,支持树莓派Jetson"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
 
     def get_mirror_by_code(self,code,arch='amd64',first_choose="tsinghua"):
@@ -214,7 +214,7 @@ class Tool(BaseTool):
         PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
         code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
         if code==1: 
-            tool = run_tool_file('tools.tool_config_system_source',autorun=False)
+            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
             tool.change_sys_source()
 
     def get_all_instsll_ros_pkgs(self):
@@ -325,7 +325,8 @@ class Tool(BaseTool):
 
         code,rosname = ChooseTask(ros_name.keys(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
         if code==0: 
-            PrintUtils.print_error("你选择退出。。。。")
+            PrintUtils.print_error("你选择退出")
+            PrintUtils.print_delay('是因为没有自己想要的ROS版本吗？ROS版本和操作系统版本是有对应关系的哦，所以可能是你的系统版本{}不对!具体请查看：https://fishros.org.cn/forum/topic/96'.format(str(str(osversion.get_name())+str(osversion.get_version()))))
             return
         version_dic = {1:rosname+"桌面版",2:rosname+"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
@@ -344,7 +345,6 @@ class Tool(BaseTool):
         if install_tool=='aptitude':
             AptUtils.install_pkg('aptitude')
 
-        # 先尝试使用apt 安装，之后再使用aptitude。
         if code==2:
             # 第一次尝试
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
@@ -402,6 +402,8 @@ class Tool(BaseTool):
         self.add_source()
 
         ros_version = self.choose_and_install_ros()
+        if not ros_version:
+            return
         self.config_env_and_tip(ros_version)
         if self.install_success(ros_version):
             RosVersions.tip_test_command(ros_version)

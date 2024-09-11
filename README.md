@@ -102,14 +102,14 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
         self.name = "模板工程"
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def run(self):
         #正式的运行
         pass
 ```
 
-接着修改type、name、autor
+接着修改type、name、author
 
 在run函数中编写逻辑，可以提供给你的工具有：
 1. PrintUtils 打印文字

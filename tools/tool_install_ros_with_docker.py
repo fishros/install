@@ -92,7 +92,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装ROS-Docker版,支持所有版本ROS"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def get_container_scripts(self, name, rosversion, delete_file):
         delete_command = "sudo rm -rf {}".format(delete_file)

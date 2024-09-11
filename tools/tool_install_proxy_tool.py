@@ -68,7 +68,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.name = "一键安装 Linux 代理科学上网工具"
         self.type = BaseTool.TYPE_INSTALL
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     # def install_docker(self):
     #     """安装Docker"""

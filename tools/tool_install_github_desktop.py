@@ -8,7 +8,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_INSTALL
         self.name = "安装Github桌面版"
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
     def install_github(self):
         """

@@ -7,10 +7,10 @@ from .base import run_tool_file
 
 
 ubuntu_ports_sources_template = """
-deb <sources>-ports/ <code-name> main restricted universe multiverse
-deb <sources>-ports/ <code-name>-updates main restricted universe multiverse
-deb <sources>-ports/ <code-name>-backports main restricted universe multiverse
-deb https://mirrors.ustc.edu.cn/ubuntu-ports/ <code-name>-security main restricted universe multiverse
+deb <sources>/ <code-name> main restricted universe multiverse
+deb <sources>/ <code-name>-updates main restricted universe multiverse
+deb <sources>/ <code-name>-backports main restricted universe multiverse
+deb <sources>/ <code-name>-security main restricted universe multiverse
 """
 ubuntu_amd64_sources_template = """
 deb <sources>/ <code-name> main restricted universe multiverse
@@ -57,7 +57,7 @@ class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "一键更换系统源"
-        self.autor = '小鱼'
+        self.author = '小鱼'
 
 
     def add_ros_source(self):
@@ -65,7 +65,7 @@ class Tool(BaseTool):
         dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
         code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
         if code==2: return
-        tool = run_tool_file('tools.tool_install_ros',autorun=False)
+        tool = run_tool_file('tools.tool_install_ros',authorun=False)
         if not tool.support_install(): return False
         tool.add_key()
         tool.add_source()
@@ -105,6 +105,12 @@ class Tool(BaseTool):
             "https://ports.ubuntu.com/ubuntu-ports",
             # "https://mirrors.aliyun.com/ubuntu-ports",
             "https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
+             "http://ports.ubuntu.com/ubuntu-ports",
+            # "https://mirrors.aliyun.com/ubuntu-ports",
+            "http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
+            "http://ports.ubuntu.com/ubuntu-ports",
+            # "https://mirrors.aliyun.com/ubuntu-ports",
+            "http://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
         ]
         debian_amd64_sources = [
             "https://mirrors.tuna.tsinghua.edu.cn/debian",
