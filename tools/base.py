@@ -832,7 +832,7 @@ class PrintUtils():
 
     @staticmethod
     def print_text(values="",end="\n",flush= False):
-        print(values,end=end,flush=flush)
+        print(values,end=str(end),flush=flush) # force to string
         Tracking.put_log(values,end=end)
         
     @staticmethod
@@ -1070,7 +1070,7 @@ class ChooseTask(Task):
         while True:
             if choose_item:
                 choose = str(choose_item['choose'])
-                PrintUtils.print_text(tr.tr("为您从配置文件找到默认选项："),choose_item)
+                PrintUtils.print_text(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
                 choose = input(tr.tr("请输入[]内的数字以选择:"))
                 choose_item = None
@@ -1121,7 +1121,7 @@ class ChooseWithCategoriesTask(Task):
         while True:
             if choose_item:
                 choose_id = str(choose_item['choose'])
-                print(tr.tr("为您从配置文件找到默认选项："),choose_item)
+                print(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
                 choose_id = input(tr.tr("请输入[]内的数字以选择:"))
                 choose_item = None
