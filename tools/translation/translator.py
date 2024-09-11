@@ -31,7 +31,7 @@ class Linguist:
         # Load the translation file.
         self.lang = self._currentLocale
         for lang in _suported_languages:
-            CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang),lang_url.format(lang).replace(url_prefix,''))).run()
+            CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang), lang_url.format(lang).replace(url_prefix, ''))).run()
         
         self.loadTranslationFlile()
         tools.base.tr = self
@@ -40,11 +40,11 @@ class Linguist:
         # Load the translation file.
         import importlib
         try:
-            _import_command = f"tools.translation.assets.{self._currentLocale}"
+            _import_command = "tools.translation.assets.{}".format(self._currentLocale)
             self._translations = importlib.import_module(_import_command).translations
         except Exception:
             # If the translation file does not exist, use the default translation file.
-            _import_command = f"tools.translation.assets.en_US"
+            _import_command = "tools.translation.assets.en_US"
             self._translations = importlib.import_module(_import_command).translations
 
     def tr(self, string) -> str:
@@ -56,7 +56,7 @@ class Linguist:
             return string
 
     def isCN(self) -> bool:
-        return self.country=='CN'
+        return self.country == 'CN'
     
     def getLocalFromIP(self) -> str:
         local_str = ""
@@ -80,4 +80,3 @@ class Linguist:
 if __name__ == "__main__":
     # Test funcs
     tr = Linguist()
-    
