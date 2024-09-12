@@ -19,9 +19,9 @@ class Tool(BaseTool):
                 disk_origin = '/dev/sda'
             save_disk = input('请输入你要存放的文件磁盘(如:/dev/sdb2):')
             file_name = input('请输入文件名guidebot_240802:')
-            CmdTask(f"mkdir -p /tmp/save_disk && mount {save_disk} /tmp/save_disk").run()
+            CmdTask("mkdir -p /tmp/save_disk && mount {} /tmp/save_disk".format(save_disk)).run()
             PrintUtils.print_info("查看进度: watch -n 1 pkill -USR1 -x dd")
-            command = f'cd /tmp/save_disk && dd if={disk_origin} | gzip > {file_name}.gz'
+            command = 'cd /tmp/save_disk && dd if={} | gzip > {}.gz'.format(disk_origin, file_name)
             CmdTask(command).run()
             
         else:

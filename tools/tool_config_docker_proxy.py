@@ -24,12 +24,12 @@ class Tool(BaseTool):
             if not url:
                 url = '127.0.0.1'
             port = input('请输入代理所在端口:')
-            proxy_config_vpn = f"""[Service]
-Environment="HTTP_PROXY=http://{url}:{port}/"
-Environment="HTTPS_PROXY=http://{url}:{port}/"
-Environment="NO_PROXY=localhost,127.0.0.1,{url},.example.com"""
+            proxy_config_vpn = """[Service]
+Environment="HTTP_PROXY=http://{}:{}/"
+Environment="HTTPS_PROXY=http://{}:{}/"
+Environment="NO_PROXY=localhost,127.0.0.1,{},.example.com""".format(url, port, url, port, url)
             FileUtils.new('/etc/systemd/system/docker.service.d/','proxy.conf',proxy_config_vpn)
-            PrintUtils.print_info(f"在{'/etc/systemd/system/docker.service.d'}/{'proxy.conf'}写入了{proxy_config_vpn},接下来为你重启Docker!")
+            PrintUtils.print_info("在{}/{}写入了{},接下来为你重启Docker!".format('/etc/systemd/system/docker.service.d', 'proxy.conf', proxy_config_vpn))
             CmdTask("sudo systemctl daemon-reload").run()
             CmdTask("sudo systemctl restart docker").run()
         elif code==2:
@@ -39,9 +39,9 @@ Environment="NO_PROXY=localhost,127.0.0.1,{url},.example.com"""
                 code,result = ChooseTask(dic, "请选择代理加速网址").run()
                 url = dic[code]
                 print(url)
-            proxy_config_vpn = f'{{"registry-mirrors": ["{url}"]}}'
+            proxy_config_vpn = '{{"registry-mirrors": ["{}"]}}'.format(url)
             FileUtils.new('/etc/docker/','daemon.json',proxy_config_vpn)
-            PrintUtils.print_info(f"在{'/etc/docker/'}/{'daemon.json'}写入了{proxy_config_vpn},接下来为你重启Docker!")
+            PrintUtils.print_info("在{}/{}写入了{},接下来为你重启Docker!".format('/etc/docker/', 'daemon.json', proxy_config_vpn))
             CmdTask("sudo systemctl daemon-reload").run()
             CmdTask("sudo systemctl restart docker").run()
         elif code==3:

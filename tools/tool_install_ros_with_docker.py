@@ -84,7 +84,7 @@ class RosVersions:
         """获取可安装的ROS版本列表"""
         names = []
         for version in RosVersions.ros_version:
-            names.append(f'{version.name} ({version.version})')
+            names.append('{} ({})'.format(version.name, version.version))
         return names
 
 
