@@ -147,7 +147,7 @@ class Tool(BaseTool):
             PrintUtils.print_warn('接下来为您排除已经失败的源')
             for source in fast_source:
                 if source in failed_sources:
-                    PrintUtils.print_info(f'{source} 已经测试失败，跳过!')
+                    PrintUtils.print_info('{} 已经测试失败，跳过!'.format(source))
                 else:
                     return source,template
         else:
