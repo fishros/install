@@ -345,6 +345,7 @@ class Tool(BaseTool):
         if install_tool=='aptitude':
             AptUtils.install_pkg('aptitude')
 
+        # ======================================================基础版本==============================================================
         if code==2:
             # 第一次尝试
             cmd_result = CmdTask("sudo {} install  {} -y".format(install_tool_apt,dic_base[install_version]),300,os_command=True).run()
@@ -355,9 +356,10 @@ class Tool(BaseTool):
                 PrintUtils.print_delay("请注意我，检测你在安装过程中出现依赖问题，请在稍后输入n,再选择y,即可解决")
                 import time
                 input("确认了解情况，请输入回车继续安装")
-                cmd_result = CmdTask("sudo {} install   {} ".format(install_tool,install_version),300,os_command=True).run()
+                cmd_result = CmdTask("sudo {} install   {} ".format(install_tool,dic_base[install_version]),300,os_command=True).run()
                 cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,dic_base[install_version]),300,os_command=False).run()
         
+        # ======================================================桌面版本==============================================================
         elif code==1:
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=True).run()
             cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool_apt,RosVersions.get_desktop_version(install_version)),300,os_command=False).run()
