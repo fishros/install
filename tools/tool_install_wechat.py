@@ -37,7 +37,7 @@ newgrp docker
         # sudo apt remove wechat-linux-spark
 
         """
-        wechat_version_dic = {1:"Docker版本",2:"桌面版本(v2.1.1)",3:"推荐:Linux版本(1.0.0.145)",4:"一键清理"}
+        wechat_version_dic = {1:"Docker版本",2:"桌面版本(v2.1.1)",3:"墙裂推荐:官方Linux版本",4:"一键清理"}
         code,_ = ChooseTask(wechat_version_dic,"请选择微信版本(两个版本区别对比:https://fishros.org.cn/forum/topic/195):",False).run()
         if code==2:
             AptUtils.install_pkg("git")
@@ -48,7 +48,7 @@ newgrp docker
             CmdTask('rm -rf /tmp/wechat_deb',os_command=True).run()
             PrintUtils.print_success("已为你安装完成wechat~")
         if code==3:
-            CmdTask('wget http://github.fishros.org/https://github.com/lovechoudoufu/wechat_for_linux/releases/download/wechat-beta-%E7%BB%95%E8%BF%87%E7%99%BB%E5%BD%95%E6%A3%80%E6%B5%8B/wechat-beta_1.0.0.145_amd64.fixed.deb -O /tmp/wechat.deb',os_command=True).run()
+            CmdTask('wget https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.deb -O /tmp/wechat.deb',os_command=True).run()
             CmdTask('sudo dpkg -i /tmp/wechat.deb',os_command=True).run()
             CmdTask('apt --fix-broken install -y',os_command=True).run()
             PrintUtils.print_success("已为你安装完成wechat-linux版本~")
