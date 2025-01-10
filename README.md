@@ -21,7 +21,7 @@
 
 ## 使用方法
 ```
-wget http://fishros.com/install -O fishros && . fishros
+wget http://fishros.com/install -O fishros && chmod +x fishros && ./fishros
 ```
 
 ## 如何自动选择(Dockerfile中使用)
