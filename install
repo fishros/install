@@ -7,7 +7,6 @@ fi
 sudo apt install python3-distro python3-yaml -y
 sudo python3 /tmp/fishinstall/install.py
 sudo rm -rf /tmp/fishinstall/
-sudo rm fishros
 
 # 初始假设默认是 Bash
 shell_name='bash'
