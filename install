@@ -8,6 +8,10 @@ sudo apt install python3-distro python3-yaml -y
 sudo python3 /tmp/fishinstall/install.py
 sudo rm -rf /tmp/fishinstall/
 
+if [ -f fishros ]; then
+    sudo rm fishros
+fi
+
 # 初始假设默认是 Bash
 shell_name='bash'
 if shopt -u lastpipe 2> /dev/null; then
