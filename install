@@ -1,15 +1,17 @@
 mkdir -p /tmp/fishinstall/tools/translation/assets
 wget http://mirror.fishros.com/install/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
-if [ $UID -eq 0 ];then
-    apt-get install sudo 
+
+SUDO=''
+if [ $UID -ne 0 ];then
+    SUDO='sudo'
 fi
-sudo apt install python3-distro python3-yaml -y
-sudo python3 /tmp/fishinstall/install.py
-sudo rm -rf /tmp/fishinstall/
+$SUDO apt install python3-distro python3-yaml -y
+$SUDO python3 /tmp/fishinstall/install.py
+$SUDO rm -rf /tmp/fishinstall/
 
 if [ -f fishros ]; then
-    sudo rm fishros
+    $SUDO rm fishros
 fi
 
 # 初始假设默认是 Bash
