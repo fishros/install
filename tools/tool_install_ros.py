@@ -196,7 +196,8 @@ class Tool(BaseTool):
         cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
         if cmd_result[0]!=0: 
             cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
-            
+        # 针对近期密钥更新问题
+        CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
         if cmd_result[0]!=0:
             PrintUtils.print_info(tr.tr("导入密钥失败，开始更换导入方式并二次尝试..."))
             cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
