@@ -1160,6 +1160,8 @@ class FileUtils():
     @staticmethod
     def get_shell():
         shell = os.environ.get('SHELL')
+        if not shell:
+            return 'sh'
         if 'bash' in shell:
             return 'bash'
         elif 'zsh' in shell:
