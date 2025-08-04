@@ -79,10 +79,18 @@ class Tool(BaseTool):
             FileUtils.delete('/etc/apt/sources.list.d')
             # fix add source failed before config system source 
             CmdTask('sudo mkdir -p /etc/apt/sources.list.d').run()
+        
+        # 添加选择源的方式
+        PrintUtils.print_info("源选择方式说明:")
+        PrintUtils.print_info("1. 自动测速选择最快的源: 系统将自动测试各个源的速度，并选择最快的源")
+        PrintUtils.print_info("2. 根据测速结果手动选择源: 系统将测试各个源的速度，然后让您从测试结果中选择")
+        
+        dic_source_method = {1:"自动测速选择最快的源", 2:"根据测速结果手动选择源"}
+        self.source_method_code, _ = ChooseTask(dic_source_method, "请选择源的选择方式").run()
 
 
 
-    def get_source_by_system(self,system,codename,arch,failed_sources=[]):
+    def get_source_by_system(self,system,codename,arch,failed_sources=[], return_all=False):
         # 实际测试发现，阿里云虽然延时很低，但是带宽也低的离谱，一点都不用心，删掉了
         ubuntu_amd64_sources = [
             "https://mirrors.tuna.tsinghua.edu.cn/ubuntu",
@@ -143,6 +151,15 @@ class Tool(BaseTool):
         PrintUtils.print_delay('接下来将进行自动测速以为您选择最快的源:')
         fast_source = AptUtils.get_fast_url(sources)
         
+        # 如果需要返回所有源和模板（不进行测速）
+        if return_all:
+            # 直接返回源列表和模板
+            if len(failed_sources) > 0:
+                filtered_sources = [source for source in sources if source not in failed_sources]
+                return filtered_sources, template
+            return sources, template
+            
+        # 正常返回最快的源
         if len(failed_sources)>0:
             PrintUtils.print_warn('接下来为您排除已经失败的源')
             for source in fast_source:
@@ -155,6 +172,77 @@ class Tool(BaseTool):
         return None,None
 
 
+
+        
+        for source in sources:
+            if "tsinghua" in source:
+                tsinghua_sources.append(source)
+            elif "ustc" in source:
+                ustc_sources.append(source)
+            elif "archive.ubuntu" in source or "deb.debian" in source:
+                official_sources.append(source)
+            elif "kernel" in source:
+                kernel_sources.append(source)
+            elif "aliyun" in source:
+                aliyun_sources.append(source)
+            else:
+                other_sources.append(source)
+        
+        # 添加到选择字典
+        index = 1
+        
+        # 添加清华源
+        if tsinghua_sources:
+            for source in tsinghua_sources:
+                source_dict[index] = source
+                index += 1
+        
+        # 添加中科大源
+        if ustc_sources:
+            for source in ustc_sources:
+                source_dict[index] = source
+                index += 1
+        
+        # 添加阿里云源
+        if aliyun_sources:
+            for source in aliyun_sources:
+                source_dict[index] = source
+                index += 1
+        
+        # 添加官方源
+        if official_sources:
+            for source in official_sources:
+                source_dict[index] = source
+                index += 1
+        
+        # 添加kernel源
+        if kernel_sources:
+            for source in kernel_sources:
+                source_dict[index] = source
+                index += 1
+        
+        # 添加其他源
+        if other_sources:
+            for source in other_sources:
+                source_dict[index] = source
+                index += 1
+        
+        PrintUtils.print_info("请选择您想使用的镜像源:")
+        code, source = ChooseTask(source_dict, "请选择一个镜像源").run()
+        
+        if not source:
+            return None, None
+        
+        return source, template
+        
+
+        
+        # 去除末尾的斜杠
+        if source.endswith("/"):
+            source = source[:-1]
+        
+        return source, template
+    
     def replace_source(self,failed_sources=[]):
         arch = AptUtils.getArch()
         name = osversion.get_name()
@@ -165,10 +253,44 @@ class Tool(BaseTool):
             system = 'debian'
         else:
             return None
+        
         PrintUtils.print_delay('检测到当前系统:{} 架构:{} 代号:{},正在为你搜索适合的源...'.format(system,arch,codename))
-        source,template =  self.get_source_by_system(system,codename,arch,failed_sources)
+        
+        # 根据用户选择的方式获取源
+        if hasattr(self, 'source_method_code'):
+            if self.source_method_code == 2:
+                # 根据测速结果手动选择源
+                sorted_sources, template = self.get_source_by_system(system, codename, arch, failed_sources, return_all=True)
+                if not sorted_sources:
+                    return None
+                
+                # 创建选择字典
+                source_dict = {}
+                for i, src in enumerate(sorted_sources, 1):
+                    source_dict[i] = src
+                
+                PrintUtils.print_info("请从测速结果中选择您想使用的镜像源:")
+                code, source = ChooseTask(source_dict, "请选择一个镜像源").run()
+                
+                if not source:
+                    return None
+            else:
+                # 自动测速选择源
+                source, template = self.get_source_by_system(system, codename, arch, failed_sources)
+        else:
+            # 自动测速选择源
+            source, template = self.get_source_by_system(system, codename, arch, failed_sources)
+        
         if not source: return None
-        PrintUtils.print_success('为您选择最快镜像源:{}'.format(source))
+        
+        if hasattr(self, 'source_method_code'):
+            if self.source_method_code == 2:
+                PrintUtils.print_success('您选择的镜像源:{}'.format(source))
+            else:
+                PrintUtils.print_success('为您选择最快镜像源:{}'.format(source))
+        else:
+            PrintUtils.print_success('为您选择最快镜像源:{}'.format(source))
+            
         FileUtils.new('/etc/apt/','sources.list',template.replace("<code-name>",codename).replace('<sources>',source))
         return source
         
@@ -181,11 +303,27 @@ class Tool(BaseTool):
         if source:
             PrintUtils.print_delay("替换镜像源完成，尝试进行更新....")
             result = CmdTask('sudo apt update',100).run()
-            while result[0]!= 0:
-                failed_sources.append(source)
-                PrintUtils.print_warn("更新失败，尝试更换其他源")
-                source = self.replace_source(failed_sources)
-                result = CmdTask('sudo apt update',100).run()
+            
+            # 如果是手动选择源且更新失败，提示用户重新选择
+            if result[0] != 0 and hasattr(self, 'source_method_code') and self.source_method_code == 2:
+                PrintUtils.print_warn("您选择的源更新失败，请重新选择其他源")
+                while result[0] != 0:
+                    failed_sources.append(source)
+                    source = self.replace_source(failed_sources)
+                    if not source:
+                        PrintUtils.print_error("没有找到合适的镜像源,臣妾告退!")
+                        return
+                    result = CmdTask('sudo apt update',100).run()
+            # 如果是自动测速选择源且更新失败，自动尝试其他源
+            elif result[0] != 0:
+                while result[0] != 0:
+                    failed_sources.append(source)
+                    PrintUtils.print_warn("更新失败，尝试更换其他源")
+                    source = self.replace_source(failed_sources)
+                    if not source:
+                        PrintUtils.print_error("没有找到合适的镜像源,臣妾告退!")
+                        return
+                    result = CmdTask('sudo apt update',100).run()
         else:
             PrintUtils.print_error("没有找到合适的镜像源,臣妾告退!")
 
