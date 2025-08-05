@@ -170,6 +170,21 @@ newgrp docker
             PrintUtils.print_warn("请为你的{}容器取个名字吧！".format(name))
             container_name = input(">>")
 
+        # get network mode
+        while True:
+            PrintUtils.print_warn("请问你要使用什么网络模式？")
+            PrintUtils.print_info("1.host (主机模式，容器共享宿主机的网络命名空间，没有隔离（仅 Linux）） ")
+            PrintUtils.print_info("2.bridge (桥接模式，默认网络模式，每个容器都有自己的 IP，容器之间通过网桥通信，宿主机通过端口映射访问） ")
+            code = input(">>")
+            if code=='1':
+                network_mode = "host"
+                break
+            elif code=='2':
+                network_mode = "bridge"
+                break
+            else:
+                PrintUtils.print_warn("你输入的选项不正确，请重新输入")
+
         # get home
         user =  FileUtils.getusers()[0]
         home = "/home/{}".format(user)
@@ -183,12 +198,11 @@ newgrp docker
             use_snd = "--device=/dev/snd"
 
         if container_name:
-            command_create_x11 = "sudo docker run -dit --name={} --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
-                    container_name,home,home,use_dri,use_snd,home,RosVersions.get_image(name))
+            command_create_x11 = "sudo docker run -dit --name={} --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {} -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY --network {} -w {}  {}".format(
+                    container_name,home,home,use_dri,use_snd,network_mode,home,RosVersions.get_image(name))
         else:
-            command_create_x11 = "sudo docker run -dit --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {}  -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY -w {}  {}".format(
-                    home,home,use_dri,use_snd,home,RosVersions.get_image(name))
-
+            command_create_x11 = "sudo docker run -dit --privileged -v {}:{} -v /tmp/.X11-unix:/tmp/.X11-unix {}  -v /dev:/dev -v /dev/dri:/dev/dri {} -e DISPLAY=unix$DISPLAY --network {} -w {}  {}".format(
+                    home,home,use_dri,use_snd,network_mode,home,RosVersions.get_image(name))
         CmdTask(command_create_x11,os_command=True).run()
         # CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /ros_entrypoint.sh' >> ~/.bashrc" """.format(container_name),os_command=True).run()
         CmdTask("""docker exec -it {} /bin/bash -c "echo -e '\nsource /opt/ros/{}/setup.bash' >> ~/.bashrc" """.format(container_name,name),os_command=True).run()
