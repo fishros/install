@@ -31,8 +31,8 @@ class Tool(BaseTool):
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
 
         if code==0: 
-            print("你选择退出。。。。")
-            return
+            PrintUtils.print_error("你选择退出。。。。")
+            return False
 
         install_tool = 'aptitude'
         install_tool_apt = 'apt'

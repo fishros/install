@@ -132,7 +132,7 @@ newgrp docker
         code,result = ChooseTask(RosVersions.get_vesion_list(),"请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):",True).run()
         if code==0: 
             PrintUtils.print_error("你选择退出。。。。")
-            return 
+            return False
         version_info,rosname = RosVersions.get_version_string(result)
         PrintUtils.print_info("你选择了{}".format(version_info))
         return rosname
@@ -249,7 +249,7 @@ newgrp docker
 
     def install_ros_with_docker(self):
         rosname = self.choose_image_version()
-        if not rosname: return
+        if not rosname: return False
 
         self.install_docker()
         self.download_image(rosname)
