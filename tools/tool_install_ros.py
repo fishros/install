@@ -271,51 +271,27 @@ class Tool(BaseTool):
             PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
             return
         
-        #add source2 
-        PrintUtils.print_warn("换源后更新失败，第二次开始切换源，尝试更换ROS2源为华为源！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="huawei")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-
-        PrintUtils.print_warn("换源后更新失败，第三次开始切换源，尝试使用https-ROS官方源～！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="https.packages.ros")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-        #add source2 
-        PrintUtils.print_warn("换源后更新失败，第四次开始切换源，尝试更换ROS源为http-ROS官方源！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="packages.ros")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-        # echo >>/etc/apt/apt.conf.d/99verify-peer.conf "Acquire { https::Verify-Peer false }"
-        if  not AptUtils.checkapt(): PrintUtils.print_error("四次换源后都失败了，请及时联系小鱼获取解决方案并处理！") 
-
+        # 如果第一次尝试失败，让用户重新选择镜像源
+        PrintUtils.print_warn("换源后更新失败，您可以重新选择镜像源再尝试！") 
+        retry_mirror = self.select_mirror()
+        while retry_mirror != selected_mirror:
+            PrintUtils.print_info("您重新选择的镜像源: {}".format(retry_mirror))
+            mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose=retry_mirror)
+            PrintUtils.print_info("根据您的系统和选择，为您推荐安装源为{}".format(mirrors))
+            source_data = ''
+            for mirror in mirrors:
+                source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
+            FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
+            FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
+            ros_pkg = self.get_all_instsll_ros_pkgs()
+            if ros_pkg and len(ros_pkg)>1:
+                PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
+                return
+            else:
+                PrintUtils.print_warn("换源后更新失败，您可以重新选择镜像源再尝试！") 
+                retry_mirror = self.select_mirror()
+        else:
+            PrintUtils.print_error("您选择了相同的镜像源，四次换源后都失败了，请及时联系小鱼获取解决方案并处理！")
 
     def add_key(self):
         PrintUtils.print_success(tr.tr('============正在添加ROS源密钥================='))
