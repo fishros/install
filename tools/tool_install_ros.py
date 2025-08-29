@@ -86,6 +86,7 @@ key_urls = [
 
 ros_mirror_dic = {
     "tsinghua":{"ROS1":"http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu/"},
+    "ustc":{"ROS1":"https://mirrors.ustc.edu.cn/ros/ubuntu/","ROS2":"https://mirrors.ustc.edu.cn/ros2/ubuntu/"},
     "huawei":{"ROS1":"https://repo.huaweicloud.com/ros/ubuntu/","ROS2":"https://repo.huaweicloud.com/ros2/ubuntu/"},
     "packages.ros":{"ROS1":"http://packages.ros.org/ros/ubuntu/","ROS2":"http://packages.ros.org/ros2/ubuntu/"},
     "https.packages.ros":{"ROS1":"https://packages.ros.org/ros/ubuntu/","ROS2":"https://packages.ros.org/ros2/ubuntu/"},
@@ -95,13 +96,13 @@ ros_mirror_dic = {
 
 ros_dist_dic = {
     'artful':{"packages.ros"},
-    'bionic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'buster':{"packages.ros"},
     'cosmic':{"packages.ros"},
     'disco':{"packages.ros"},
     'eoan':{"packages.ros"},
-    'focal':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'lucid':{"packages.ros"},
     'maverick':{"packages.ros"},
     'natty':{"packages.ros"},
@@ -110,32 +111,46 @@ ros_dist_dic = {
     'quantal':{"packages.ros"},
     'raring':{"packages.ros"},
     'saucy':{"packages.ros"},
-    'stretch':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'utopic':{"packages.ros"},
     'vivid':{"packages.ros"},
     'wheezy':{"packages.ros"},
     'wily':{"packages.ros"},
-    'xenial':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'yakkety':{"packages.ros"},
     'zesty':{"packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jammy':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'kinetic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'lunar':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'melodic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'noble':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'yakkety':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'zesty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
 }
 
 
 ros2_dist_dic = {
-    'bionic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'bullseye':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'bullseye':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'buster':{"packages.ros"},
-    'cosmic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'disco':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'eoan':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'focal':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","huawei"},
-    'jammy':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'noble':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'stretch':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","huawei"},
-    'xenial':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'cosmic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'disco':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'eoan':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jammy':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'noble':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'yakkety':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'zesty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
 }
 
 
@@ -151,11 +166,11 @@ class Tool(BaseTool):
         """
         获取镜像通过系统版本号
         """
-        ros1_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
-        ros2_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
+        ros1_choose_queue = [first_choose,"tsinghua","ustc","huawei","packages.ros"]
+        ros2_choose_queue = [first_choose,"tsinghua","ustc","huawei","packages.ros"]
         
         # armhf架构，优先使用官方源
-        if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
+        if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","ustc","huawei"]
 
         mirror = []
         # 确认源里有对应的系统的，比如jammy
@@ -174,61 +189,62 @@ class Tool(BaseTool):
         #     mirror.append(ros_mirror_dic['packages.ros']['ROS2'])
         return mirror
 
+    def select_mirror(self):
+        """
+        让用户选择镜像源
+        """
+        # 检查当前系统是否支持中科大镜像
+        codename = osversion.get_codename()
+        supported_mirrors = []
+        
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "ustc" in ros_dist_dic.get(codename, []) or "ustc" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("ustc")
+                
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "tsinghua" in ros_dist_dic.get(codename, []) or "tsinghua" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("tsinghua")
+                
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "huawei" in ros_dist_dic.get(codename, []) or "huawei" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("huawei")
 
-    def add_key(self):
-        PrintUtils.print_success(tr.tr('============正在添加ROS源密钥================='))
-        # check apt
-        if not AptUtils.checkapt(): 
-            pass
-        # install dep
-        AptUtils.install_pkg('curl')
-        AptUtils.install_pkg('gnupg2')
-
-        # add key
-        PrintUtils.print_success(tr.tr('正在挑选最快的密钥服务:{}').format(key_urls))
-        key_url = AptUtils.get_fast_url(key_urls)
-        if not key_url: 
-            PrintUtils.print_error(tr.tr("获取密钥失败"))
-            return
-        key_url = key_url[0]
-        PrintUtils.print_success(tr.tr('已自动选择最快密钥服务:{}').format(key_url))
-
-        cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
-        if cmd_result[0]!=0: 
-            cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
-        # 针对近期密钥更新问题
-        CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
-        if cmd_result[0]!=0:
-            PrintUtils.print_info(tr.tr("导入密钥失败，开始更换导入方式并二次尝试..."))
-            cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
-
-        # 针对trusted.gpg.d问题解决方案
-        if FileUtils.check_result(cmd_result,['trusted.gpg.d']):
-            cmd_result = CmdTask("curl -s {} | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import".format(key_url)).run()
-            cmd_result = CmdTask("sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg",10).run()
-
-        return cmd_result
-
-
-    def check_sys_source(self):
-        # 更换系统源
-        dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
-        PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
-        code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
-        if code==1: 
-            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
-            tool.change_sys_source()
-
-    def get_all_instsll_ros_pkgs(self):
-        AptUtils.checkapt()
-        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
-        if dic_base== None: return None
-        ros_name = {}
-        for a in dic_base.keys(): 
-            ros_name[RosVersions.get_version_string(a)] = a
-        if len(ros_name) == 0:
-            return None
-        return ros_name
+        # 如果系统支持多个镜像源，则让用户选择
+        if len(supported_mirrors) > 1:
+            mirror_dict = {}
+            count = 1
+            for mirror in supported_mirrors:
+                if mirror == "ustc":
+                    mirror_dict[count] = "中科大镜像源 (推荐国内用户使用)"
+                elif mirror == "tsinghua":
+                    mirror_dict[count] = "清华镜像源 (容易被封禁)"
+                elif mirror == "huawei":
+                    mirror_dict[count] = "华为镜像源"
+                count += 1
+            
+            mirror_dict[count] = "ROS官方源 (国外用户或需要最新版本时使用)"
+            
+            code, result = ChooseTask(mirror_dict, "检测到您的系统支持多个ROS镜像源，请选择您想要使用的ROS镜像源(默认清华)：").run()
+            if code == 0:
+                return "tsinghua"  # 默认返回清华源
+            elif code == count:
+                return "packages.ros"  # 官方源
+            else:
+                # 根据选择返回对应的镜像源
+                for key, value in mirror_dict.items():
+                    if key == code:
+                        if "中科大" in value:
+                            return "ustc"
+                        elif "清华" in value:
+                            return "tsinghua"
+                        elif "华为" in value:
+                            return "huawei"
+        else:
+            # 系统只支持默认的清华源
+            PrintUtils.print_info("您的系统默认使用清华镜像源")
+            return "tsinghua"
+        
+        return "tsinghua"
 
     def add_source(self):
         """
@@ -237,9 +253,13 @@ class Tool(BaseTool):
         arch = AptUtils.getArch()
         if arch==None: return False
 
+        # 让用户选择镜像源
+        selected_mirror = self.select_mirror()
+        PrintUtils.print_info("您选择的镜像源: {}".format(selected_mirror))
+
         #add source 1
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch)
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose=selected_mirror)
+        PrintUtils.print_info("根据您的系统和选择，为您推荐安装源为{}".format(mirrors))
         source_data = ''
         for mirror in mirrors:
             source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
@@ -296,6 +316,61 @@ class Tool(BaseTool):
         # echo >>/etc/apt/apt.conf.d/99verify-peer.conf "Acquire { https::Verify-Peer false }"
         if  not AptUtils.checkapt(): PrintUtils.print_error("四次换源后都失败了，请及时联系小鱼获取解决方案并处理！") 
 
+
+    def add_key(self):
+        PrintUtils.print_success(tr.tr('============正在添加ROS源密钥================='))
+        # check apt
+        if not AptUtils.checkapt(): 
+            pass
+        # install dep
+        AptUtils.install_pkg('curl')
+        AptUtils.install_pkg('gnupg2')
+
+        # add key
+        PrintUtils.print_success(tr.tr('正在挑选最快的密钥服务:{}').format(key_urls))
+        key_url = AptUtils.get_fast_url(key_urls)
+        if not key_url: 
+            PrintUtils.print_error(tr.tr("获取密钥失败"))
+            return
+        key_url = key_url[0]
+        PrintUtils.print_success(tr.tr('已自动选择最快密钥服务:{}').format(key_url))
+
+        cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
+        if cmd_result[0]!=0: 
+            cmd_result = CmdTask("curl -s {} | sudo apt-key add -".format(key_url)).run()
+        # 针对近期密钥更新问题
+        CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+        if cmd_result[0]!=0:
+            PrintUtils.print_info(tr.tr("导入密钥失败，开始更换导入方式并二次尝试..."))
+            cmd_result = CmdTask("sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F42ED6FBAB17C654",10).run()
+
+        # 针对trusted.gpg.d问题解决方案
+        if FileUtils.check_result(cmd_result,['trusted.gpg.d']):
+            cmd_result = CmdTask("curl -s {} | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/ros.gpg --import".format(key_url)).run()
+            cmd_result = CmdTask("sudo chmod 644 /etc/apt/trusted.gpg.d/ros.gpg",10).run()
+
+        return cmd_result
+
+
+    def check_sys_source(self):
+        # 更换系统源
+        dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
+        PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
+        code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
+        if code==1: 
+            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
+            tool.change_sys_source()
+
+    def get_all_instsll_ros_pkgs(self):
+        AptUtils.checkapt()
+        dic_base = AptUtils.search_package('ros-base','ros-[A-Za-z]+-ros-base',"ros-","-base")
+        if dic_base== None: return None
+        ros_name = {}
+        for a in dic_base.keys(): 
+            ros_name[RosVersions.get_version_string(a)] = a
+        if len(ros_name) == 0:
+            return None
+        return ros_name
 
     def support_install(self):
         # check support

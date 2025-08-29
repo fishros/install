@@ -52,9 +52,49 @@ class ConfigHelper():
         config_yaml['chooses'] = chooses
         config_yaml['time'] = str(time.time())
         
-        with open("/tmp/fish_install.yaml", "w", encoding="utf-8") as f:
-            if have_yaml_module:
-                yaml.dump(config_yaml, f,allow_unicode=True)
+        # 先写入临时文件，再使用sudo移动到目标位置
+        temp_path = "/tmp/fish_install_temp.yaml"
+        target_path = "/tmp/fish_install.yaml"
+        try:
+            with open(temp_path, "w", encoding="utf-8") as f:
+                if have_yaml_module:
+                    yaml.dump(config_yaml, f, allow_unicode=True)
+            
+            # 检查目标文件是否存在
+            if os.path.exists(target_path):
+                print("检测到已存在的配置文件: {}".format(target_path))
+                user_input = input("是否替换该文件？[y/N]: ")
+                if user_input.lower() not in ['y', 'yes']:
+                    print("取消替换，保留原配置文件")
+                    os.remove(temp_path)  # 删除临时文件
+                    return
+            
+            # 先尝试删除目标文件（如果存在），避免mv命令的交互提示
+            if os.path.exists(target_path):
+                try:
+                    os.remove(target_path)
+                except PermissionError:
+                    # 如果普通权限无法删除，则使用sudo
+                    print("使用sudo权限删除已存在的配置文件...")
+                    os.system("sudo rm -f {}".format(target_path))
+            
+            # 使用mv命令移动文件，避免权限问题
+            result = os.system("mv {} {}".format(temp_path, target_path))
+            if result == 0:
+                print("配置文件已保存至: {}".format(target_path))
+            else:
+                # 如果普通权限移动失败，则尝试使用sudo
+                print("尝试使用sudo权限保存配置文件...")
+                result = os.system("sudo mv {} {}".format(temp_path, target_path))
+                if result == 0:
+                    print("配置文件已保存至: {} (使用sudo权限)".format(target_path))
+                else:
+                    print("配置文件保存失败")
+        except Exception as e:
+            print("配置文件生成过程中发生错误: {}".format(str(e)))
+            # 清理临时文件（如果存在）
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     def get_input_value(self):
         if self.default_input_queue.qsize()>0:
@@ -1219,8 +1259,11 @@ class FileUtils():
         if not os.path.exists(path):
             CmdTask("sudo mkdir -p {}".format(path),3).run()
         if name!=None:
-            with open(path+name,"w") as f:
+            # 使用临时文件和sudo权限来创建受保护的文件
+            temp_file = "/tmp/{}".format(name)
+            with open(temp_file, "w") as f:
                 f.write(data)
+            CmdTask("sudo mv {} {}".format(temp_file, path+name), 3).run()
         return True
     
     @staticmethod
