@@ -4,7 +4,7 @@ source /etc/profile
 
 SUDO=''
 if [ $UID -ne 0 ];then
-    SUDO='sudo'
+    SUDO='sudo -E'
 fi
 $SUDO apt install python3-distro python3-yaml -y
 $SUDO python3 /tmp/fishinstall/install.py
