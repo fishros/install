@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from .base import BaseTool
-from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
+from .base import PrintUtils,CmdTask,ChooseTask
 
 class Tool(BaseTool):
     def __init__(self):
