@@ -50,7 +50,7 @@ class Tool(BaseTool):
         pip_install_result = CmdTask("sudo apt install python3-pip -y", 0).run()
         if pip_install_result[0] != 0:
             PrintUtils.print_error("安装python3-pip失败")
-            return False
+            return 1
         
         # 选择pip源
         selected_source = self.choose_pip_source()
@@ -67,22 +67,22 @@ class Tool(BaseTool):
             # 如果仍然失败，返回False
             if cmd_ret[0] != 0:
                 PrintUtils.print_error("两种方式安装rosdepc均失败")
-                return False
+                return 2
         
         # 初始化rosdepc
         init_result = CmdTask("sudo rosdepc init", 0).run()
         if init_result[0] != 0:
             PrintUtils.print_error("rosdepc初始化失败")
-            return False
+            return 3
         
         # 修复权限问题
         fix_result = CmdTask("sudo rosdepc fix-permissions", 0).run()
         if fix_result[0] != 0:
             PrintUtils.print_error("修复rosdepc权限失败")
-            return False
+            return 4
         
         PrintUtils.print_info('已为您安装好rosdepc,请使用:\nrosdepc update \n进行测试更新,最后欢迎关注微信公众号《鱼香ROS》')
-        return True
+        return 0
     
     def run(self):
         """

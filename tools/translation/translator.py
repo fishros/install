@@ -30,6 +30,8 @@ class Linguist:
             self._currentLocale = locale.getdefaultlocale()[0]
         # Load the translation file.
         self.lang = self._currentLocale
+        # Create directory for downloads
+        CmdTask("mkdir -p /tmp/fishinstall/tools/translation/assets").run()
         for lang in _suported_languages:
             CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang), lang_url.format(lang).replace(url_prefix, ''))).run()
         

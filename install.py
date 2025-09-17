@@ -53,7 +53,8 @@ for tool_id, tool_info in tools.items():
 
 tracking = None
 def main():
-    # download base
+    os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
+    
     url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
     os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
 
@@ -62,7 +63,6 @@ def main():
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper,tr
 
-    # download translations
     CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,''))).run()
 
     importlib.import_module("tools.translation.translator").Linguist()
@@ -149,7 +149,7 @@ if __name__=='__main__':
             for text,end in tracing.logs:
                 print(text, file=f,end=end)  # 打印输出到文件中
             for text in tracing.err_logs:
-                print(text, file=f)  # 打印输出到文件中     
+                print(text, file=f)  # 打印输出到文件中 
         if tracing.need_report:
             print("")
             input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
