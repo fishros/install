@@ -1,40 +1,12 @@
 # -*- coding: utf-8 -*-
-import time
-import http.client
-from urllib.parse import urlparse
 from .base import BaseTool
 from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
-from .base import osversion
-from .base import run_tool_file
 
 class Tool(BaseTool):
     def __init__(self):
         self.type = BaseTool.TYPE_CONFIG
         self.name = "模板工程"
         self.author = '小鱼'
-        
-    def test_source_speed(self, url):
-        """测试源的速度
-        
-        Args:
-            url (str): 源的URL
-            
-        Returns:
-            float: 响应时间（秒）
-        """
-        try:
-            start_time = time.time()
-            parsed_url = urlparse(url)
-            conn = http.client.HTTPSConnection(parsed_url.netloc, timeout=5)
-            conn.request("HEAD", parsed_url.path)
-            resp = conn.getresponse()
-            conn.close()
-            end_time = time.time()
-            return end_time - start_time
-        except Exception as e:
-            PrintUtils.print_error(f"测试源 {url} 失败: {str(e)}")
-            return float('inf')  # 返回无穷大表示连接失败
-    
     def choose_pip_source(self):
         """选择pip源
         
