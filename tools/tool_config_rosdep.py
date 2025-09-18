@@ -24,7 +24,7 @@ class Tool(BaseTool):
         choose_dict = {}
         i = 1
         for name, url in sources.items():
-            choose_dict[i] = f"{name} - {url}"
+            choose_dict[i] = "{} - {}".format(name, url)
             i += 1
         
         PrintUtils.print_info("请选择要使用的pip源:")
@@ -39,7 +39,7 @@ class Tool(BaseTool):
             selected_name = list(sources.keys())[choose_index-1]
             return sources[selected_name]
         except (IndexError) as e:
-            PrintUtils.print_error(f"选择源时出错: {str(e)}，使用中国科学技术大学源")
+            PrintUtils.print_error("选择源时出错: {}，使用中国科学技术大学源".format(str(e)))
             return sources["中国科学技术大学"]
 
     def install_rosdepc(self):
@@ -54,16 +54,16 @@ class Tool(BaseTool):
         
         # 选择pip源
         selected_source = self.choose_pip_source()
-        PrintUtils.print_success(f"您选择了: {selected_source}")
+        PrintUtils.print_success("您选择了: {}".format(selected_source))
         
         # 先尝试不带参数安装rosdepc
-        PrintUtils.print_info(f"正在使用 {selected_source} 安装 rosdepc...")
-        cmd_ret = CmdTask(f"sudo pip3 install -i {selected_source} rosdepc").run()
+        PrintUtils.print_info("正在使用 {} 安装 rosdepc...".format(selected_source))
+        cmd_ret = CmdTask("sudo pip3 install -i {} rosdepc".format(selected_source)).run()
         
         # 如果不带参数安装失败，尝试使用 --break-system-packages 参数安装
         if cmd_ret[0] != 0:
             PrintUtils.print_warn("安装失败，尝试使用 --break-system-packages 参数安装...")
-            cmd_ret = CmdTask(f"sudo pip3 install -i {selected_source} rosdepc --break-system-packages").run()
+            cmd_ret = CmdTask("sudo pip3 install -i {} rosdepc --break-system-packages".format(selected_source)).run()
             # 如果仍然失败，返回False
             if cmd_ret[0] != 0:
                 PrintUtils.print_error("两种方式安装rosdepc均失败")

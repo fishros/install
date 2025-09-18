@@ -1472,7 +1472,7 @@ class AptUtils():
                 conn.close()
             except Exception as e:
                 # 如果请求失败，记录为 None 或者一个很大的延时
-                # print(f"Error accessing {url}: {e}")
+                # print("Error accessing {}: {}".format(url, e))
                 PrintUtils.print_info("- {}\t\t超时".format(url))
                 latencies[url] = float('inf')
 
