@@ -86,6 +86,7 @@ key_urls = [
 
 ros_mirror_dic = {
     "tsinghua":{"ROS1":"http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu/"},
+    "ustc":{"ROS1":"https://mirrors.ustc.edu.cn/ros/ubuntu/","ROS2":"https://mirrors.ustc.edu.cn/ros2/ubuntu/"},
     "huawei":{"ROS1":"https://repo.huaweicloud.com/ros/ubuntu/","ROS2":"https://repo.huaweicloud.com/ros2/ubuntu/"},
     "packages.ros":{"ROS1":"http://packages.ros.org/ros/ubuntu/","ROS2":"http://packages.ros.org/ros2/ubuntu/"},
     "https.packages.ros":{"ROS1":"https://packages.ros.org/ros/ubuntu/","ROS2":"https://packages.ros.org/ros2/ubuntu/"},
@@ -95,13 +96,13 @@ ros_mirror_dic = {
 
 ros_dist_dic = {
     'artful':{"packages.ros"},
-    'bionic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'buster':{"packages.ros"},
     'cosmic':{"packages.ros"},
     'disco':{"packages.ros"},
     'eoan':{"packages.ros"},
-    'focal':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'lucid':{"packages.ros"},
     'maverick':{"packages.ros"},
     'natty':{"packages.ros"},
@@ -110,32 +111,35 @@ ros_dist_dic = {
     'quantal':{"packages.ros"},
     'raring':{"packages.ros"},
     'saucy':{"packages.ros"},
-    'stretch':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'utopic':{"packages.ros"},
     'vivid':{"packages.ros"},
     'wheezy':{"packages.ros"},
     'wily':{"packages.ros"},
-    'xenial':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'yakkety':{"packages.ros"},
     'zesty':{"packages.ros"},
 }
 
 
 ros2_dist_dic = {
-    'bionic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'bullseye':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'bullseye':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'buster':{"packages.ros"},
-    'cosmic':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'disco':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'eoan':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'focal':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","huawei"},
-    'jammy':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'noble':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'stretch':{"tsinghua","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","huawei"},
-    'xenial':{"tsinghua","huawei","packages.ros","https.packages.ros"},
+    'cosmic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'disco':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'eoan':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jammy':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'noble':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'yakkety':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'zesty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
 }
 
 
@@ -151,11 +155,11 @@ class Tool(BaseTool):
         """
         获取镜像通过系统版本号
         """
-        ros1_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
-        ros2_choose_queue = [first_choose,"tsinghua","huawei","packages.ros"]
+        ros1_choose_queue = [first_choose,"tsinghua","ustc","huawei","packages.ros"]
+        ros2_choose_queue = [first_choose,"tsinghua","ustc","huawei","packages.ros"]
         
         # armhf架构，优先使用官方源
-        if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","huawei"]
+        if arch=='armhf': ros2_choose_queue =["packages.ros","tsinghua","ustc","huawei"]
 
         mirror = []
         # 确认源里有对应的系统的，比如jammy
@@ -174,6 +178,109 @@ class Tool(BaseTool):
         #     mirror.append(ros_mirror_dic['packages.ros']['ROS2'])
         return mirror
 
+    def select_mirror(self):
+        """
+        让用户选择镜像源
+        """
+        # 检查当前系统是否支持中科大镜像
+        codename = osversion.get_codename()
+        supported_mirrors = []
+        
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "ustc" in ros_dist_dic.get(codename, []) or "ustc" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("ustc")
+                
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "tsinghua" in ros_dist_dic.get(codename, []) or "tsinghua" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("tsinghua")
+                
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "huawei" in ros_dist_dic.get(codename, []) or "huawei" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("huawei")
+
+        # 如果系统支持多个镜像源，则让用户选择
+        if len(supported_mirrors) > 1:
+            mirror_dict = {}
+            count = 1
+            for mirror in supported_mirrors:
+                if mirror == "ustc":
+                    mirror_dict[count] = "中科大镜像源 (推荐国内用户使用)"
+                elif mirror == "tsinghua":
+                    mirror_dict[count] = "清华镜像源 (容易被封禁)"
+                elif mirror == "huawei":
+                    mirror_dict[count] = "华为镜像源"
+                count += 1
+            
+            mirror_dict[count] = "ROS官方源 (国外用户或需要最新版本时使用)"
+            
+            code, result = ChooseTask(mirror_dict, "检测到您的系统支持多个ROS镜像源，请选择您想要使用的ROS镜像源(默认清华)：").run()
+            if code == 0:
+                return "tsinghua"  # 默认返回清华源
+            elif code == count:
+                return "packages.ros"  # 官方源
+            else:
+                # 根据选择返回对应的镜像源
+                for key, value in mirror_dict.items():
+                    if key == code:
+                        if "中科大" in value:
+                            return "ustc"
+                        elif "清华" in value:
+                            return "tsinghua"
+                        elif "华为" in value:
+                            return "huawei"
+        else:
+            # 系统只支持默认的清华源
+            PrintUtils.print_info("您的系统默认使用清华镜像源")
+            return "tsinghua"
+        
+        return "tsinghua"
+
+    def add_source(self):
+        """
+        检查并添加ROS系统源
+        """
+        arch = AptUtils.getArch()
+        if arch==None: return False
+
+        # 让用户选择镜像源
+        selected_mirror = self.select_mirror()
+        PrintUtils.print_info("您选择的镜像源: {}".format(selected_mirror))
+
+        #add source 1
+        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose=selected_mirror)
+        PrintUtils.print_info("根据您的系统和选择，为您推荐安装源为{}".format(mirrors))
+        source_data = ''
+        for mirror in mirrors:
+            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
+        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
+        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
+
+        ros_pkg = self.get_all_instsll_ros_pkgs()
+        if ros_pkg and len(ros_pkg)>1:
+            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
+            return
+        
+        # 如果第一次尝试失败，让用户重新选择镜像源
+        PrintUtils.print_warn("换源后更新失败，您可以重新选择镜像源再尝试！") 
+        retry_mirror = self.select_mirror()
+        while retry_mirror != selected_mirror:
+            PrintUtils.print_info("您重新选择的镜像源: {}".format(retry_mirror))
+            mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose=retry_mirror)
+            PrintUtils.print_info("根据您的系统和选择，为您推荐安装源为{}".format(mirrors))
+            source_data = ''
+            for mirror in mirrors:
+                source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
+            FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
+            FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
+            ros_pkg = self.get_all_instsll_ros_pkgs()
+            if ros_pkg and len(ros_pkg)>1:
+                PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
+                return
+            else:
+                PrintUtils.print_warn("换源后更新失败，您可以重新选择镜像源再尝试！") 
+                retry_mirror = self.select_mirror()
+        else:
+            PrintUtils.print_error("您选择了相同的镜像源，四次换源后都失败了，请及时联系小鱼获取解决方案并处理！")
 
     def add_key(self):
         PrintUtils.print_success(tr.tr('============正在添加ROS源密钥================='))
@@ -230,73 +337,6 @@ class Tool(BaseTool):
             return None
         return ros_name
 
-    def add_source(self):
-        """
-        检查并添加ROS系统源
-        """
-        arch = AptUtils.getArch()
-        if arch==None: return False
-
-        #add source 1
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch)
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-        
-        #add source2 
-        PrintUtils.print_warn("换源后更新失败，第二次开始切换源，尝试更换ROS2源为华为源！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="huawei")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-
-        PrintUtils.print_warn("换源后更新失败，第三次开始切换源，尝试使用https-ROS官方源～！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="https.packages.ros")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-        #add source2 
-        PrintUtils.print_warn("换源后更新失败，第四次开始切换源，尝试更换ROS源为http-ROS官方源！") 
-        mirrors = self.get_mirror_by_code(osversion.get_codename(),arch=arch,first_choose="packages.ros")
-        PrintUtils.print_info("根据您的系统，为您推荐安装源为{}".format(mirrors))
-        source_data = ''
-        for mirror in mirrors:
-            source_data += 'deb [arch={}]  {} {} main\n'.format(arch,mirror,osversion.get_codename())
-        FileUtils.delete('/etc/apt/sources.list.d/ros-fish.list')
-        FileUtils.new('/etc/apt/sources.list.d/',"ros-fish.list",source_data)
-        ros_pkg = self.get_all_instsll_ros_pkgs()
-        if ros_pkg and len(ros_pkg)>1:
-            PrintUtils.print_success("恭喜，成功添加ROS源，接下来可以使用apt安装ROS或者使用[1]一键安装ROS安装！") 
-            return
-
-        # echo >>/etc/apt/apt.conf.d/99verify-peer.conf "Acquire { https::Verify-Peer false }"
-        if  not AptUtils.checkapt(): PrintUtils.print_error("四次换源后都失败了，请及时联系小鱼获取解决方案并处理！") 
-
-
     def support_install(self):
         # check support
         if (osversion.get_codename() not in ros_dist_dic.keys()) and (osversion.get_codename() not in ros2_dist_dic.keys()):
@@ -329,13 +369,13 @@ class Tool(BaseTool):
         if code==0: 
             PrintUtils.print_error("你选择退出")
             PrintUtils.print_delay('是因为没有自己想要的ROS版本吗？ROS版本和操作系统版本是有对应关系的哦，所以可能是你的系统版本{}不对!具体请查看：https://fishros.org.cn/forum/topic/96'.format(str(str(osversion.get_name())+str(osversion.get_version()))))
-            return
+            return False
         version_dic = {1:rosname+"桌面版",2:rosname+"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
         
         if code==0: 
-            print("你选择退出。。。。")
-            return
+            PrintUtils.print_error("你选择退出。。。。")
+            return False
         
         install_tool = 'aptitude'
         install_tool_apt = 'apt'
