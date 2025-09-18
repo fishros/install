@@ -120,17 +120,6 @@ ros_dist_dic = {
     'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'yakkety':{"packages.ros"},
     'zesty':{"packages.ros"},
-    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'jammy':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'kinetic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'lunar':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'melodic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'noble':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'yakkety':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'zesty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
 }
 
 
