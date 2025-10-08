@@ -24,12 +24,38 @@ def run_command(cmd, timeout=60):
     except Exception as e:
         return -1, "", str(e)
 
+def find_files():
+    """Find install.py and tools directory."""
+    # Check current directory first
+    if os.path.exists("install.py") and os.path.exists("tools"):
+        return ".", "install.py", "tools"
+    
+    # Check parent directory
+    if os.path.exists("../install.py") and os.path.exists("../tools"):
+        return "..", "../install.py", "../tools"
+    
+    # Check if we're in a subdirectory of the project
+    for root, dirs, files in os.walk("."):
+        if "install.py" in files and "tools" in dirs:
+            rel_path = os.path.relpath(root, ".")
+            if rel_path == ".":
+                return ".", "install.py", "tools"
+            else:
+                return root, os.path.join(root, "install.py"), os.path.join(root, "tools")
+    
+    # If not found, try parent directory
+    return "..", "../install.py", "../tools"
+
 def test_simulation_system_source_config():
     """Simulate system source configuration process with a mock config."""
     # Create a temporary directory for testing
     test_dir = tempfile.mkdtemp()
     
     try:
+        # Find the project files
+        project_root, install_py_path, tools_path = find_files()
+        print(f"Found project files at: {project_root}")
+        
         # Create a mock config file for automated testing
         mock_config = """chooses:
 - choose: 5
@@ -45,15 +71,8 @@ def test_simulation_system_source_config():
         print("✓ Created mock configuration for system source configuration simulation")
         
         # Copy install.py and tools directory to temp directory
-        if os.path.exists("install.py"):
-            shutil.copy("install.py", test_dir)
-        elif os.path.exists("../install.py"):
-            shutil.copy("../install.py", test_dir)
-            
-        if os.path.exists("tools"):
-            shutil.copytree("tools", os.path.join(test_dir, "tools"))
-        elif os.path.exists("../tools"):
-            shutil.copytree("../tools", os.path.join(test_dir, "tools"))
+        shutil.copy(install_py_path, test_dir)
+        shutil.copytree(tools_path, os.path.join(test_dir, "tools"))
         
         # Run install.py with the mock config in the temp directory
         # We'll run it for a short time to see if it starts correctly
@@ -88,6 +107,10 @@ def test_simulation_ros_install():
     test_dir = tempfile.mkdtemp()
     
     try:
+        # Find the project files
+        project_root, install_py_path, tools_path = find_files()
+        print(f"Found project files at: {project_root}")
+        
         # Create a mock config file for automated testing
         mock_config = """chooses:
 - choose: 1
@@ -107,15 +130,8 @@ def test_simulation_ros_install():
         print("✓ Created mock configuration for ROS installation simulation")
         
         # Copy install.py and tools directory to temp directory
-        if os.path.exists("install.py"):
-            shutil.copy("install.py", test_dir)
-        elif os.path.exists("../install.py"):
-            shutil.copy("../install.py", test_dir)
-            
-        if os.path.exists("tools"):
-            shutil.copytree("tools", os.path.join(test_dir, "tools"))
-        elif os.path.exists("../tools"):
-            shutil.copytree("../tools", os.path.join(test_dir, "tools"))
+        shutil.copy(install_py_path, test_dir)
+        shutil.copytree(tools_path, os.path.join(test_dir, "tools"))
         
         # Run install.py with the mock config in the temp directory
         # We'll run it for a short time to see if it starts correctly
