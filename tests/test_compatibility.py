@@ -45,8 +45,15 @@ def test_simulation_system_source_config():
         print("✓ Created mock configuration for system source configuration simulation")
         
         # Copy install.py and tools directory to temp directory
-        shutil.copy("install.py", test_dir)
-        shutil.copytree("tools", os.path.join(test_dir, "tools"))
+        if os.path.exists("install.py"):
+            shutil.copy("install.py", test_dir)
+        elif os.path.exists("../install.py"):
+            shutil.copy("../install.py", test_dir)
+            
+        if os.path.exists("tools"):
+            shutil.copytree("tools", os.path.join(test_dir, "tools"))
+        elif os.path.exists("../tools"):
+            shutil.copytree("../tools", os.path.join(test_dir, "tools"))
         
         # Run install.py with the mock config in the temp directory
         # We'll run it for a short time to see if it starts correctly
@@ -100,8 +107,15 @@ def test_simulation_ros_install():
         print("✓ Created mock configuration for ROS installation simulation")
         
         # Copy install.py and tools directory to temp directory
-        shutil.copy("install.py", test_dir)
-        shutil.copytree("tools", os.path.join(test_dir, "tools"))
+        if os.path.exists("install.py"):
+            shutil.copy("install.py", test_dir)
+        elif os.path.exists("../install.py"):
+            shutil.copy("../install.py", test_dir)
+            
+        if os.path.exists("tools"):
+            shutil.copytree("tools", os.path.join(test_dir, "tools"))
+        elif os.path.exists("../tools"):
+            shutil.copytree("../tools", os.path.join(test_dir, "tools"))
         
         # Run install.py with the mock config in the temp directory
         # We'll run it for a short time to see if it starts correctly
