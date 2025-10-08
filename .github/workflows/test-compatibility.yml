@@ -1,0 +1,54 @@
+name: Test Compatibility
+
+on:
+  push:
+    branches: [ master, main, dev ]
+  pull_request:
+    branches: [ master, main, dev ]
+
+jobs:
+  test-ubuntu:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+        python-version: [3.8, 3.10]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        python -m pip install --upgrade pip
+        pip install pyyaml distro
+
+    - name: Run compatibility tests
+      run: |
+        python tests/test_compatibility.py
+
+  test-debian:
+    runs-on: ubuntu-latest
+    container: 
+      image: debian:bullseye
+      options: --privileged
+
+    steps:
+    - name: Install git and checkout code
+      run: |
+        apt update
+        apt install -y git python3 python3-pip wget
+        git clone https://github.com/${{ github.repository }}.git .
+        
+    - name: Install dependencies
+      run: |
+        pip3 install pyyaml distro
+
+    - name: Run compatibility tests
+      run: |
+        python3 tests/test_compatibility.py
