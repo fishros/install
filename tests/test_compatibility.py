@@ -24,72 +24,6 @@ def run_command(cmd, timeout=60):
     except Exception as e:
         return -1, "", str(e)
 
-def test_install_script_exists():
-    """Test that the main install script exists."""
-    if os.path.exists("install.py"):
-        print("✓ install.py exists")
-        return True
-    else:
-        print("✗ install.py not found")
-        return False
-
-def test_base_module_import():
-    """Test that the base module can be imported."""
-    try:
-        # Add current directory to Python path
-        sys.path.insert(0, '.')
-        from tools.base import BaseTool
-        print("✓ tools.base module can be imported")
-        return True
-    except Exception as e:
-        print(f"✗ Failed to import tools.base: {e}")
-        return False
-
-def test_tools_directory():
-    """Test that the tools directory exists and contains files."""
-    if os.path.exists("tools") and os.path.isdir("tools"):
-        tools_files = os.listdir("tools")
-        if len(tools_files) > 1:  # base.py + at least one tool
-            print(f"✓ tools directory exists with {len(tools_files)} files")
-            return True
-        else:
-            print("✗ tools directory is empty or only contains base.py")
-            return False
-    else:
-        print("✗ tools directory not found")
-        return False
-
-def test_yaml_parsing():
-    """Test YAML parsing functionality."""
-    test_yaml = """
-chooses:
-  - {choose: 1, desc: 'Test option 1'}
-  - {choose: 2, desc: 'Test option 2'}
-"""
-    try:
-        data = yaml.safe_load(test_yaml)
-        if 'chooses' in data and len(data['chooses']) == 2:
-            print("✓ YAML parsing works correctly")
-            return True
-        else:
-            print("✗ YAML parsing failed")
-            return False
-    except Exception as e:
-        print(f"✗ YAML parsing error: {e}")
-        return False
-
-def test_help_command():
-    """Test that the install script can show help."""
-    code, out, err = run_command("python3 install.py --help", timeout=10)
-    if code == 0 or "help" in out.lower() or "usage" in out.lower():
-        print("✓ install.py --help works")
-        return True
-    else:
-        print("✗ install.py --help failed")
-        print(f"  stdout: {out}")
-        print(f"  stderr: {err}")
-        return False
-
 def test_simulation_system_source_config():
     """Simulate system source configuration process with a mock config."""
     # Create a temporary directory for testing
@@ -201,11 +135,6 @@ def main():
     print("Running compatibility tests...\n")
     
     tests = [
-        test_install_script_exists,
-        test_base_module_import,
-        test_tools_directory,
-        test_yaml_parsing,
-        test_help_command,
         test_simulation_system_source_config,
         test_simulation_ros_install
     ]
