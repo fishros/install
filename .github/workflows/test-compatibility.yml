@@ -12,25 +12,19 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04]
-        python-version: [3.8, 3.10]
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Install dependencies
       run: |
         sudo apt update
-        python -m pip install --upgrade pip
-        pip install pyyaml distro
+        python3 -m pip install --upgrade pip
+        pip3 install pyyaml distro
 
     - name: Run compatibility tests
       run: |
-        python tests/test_compatibility.py
+        python3 tests/test_compatibility.py
 
   test-debian:
     runs-on: ubuntu-latest
@@ -51,4 +45,4 @@ jobs:
 
     - name: Run compatibility tests
       run: |
-        cd install && python3 tests/test_compatibility.py
+        python3 tests/test_compatibility.py
