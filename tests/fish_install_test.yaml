@@ -1,20 +1,11 @@
 # 测试配置文件，用于 GitHub Actions 自动化测试
 # 格式: chooses: [{choose: <选项ID>, desc: <选项描述>}]
 
-
-# # 测试用例 2: 配置系统源
-# - name: "Configure System Source"
-#   chooses:
-#     - { choose: 5, desc: "一键配置:系统源(更换系统源,支持全版本Ubuntu系统)" }
-#     - { choose: 1, desc: "更换源继续安装" }
-#     - { choose: 2, desc: "清理三方源" }
-
-
-# 测试用例 5: 安装 ROS
-- name: "Install ROS "
+# 测试用例 1: 安装 ROS
+- name: "Install ROS"
   chooses:
-    - { choose: 1, desc: "一键安装ROS" }
+    - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
     - { choose: 1, desc: "更换源继续安装" }
     - { choose: 2, desc: "清理三方源" }
-    - { choose: 1, desc: "选择第一个ros 版本" }
-    - { choose: 1, desc: "安装桌面版" }
+    - { choose: 1, desc: "melodic(ROS1)" }
+    - { choose: 1, desc: "melodic(ROS1)桌面版" }
