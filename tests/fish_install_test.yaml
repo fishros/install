@@ -1,32 +1,21 @@
 # 测试配置文件，用于 GitHub Actions 自动化测试
 # 格式: chooses: [{choose: <选项ID>, desc: <选项描述>}]
 
-# 测试用例 1: 安装 NodeJS
-- name: "Install NodeJS"
-  chooses:
-    - { choose: 6, desc: "一键安装:NodeJS环境" }
-    
-# 测试用例 2: 配置系统源
-- name: "Configure System Source"
-  chooses:
-    - { choose: 5, desc: "一键配置:系统源(更换系统源,支持全版本Ubuntu系统)" }
-    - { choose: 1, desc: "更换源继续安装" }
-    - { choose: 2, desc: "清理三方源" }
 
-# 测试用例 3: 安装 VSCode
-- name: "Install VSCode"
-  chooses:
-    - { choose: 7, desc: "一键安装:VsCode开发工具" }
+# # 测试用例 2: 配置系统源
+# - name: "Configure System Source"
+#   chooses:
+#     - { choose: 5, desc: "一键配置:系统源(更换系统源,支持全版本Ubuntu系统)" }
+#     - { choose: 1, desc: "更换源继续安装" }
+#     - { choose: 2, desc: "清理三方源" }
 
-# 测试用例 4: 安装 Docker
-- name: "Install Docker"
-  chooses:
-    - { choose: 8, desc: "一键安装:Docker" }
 
 # 测试用例 5: 安装 ROS (仅测试核心流程，不实际安装完整ROS以节省时间)
 # 注意：此测试用例可能需要根据实际环境进行调整
-- name: "Install ROS (Simulation)"
+- name: "Install ROS "
   chooses:
-    - { choose: 16, desc: "一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)" }
+    - { choose: 1, desc: "一键安装ROS" }
     - { choose: 1, desc: "更换源继续安装" }
     - { choose: 2, desc: "清理三方源" }
+    - { choose: 1, desc: "选择第一个ros 版本" }
+    - { choose: 1, desc: "安装桌面版" }
