@@ -81,6 +81,8 @@ def run_install_test(test_case):
         
         # 同时将配置文件复制到/tmp/fishinstall/tools/目录下
         fishinstall_config = "/tmp/fishinstall/tools/fish_install.yaml"
+        # 确保目录存在
+        os.makedirs(os.path.dirname(fishinstall_config), exist_ok=True)
         shutil.copy(temp_config, fishinstall_config)
         print(f"已将临时配置文件复制为: {fishinstall_config}")
     except Exception as e:
