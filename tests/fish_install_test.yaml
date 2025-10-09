@@ -9,3 +9,5 @@
     - { choose: 2, desc: "更换系统源并清理第三方源" }
     - { choose: 1, desc: "自动测速选择最快的源" }
     - { choose: 1, desc: "中科大镜像源 (推荐国内用户使用)" }
+    - { choose: 1, desc: "humble(ROS2)" }
+    - { choose: 1, desc: "桌面端完整版" }
