@@ -113,7 +113,8 @@ def run_install_test(test_case):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
-            bufsize=1
+            bufsize=1,
+            env={**os.environ, 'FISH_INSTALL_CONFIG': '../fish_install.yaml'}
         )
         
         # 等待进程结束 (设置一个合理的超时时间，例如300秒)

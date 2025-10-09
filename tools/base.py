@@ -33,7 +33,9 @@ class ConfigHelper():
         self.record_input_queue = Queue()
         
         self.record_file = record_file
-        if self.record_file==None: self.record_file = "./fish_install.yaml"
+        if self.record_file==None: 
+            # 首先检查环境变量
+            self.record_file = os.environ.get('FISH_INSTALL_CONFIG', "./fish_install.yaml")
         self.default_input_queue = self.get_default_queue(self.record_file)
 
     def record_input(self,item):
