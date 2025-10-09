@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import json
+import re
 
 # 将项目根目录添加到 Python 路径中，以便能找到 tools 模块
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
@@ -20,6 +21,23 @@ def load_test_cases(config_file):
     except Exception as e:
         print(f"加载测试配置文件失败: {e}")
         return []
+
+def check_output_for_errors(output):
+    """检查输出中是否包含错误信息"""
+    error_keywords = [
+        "ModuleNotFoundError",
+        "ImportError",
+        "Exception",
+        "Error:",
+        "Traceback",
+        "检测到程序发生异常退出"
+    ]
+    
+    for line in output.split('\n'):
+        for keyword in error_keywords:
+            if keyword in line:
+                return True
+    return False
 
 def run_install_test(test_case):
     """运行单个安装测试"""
@@ -100,12 +118,15 @@ def run_install_test(test_case):
         print(stdout)
         print("=== 脚本输出结束 ===")
         
-        # 检查退出码
-        if process.returncode == 0:
+        # 检查退出码和输出中的错误信息
+        if process.returncode == 0 and not check_output_for_errors(output):
             print(f"测试通过: {name}")
             return True, output
         else:
-            print(f"测试失败: {name} (退出码: {process.returncode})")
+            if process.returncode != 0:
+                print(f"测试失败: {name} (退出码: {process.returncode})")
+            else:
+                print(f"测试失败: {name} (脚本中检测到错误)")
             return False, output
     except subprocess.TimeoutExpired:
         print(f"测试超时: {name} (超过300秒)")
