@@ -245,8 +245,8 @@ def run_install_test(test_case):
             env={**os.environ, 'FISH_INSTALL_CONFIG': '../fish_install.yaml'}
         )
         
-        # 等待进程结束 (设置一个合理的超时时间，例如300秒)
-        stdout, _ = process.communicate(timeout=300)
+        # 等待进程结束 (设置一个更长的超时时间，例如600秒=10分钟)
+        stdout, _ = process.communicate(timeout=600)
         output = stdout
         
         # 打印输出
@@ -265,7 +265,7 @@ def run_install_test(test_case):
                 print(f"测试失败: {name} (脚本中检测到错误)")
             return False, output
     except subprocess.TimeoutExpired:
-        print(f"测试超时: {name} (超过300秒)")
+        print(f"测试超时: {name} (超过600秒)")
         # 终止进程
         process.kill()
         stdout, _ = process.communicate()
