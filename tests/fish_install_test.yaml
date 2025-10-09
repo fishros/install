@@ -5,7 +5,8 @@
 - name: "Install ROS"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
-    - { choose: 1, desc: "更换源继续安装" }
-    - { choose: 2, desc: "清理三方源" }
+    - { choose: 1, desc: "添加ROS/ROS2源" }
+    - { choose: 2, desc: "更换系统源并清理第三方源" }
+    - { choose: 1, desc: "自动测速选择最快的源" }
     - { choose: 1, desc: "melodic(ROS1)" }
     - { choose: 1, desc: "melodic(ROS1)桌面版" }

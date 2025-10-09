@@ -132,8 +132,6 @@ class ConfigHelper():
             
         for choose in config_yaml['chooses']:
             choose_queue.put(choose)
-        for choose in config_yaml['chooses']:
-            choose_queue.put(choose)
         
         return choose_queue
 

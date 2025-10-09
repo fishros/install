@@ -73,11 +73,16 @@ def run_install_test(test_case):
             print(f"备份原始配置文件失败: {e}")
             # 即使备份失败也继续执行，因为我们会在最后恢复
     
-    # 将临时配置文件复制为当前配置文件
+    # 将临时配置文件复制为当前配置文件和/tmp/fishinstall/tools/fish_install.yaml
     try:
         import shutil
         shutil.copy(temp_config, original_config)
         print(f"已将临时配置文件复制为: {original_config}")
+        
+        # 同时将配置文件复制到/tmp/fishinstall/tools/目录下
+        fishinstall_config = "/tmp/fishinstall/tools/fish_install.yaml"
+        shutil.copy(temp_config, fishinstall_config)
+        print(f"已将临时配置文件复制为: {fishinstall_config}")
     except Exception as e:
         print(f"复制配置文件失败: {e}")
         # 恢复备份的配置文件
