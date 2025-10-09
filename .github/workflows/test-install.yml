@@ -35,3 +35,13 @@ jobs:
     - name: Run tests
       run: |
         cd tests && python3 test_runner.py
+
+    - name: Upload test reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-reports-${{ matrix.os }}
+        path: |
+          tests/test_report.json
+          tests/test_report.html
+        if-no-files-found: ignore
