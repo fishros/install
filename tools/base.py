@@ -33,7 +33,9 @@ class ConfigHelper():
         self.record_input_queue = Queue()
         
         self.record_file = record_file
-        if self.record_file==None: self.record_file = "./fish_install.yaml"
+        if self.record_file==None: 
+            # 首先检查环境变量
+            self.record_file = os.environ.get('FISH_INSTALL_CONFIG', "./fish_install.yaml")
         self.default_input_queue = self.get_default_queue(self.record_file)
 
     def record_input(self,item):
@@ -130,8 +132,6 @@ class ConfigHelper():
         else:
             config_yaml = yaml.load(config_data)
             
-        for choose in config_yaml['chooses']:
-            choose_queue.put(choose)
         for choose in config_yaml['chooses']:
             choose_queue.put(choose)
         
@@ -1112,8 +1112,17 @@ class ChooseTask(Task):
                 choose = str(choose_item['choose'])
                 PrintUtils.print_text(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
-                choose = input(tr.tr("请输入[]内的数字以选择:"))
-                choose_item = None
+                try:
+                    choose = input(tr.tr("请输入[]内的数字以选择:"))
+                    choose_item = None
+                except EOFError:
+                    # 在自动化测试环境中，input()可能会引发EOFError
+                    # 如果是从配置文件读取的选项，则使用它，否则返回默认值0（退出）
+                    if choose_item:
+                        choose = str(choose_item['choose'])
+                    else:
+                        choose = "0"  # 默认选择退出
+                    PrintUtils.print_text(tr.tr("检测到自动化环境，使用默认选项: {}").format(choose))
             # Input From Queue
             if choose.isdecimal() :
                 if (int(choose) in dic.keys() ) or (int(choose)==0):
@@ -1163,8 +1172,17 @@ class ChooseWithCategoriesTask(Task):
                 choose_id = str(choose_item['choose'])
                 print(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
-                choose_id = input(tr.tr("请输入[]内的数字以选择:"))
-                choose_item = None
+                try:
+                    choose_id = input(tr.tr("请输入[]内的数字以选择:"))
+                    choose_item = None
+                except EOFError:
+                    # 在自动化测试环境中，input()可能会引发EOFError
+                    # 如果是从配置文件读取的选项，则使用它，否则返回默认值0（退出）
+                    if choose_item:
+                        choose_id = str(choose_item['choose'])
+                    else:
+                        choose_id = "0"  # 默认选择退出
+                    PrintUtils.print_text(tr.tr("检测到自动化环境，使用默认选项: {}").format(choose_id))
             # Input From Queue
             if choose_id.isdecimal() :
                 if int(choose_id) in tool_ids :
