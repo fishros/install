@@ -2,15 +2,15 @@ name: Test Install Script
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ dev, master ]
   pull_request:
-    branches: [ dev ]
+    branches: [ dev, master ]
 
 jobs:
   test-install:
     strategy:
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, ubuntu-25.10]
     runs-on: ${{ matrix.os }}
 
     steps:
