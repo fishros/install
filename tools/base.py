@@ -1278,10 +1278,17 @@ class FileUtils():
             CmdTask("sudo mkdir -p {}".format(path),3).run()
         if name!=None:
             # 使用临时文件和sudo权限来创建受保护的文件
-            temp_file = "/tmp/{}".format(name)
-            with open(temp_file, "w") as f:
-                f.write(data)
-            CmdTask("sudo mv {} {}".format(temp_file, path+name), 3).run()
+            # 修复：使用 uuid 生成唯一临时文件名，避免权限冲突
+            import uuid
+            temp_file = "/tmp/{}_{}".format(uuid.uuid4(), name)
+            try:
+                with open(temp_file, "w") as f:
+                    f.write(data)
+                CmdTask("sudo mv {} {}".format(temp_file, path+name), 3).run()
+            finally:
+                # 确保临时文件被清理
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
         return True
     
     @staticmethod
