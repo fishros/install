@@ -106,16 +106,16 @@ def generate_html_report(report, output_file):
         status_text = "通过" if test_case["success"] else "失败"
         status_style = "status-passed" if test_case["success"] else "status-failed"
         
-        html_content += f"""
-        <div class="test-case {status_class}">
+        html_content += """
+        <div class="test-case {}">
             <div class="test-name">
-                {test_case["name"]}
-                <span class="test-status {status_style}">{status_text}</span>
+                {}
+                <span class="test-status {}">{}</span>
             </div>
             <div class="output-title">输出日志:</div>
-            <div class="output">{test_case["output"]}</div>
+            <div class="output">{}</div>
         </div>
-"""
+""".format(status_class, test_case["name"], status_style, status_text, test_case["output"])
 
     html_content += """
     </div>
@@ -141,6 +141,6 @@ if __name__ == "__main__":
         # 生成HTML报告
         html_report_file = "test_report.html"
         generate_html_report(report, html_report_file)
-        print(f"HTML测试报告已生成: {html_report_file}")
+        print("HTML测试报告已生成: {}".format(html_report_file))
     else:
-        print(f"找不到测试报告文件: {report_file}")
+        print("找不到测试报告文件: {}".format(report_file))

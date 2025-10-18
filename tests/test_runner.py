@@ -27,7 +27,7 @@ def load_test_cases(config_file):
             test_cases = yaml.safe_load(f)
         return test_cases
     except Exception as e:
-        print(f"加载测试配置文件失败: {e}")
+        print("加载测试配置文件失败: {}".format(e))
         return []
 
 def get_ubuntu_codename():
@@ -180,16 +180,16 @@ def generate_html_report(report, output_file):
         status_text = "通过" if test_case["success"] else "失败"
         status_style = "status-passed" if test_case["success"] else "status-failed"
         
-        html_content += f"""
-        <div class=\"test-case {status_class}\">
+        html_content += """
+        <div class=\"test-case {}\">
             <div class=\"test-name\">
-                {test_case["name"]}
-                <span class=\"test-status {status_style}\">{status_text}</span>
-            </div>
-            <div class=\"output-title\">输出日志:</div>
-            <div class=\"output\">{test_case["output"]}</div>
-        </div>
-"""
+                {}
+                <span class=\"test-status {}\">{}<\/span>
+            <\/div>
+            <div class=\"output-title\">输出日志:<\/div>
+            <div class=\"output\">{}<\/div>
+        <\/div>
+""".format(status_class, test_case["name"], status_style, status_text, test_case["output"])
 
     html_content += """
     </div>
@@ -210,7 +210,7 @@ def run_install_test(test_case):
     name = test_case.get('name', 'Unknown Test')
     chooses = test_case.get('chooses', [])
     
-    print(f"开始测试: {name}")
+    print("开始测试: {}".format(name))
     
     # 创建临时配置文件路径
     temp_config = "/tmp/fish_install_test_temp.yaml"
@@ -223,9 +223,9 @@ def run_install_test(test_case):
     try:
         with open(temp_config, 'w', encoding='utf-8') as f:
             yaml.dump(config_data, f, allow_unicode=True)
-        print(f"已创建临时配置文件: {temp_config}")
+        print("已创建临时配置文件: {}".format(temp_config))
     except Exception as e:
-        print(f"创建临时配置文件失败: {e}")
+        print("创建临时配置文件失败: {}".format(e))
         return False, ""
     
     # 备份原始的 fish_install.yaml (如果存在)
@@ -234,25 +234,25 @@ def run_install_test(test_case):
     if os.path.exists(original_config):
         try:
             os.rename(original_config, backup_config)
-            print(f"已备份原始配置文件至: {backup_config}")
+            print("已备份原始配置文件至: {}".format(backup_config))
         except Exception as e:
-            print(f"备份原始配置文件失败: {e}")
+            print("备份原始配置文件失败: {}".format(e))
             # 即使备份失败也继续执行，因为我们会在最后恢复
     
     # 将临时配置文件复制为当前配置文件和/tmp/fishinstall/tools/fish_install.yaml
     try:
         import shutil
         shutil.copy(temp_config, original_config)
-        print(f"已将临时配置文件复制为: {original_config}")
+        print("已将临时配置文件复制为: {}".format(original_config))
         
         # 同时将配置文件复制到/tmp/fishinstall/tools/目录下
         fishinstall_config = "/tmp/fishinstall/tools/fish_install.yaml"
         # 确保目录存在
         os.makedirs(os.path.dirname(fishinstall_config), exist_ok=True)
         shutil.copy(temp_config, fishinstall_config)
-        print(f"已将临时配置文件复制为: {fishinstall_config}")
+        print("已将临时配置文件复制为: {}".format(fishinstall_config))
     except Exception as e:
-        print(f"复制配置文件失败: {e}")
+        print("复制配置文件失败: {}".format(e))
         # 恢复备份的配置文件
         if os.path.exists(backup_config):
             try:
@@ -405,9 +405,9 @@ def main():
     failed = 0
     
     for i, test_case in enumerate(test_cases):
-        print(f"\n--- 测试用例 {i+1}/{len(test_cases)} ---")
+        print("\n--- 测试用例 {}/{} ---".format(i+1, len(test_cases)))
         success, output = run_install_test(test_case)
-        case_name = test_case.get('name', f'Test Case {i+1}')
+        case_name = test_case.get('name', 'Test Case {}'.format(i+1))
         
         result = {
             "name": case_name,
@@ -438,17 +438,17 @@ def main():
     try:
         with open(report_file, 'w', encoding='utf-8') as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
-        print(f"\n详细测试报告已保存至: {report_file}")
+        print("\n详细测试报告已保存至: {}".format(report_file))
     except Exception as e:
-        print(f"保存测试报告失败: {e}")
+        print("保存测试报告失败: {}".format(e))
     
     # 生成HTML格式的测试报告
     html_report_file = "test_report.html"
     try:
         generate_html_report(report, html_report_file)
-        print(f"HTML测试报告已保存至: {html_report_file}")
+        print("HTML测试报告已保存至: {}".format(html_report_file))
     except Exception as e:
-        print(f"生成HTML测试报告失败: {e}")
+        print("生成HTML测试报告失败: {}".format(e))
     
     # 输出测试结果摘要
     print("\n=== 测试结果摘要 ===")
