@@ -64,12 +64,16 @@ class ConfigHelper():
             
             # 检查目标文件是否存在
             if os.path.exists(target_path):
-                print("检测到已存在的配置文件: {}".format(target_path))
-                user_input = input("是否替换该文件？[y/N]: ")
-                if user_input.lower() not in ['y', 'yes']:
-                    print("取消替换，保留原配置文件")
-                    os.remove(temp_path)  # 删除临时文件
-                    return
+                # 在自动化测试环境中，直接覆盖原配置文件
+                if os.environ.get('GITHUB_ACTIONS') == 'true':
+                    print("检测到GitHub Actions环境，直接覆盖已存在的配置文件: {}".format(target_path))
+                else:
+                    print("检测到已存在的配置文件: {}".format(target_path))
+                    user_input = input("是否替换该文件？[y/N]: ")
+                    if user_input.lower() not in ['y', 'yes']:
+                        print("取消替换，保留原配置文件")
+                        os.remove(temp_path)  # 删除临时文件
+                        return
             
             # 先尝试删除目标文件（如果存在），避免mv命令的交互提示
             if os.path.exists(target_path):

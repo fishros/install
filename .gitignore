@@ -1,1 +1,2 @@
 *.pyc
+tests/test_local
