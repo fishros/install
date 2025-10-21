@@ -88,8 +88,6 @@ class Tool(BaseTool):
         dic_source_method = {1:"自动测速选择最快的源", 2:"根据测速结果手动选择源"}
         self.source_method_code, _ = ChooseTask(dic_source_method, "请选择源的选择方式").run()
 
-
-
     def get_source_by_system(self,system,codename,arch,failed_sources=[], return_all=False):
         # 实际测试发现，阿里云虽然延时很低，但是带宽也低的离谱，一点都不用心，删掉了
         ubuntu_amd64_sources = [
@@ -170,9 +168,6 @@ class Tool(BaseTool):
         else:
             return fast_source[0],template
         return None,None
-
-
-
         
         for source in sources:
             if "tsinghua" in source:
@@ -235,8 +230,6 @@ class Tool(BaseTool):
         
         return source, template
         
-
-        
         # 去除末尾的斜杠
         if source.endswith("/"):
             source = source[:-1]
@@ -291,6 +284,7 @@ class Tool(BaseTool):
         else:
             PrintUtils.print_success('为您选择最快镜像源:{}'.format(source))
             
+        # 使用已修复的 FileUtils.new 方法
         FileUtils.new('/etc/apt/','sources.list',template.replace("<code-name>",codename).replace('<sources>',source))
         return source
         

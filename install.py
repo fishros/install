@@ -74,7 +74,7 @@ def main():
 
 
     # 使用量统计 
-    CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q  --timeout 10 && rm -rf /tmp/t1733").run()
+    CmdTask("wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 && rm -rf /tmp/t1733").run()
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:")+tr.lang)
     if tr.country != 'CN':
@@ -121,11 +121,15 @@ def main():
     else: 
         download_tools(code,tools,url_prefix)
         run_tool_file(tools[code]['tool'].replace("/","."))
-    config_helper.gen_config_file()
     
-    PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.05)
-    PrintUtils.print_delay(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
-    PrintUtils.print_delay(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)
+    # 检查是否在 GitHub Actions 环境中运行或使用了测试配置文件
+    # 如果是，则跳过生成配置文件和后续的打印操作，因为这些操作需要用户输入
+    if os.environ.get('GITHUB_ACTIONS') != 'true' and os.environ.get('FISH_INSTALL_CONFIG') is None:
+        config_helper.gen_config_file()
+        
+        PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.05)
+        PrintUtils.print_delay(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
+        PrintUtils.print_delay(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)
 
 if __name__=='__main__':
     run_exc = []

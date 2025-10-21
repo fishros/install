@@ -8,6 +8,8 @@ import json
 import os
 import tools.base
 from tools.base import CmdTask
+import subprocess
+import time
 
 _suported_languages = ['zh_CN', 'en_US']
 url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
@@ -33,7 +35,19 @@ class Linguist:
         # Create directory for downloads
         CmdTask("mkdir -p /tmp/fishinstall/tools/translation/assets").run()
         for lang in _suported_languages:
-            CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(lang_url.format(lang), lang_url.format(lang).replace(url_prefix, ''))).run()
+            # Add timeout and retry mechanism for downloading language files
+            # Use /tmp/ directory directly to avoid permission issues
+            temp_file = "/tmp/fishros_lang_{}.py".format(lang)
+            final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
+            download_cmd = "wget {} -O {} --no-check-certificate --timeout=10 --tries=3".format(lang_url.format(lang), temp_file)
+            result = CmdTask(download_cmd).run()
+            # Move file to final destination if download was successful
+            if result[0] == 0:
+                CmdTask("mkdir -p $(dirname {})".format(final_path)).run()
+                CmdTask("mv {} {}".format(temp_file, final_path)).run()
+            else:
+                # Clean up temp file if download failed
+                CmdTask("rm -f {}".format(temp_file)).run()
         
         self.loadTranslationFile()
         tools.base.tr = self
@@ -62,20 +76,30 @@ class Linguist:
     
     def getLocalFromIP(self) -> str:
         local_str = ""
+        temp_file = "/tmp/fishros_check_country.json"
         try:
-            os.system("""wget --header="Accept: application/json" --no-check-certificate "https://ip.renfei.net/" -O /tmp/fishros_check_country.json -qq""")
-            with open('/tmp/fishros_check_country.json', 'r') as json_file:  
-                data = json.loads(json_file.read())
-                self.ip_info = data
-                self.country = data['location']['countryCode']
-                if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
-                    local_str = COUNTRY_CODE_MAPPING[data['location']['countryCode']]
-                else:
-                    local_str = "en_US"
+            # Add timeout for IP detection
+            result = subprocess.run(["wget", "--header=Accept: application/json", "--no-check-certificate", 
+                                   "https://ip.renfei.net/", "-O", temp_file, "-qq", "--timeout=10"], 
+                                  capture_output=True, text=True, timeout=15)
+            if result.returncode == 0:
+                with open(temp_file, 'r') as json_file:  
+                    data = json.loads(json_file.read())
+                    self.ip_info = data
+                    self.country = data['location']['countryCode']
+                    if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
+                        local_str = COUNTRY_CODE_MAPPING[data['location']['countryCode']]
+                    else:
+                        local_str = "en_US"
+            else:
+                local_str = "en_US"
         except Exception:
             local_str = "en_US"
         finally:
-            os.system("rm -f /tmp/fishros_check_country.json")
+            try:
+                os.remove(temp_file)
+            except:
+                pass
 
         return local_str
 

@@ -1,0 +1,56 @@
+# 测试配置文件，用于 GitHub Actions 自动化测试
+# 格式: 
+# - name: "测试用例名称"
+#   target_os_version: "目标系统版本代号" (可选，如果不指定则适用于所有系统)
+#   chooses: [{choose: <选项ID>, desc: <选项描述>}]
+
+# 为不同的 Ubuntu 版本定义具体的测试配置
+# Ubuntu 18.04 (bionic) - Melodic
+- name: "Install_ROS_bionic"
+  target_os_version: "bionic"
+  chooses:
+    - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "不更换系统源再继续安装" }
+    - { choose: 4, desc: "ROS官方源" }
+    - { choose: 1, desc: "支持的第一个ros版本" }
+    - { choose: 2, desc: "基础版(小)" }
+
+# Ubuntu 20.04 (focal) - Noetic 或 Foxy
+- name: "Install_ROS_focal_noetic"
+  target_os_version: "focal"
+  chooses:
+    - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "不更换系统源再继续安装" }
+    - { choose: 4, desc: "ROS官方源" }
+    - { choose: 1, desc: "支持的第一个ros版本" }
+    - { choose: 2, desc: "基础版(小)" }
+
+# - name: "Install_ROS_focal_foxy"
+#   target_os_version: "focal"
+#   chooses:
+#     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+#     - { choose: 2, desc: "不更换系统源再继续安装" }
+#     - { choose: 4, desc: "ROS官方源" }
+#     - { choose: 1, desc: "支持的第一个ros版本" }
+#     - { choose: 2, desc: "基础版(小)" }
+
+# Ubuntu 22.04 (jammy) - Humble
+- name: "Install_ROS_jammy"
+  target_os_version: "jammy"
+  chooses:
+    - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "不更换系统源再继续安装" }
+    - { choose: 4, desc: "ROS官方源" }
+    - { choose: 1, desc: "支持的第一个ros版本" }
+    - { choose: 2, desc: "基础版(小)" }
+
+# Ubuntu 24.04 (noble) - Jazzy
+- name: "Install_ROS_noble"
+  target_os_version: "noble"
+  chooses:
+    - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "不更换系统源再继续安装" }
+    - { choose: 4, desc: "ROS官方源" }
+    - { choose: 1, desc: "支持的第一个ros版本" }
+    - { choose: 2, desc: "基础版(小)" }
+

@@ -33,7 +33,9 @@ class ConfigHelper():
         self.record_input_queue = Queue()
         
         self.record_file = record_file
-        if self.record_file==None: self.record_file = "./fish_install.yaml"
+        if self.record_file==None: 
+            # 首先检查环境变量
+            self.record_file = os.environ.get('FISH_INSTALL_CONFIG', "./fish_install.yaml")
         self.default_input_queue = self.get_default_queue(self.record_file)
 
     def record_input(self,item):
@@ -62,12 +64,16 @@ class ConfigHelper():
             
             # 检查目标文件是否存在
             if os.path.exists(target_path):
-                print("检测到已存在的配置文件: {}".format(target_path))
-                user_input = input("是否替换该文件？[y/N]: ")
-                if user_input.lower() not in ['y', 'yes']:
-                    print("取消替换，保留原配置文件")
-                    os.remove(temp_path)  # 删除临时文件
-                    return
+                # 在自动化测试环境中，直接覆盖原配置文件
+                if os.environ.get('GITHUB_ACTIONS') == 'true':
+                    print("检测到GitHub Actions环境，直接覆盖已存在的配置文件: {}".format(target_path))
+                else:
+                    print("检测到已存在的配置文件: {}".format(target_path))
+                    user_input = input("是否替换该文件？[y/N]: ")
+                    if user_input.lower() not in ['y', 'yes']:
+                        print("取消替换，保留原配置文件")
+                        os.remove(temp_path)  # 删除临时文件
+                        return
             
             # 先尝试删除目标文件（如果存在），避免mv命令的交互提示
             if os.path.exists(target_path):
@@ -130,8 +136,6 @@ class ConfigHelper():
         else:
             config_yaml = yaml.load(config_data)
             
-        for choose in config_yaml['chooses']:
-            choose_queue.put(choose)
         for choose in config_yaml['chooses']:
             choose_queue.put(choose)
         
@@ -1112,8 +1116,17 @@ class ChooseTask(Task):
                 choose = str(choose_item['choose'])
                 PrintUtils.print_text(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
-                choose = input(tr.tr("请输入[]内的数字以选择:"))
-                choose_item = None
+                try:
+                    choose = input(tr.tr("请输入[]内的数字以选择:"))
+                    choose_item = None
+                except EOFError:
+                    # 在自动化测试环境中，input()可能会引发EOFError
+                    # 如果是从配置文件读取的选项，则使用它，否则返回默认值0（退出）
+                    if choose_item:
+                        choose = str(choose_item['choose'])
+                    else:
+                        choose = "0"  # 默认选择退出
+                    PrintUtils.print_text(tr.tr("检测到自动化环境，使用默认选项: {}").format(choose))
             # Input From Queue
             if choose.isdecimal() :
                 if (int(choose) in dic.keys() ) or (int(choose)==0):
@@ -1163,8 +1176,17 @@ class ChooseWithCategoriesTask(Task):
                 choose_id = str(choose_item['choose'])
                 print(tr.tr("为您从配置文件找到默认选项：")+str(choose_item))
             else:
-                choose_id = input(tr.tr("请输入[]内的数字以选择:"))
-                choose_item = None
+                try:
+                    choose_id = input(tr.tr("请输入[]内的数字以选择:"))
+                    choose_item = None
+                except EOFError:
+                    # 在自动化测试环境中，input()可能会引发EOFError
+                    # 如果是从配置文件读取的选项，则使用它，否则返回默认值0（退出）
+                    if choose_item:
+                        choose_id = str(choose_item['choose'])
+                    else:
+                        choose_id = "0"  # 默认选择退出
+                    PrintUtils.print_text(tr.tr("检测到自动化环境，使用默认选项: {}").format(choose_id))
             # Input From Queue
             if choose_id.isdecimal() :
                 if int(choose_id) in tool_ids :
@@ -1260,10 +1282,17 @@ class FileUtils():
             CmdTask("sudo mkdir -p {}".format(path),3).run()
         if name!=None:
             # 使用临时文件和sudo权限来创建受保护的文件
-            temp_file = "/tmp/{}".format(name)
-            with open(temp_file, "w") as f:
-                f.write(data)
-            CmdTask("sudo mv {} {}".format(temp_file, path+name), 3).run()
+            # 修复：使用 uuid 生成唯一临时文件名，避免权限冲突
+            import uuid
+            temp_file = "/tmp/{}_{}".format(uuid.uuid4(), name)
+            try:
+                with open(temp_file, "w") as f:
+                    f.write(data)
+                CmdTask("sudo mv {} {}".format(temp_file, path+name), 3).run()
+            finally:
+                # 确保临时文件被清理
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
         return True
     
     @staticmethod
