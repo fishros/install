@@ -86,6 +86,7 @@ key_urls = [
 
 ros_mirror_dic = {
     "tsinghua":{"ROS1":"http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu/"},
+    "mirrorz":{"ROS1":"http://mirrors.cernet.edu.cn/ros/ubuntu/","ROS2":"http://mirrors.cernet.edu.cn/ros2/ubuntu"},
     "ustc":{"ROS1":"https://mirrors.ustc.edu.cn/ros/ubuntu/","ROS2":"https://mirrors.ustc.edu.cn/ros2/ubuntu/"},
     "huawei":{"ROS1":"https://repo.huaweicloud.com/ros/ubuntu/","ROS2":"https://repo.huaweicloud.com/ros2/ubuntu/"},
     "packages.ros":{"ROS1":"http://packages.ros.org/ros/ubuntu/","ROS2":"http://packages.ros.org/ros2/ubuntu/"},
@@ -96,12 +97,12 @@ ros_mirror_dic = {
 
 ros_dist_dic = {
     'artful':{"packages.ros"},
-    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'bionic':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
     'buster':{"packages.ros"},
     'cosmic':{"packages.ros"},
     'disco':{"packages.ros"},
     'eoan':{"packages.ros"},
-    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'focal':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
     'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'lucid':{"packages.ros"},
     'maverick':{"packages.ros"},
@@ -117,7 +118,7 @@ ros_dist_dic = {
     'vivid':{"packages.ros"},
     'wheezy':{"packages.ros"},
     'wily':{"packages.ros"},
-    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'xenial':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
     'yakkety':{"packages.ros"},
     'zesty':{"packages.ros"},
 }
@@ -132,8 +133,8 @@ ros2_dist_dic = {
     'eoan':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'jammy':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'noble':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'jammy':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
+    'noble':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
     'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
     'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
@@ -198,6 +199,11 @@ class Tool(BaseTool):
             if "huawei" in ros_dist_dic.get(codename, []) or "huawei" in ros2_dist_dic.get(codename, []):
                 supported_mirrors.append("huawei")
 
+        # 添加 mirrorz 镜像源支持
+        if codename in ros_dist_dic.keys() or codename in ros2_dist_dic.keys():
+            if "mirrorz" in ros_dist_dic.get(codename, []) or "mirrorz" in ros2_dist_dic.get(codename, []):
+                supported_mirrors.append("mirrorz")
+
         # 如果系统支持多个镜像源，则让用户选择
         if len(supported_mirrors) > 1:
             mirror_dict = {}
@@ -209,6 +215,8 @@ class Tool(BaseTool):
                     mirror_dict[count] = "清华镜像源 (容易被封禁)"
                 elif mirror == "huawei":
                     mirror_dict[count] = "华为镜像源"
+                elif mirror == "mirrorz":
+                    mirror_dict[count] = "中山大学开源软件镜像站 (试运行)"
                 count += 1
             
             mirror_dict[count] = "ROS官方源 (国外用户或需要最新版本时使用)"
@@ -228,6 +236,10 @@ class Tool(BaseTool):
                             return "tsinghua"
                         elif "华为" in value:
                             return "huawei"
+                        elif "中山大" in value:
+                            return "mirrorz"
+                    
+                        
         else:
             # 系统只支持默认的清华源
             PrintUtils.print_info("您的系统默认使用清华镜像源")
