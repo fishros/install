@@ -140,7 +140,8 @@ def generate_html_report(report, output_file):
             background-color: #f44336;
         }
         .output {
-            background-color: #f8f8f8;
+            background-color: #000000;
+            color: #e0e0e0;
             padding: 15px;
             border-radius: 5px;
             margin-top: 10px;
