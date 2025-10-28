@@ -154,15 +154,15 @@ if __name__=='__main__':
                 print(text, file=f,end=end)  # 打印输出到文件中
             for text in tracing.err_logs:
                 print(text, file=f)  # 打印输出到文件中 
-        if tracing.need_report:
-            print("")
-            input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
-            ret = os.system("""curl -s -F "file=@/tmp/fishros_install.log" http://103.226.124.73:5000/upload > /tmp/fishros_upload 2>&1""")
-            if ret == 0:
-                with open("/tmp/fishros_upload","r") as f:
-                    print("错误日志上传成功，反馈码:",f.read())
-            else:
-                print("日志上传失败，若还需反馈请手动发帖!")
+        # if tracing.need_report:
+        #     print("")
+        #     input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
+        #     ret = os.system("""curl -s -F "file=@/tmp/fishros_install.log" http://103.226.124.73:5000/upload > /tmp/fishros_upload 2>&1""")
+        #     if ret == 0:
+        #         with open("/tmp/fishros_upload","r") as f:
+        #             print("错误日志上传成功，反馈码:",f.read())
+        #     else:
+        #         print("日志上传失败，若还需反馈请手动发帖!")
     except:
         pass
 
