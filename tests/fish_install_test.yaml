@@ -58,7 +58,7 @@
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 5, desc: "ROS官方源" }
-    - { choose: 3, desc: "noetic(ROS1)" }
+    - { choose: 1, desc: "foxy(ROS2)" }
     - { choose: 2, desc: "基础版(小)" }
 
 - name: "Install_ROS_focal_noetic_2"
