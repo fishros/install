@@ -7,7 +7,7 @@
 # 为不同的 Ubuntu 版本定义具体的测试配置
 # Ubuntu 18.04 (bionic) - Melodic
 - name: "Install_ROS_bionic"
-  target_os_version: "melodic"
+  target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
@@ -17,7 +17,7 @@
 
 # Ubuntu 20.04 (focal) - Noetic 或 Foxy
 - name: "Install_ROS_focal_noetic"
-  target_os_version: "noetic"
+  target_os_version: "focal"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
     - { choose: 2, desc: "不更换系统源再继续安装" }

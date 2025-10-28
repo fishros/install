@@ -1,5 +1,7 @@
+export FISHROS_URL=http://mirror.fishros.com/install
+
 mkdir -p /tmp/fishinstall/tools/translation/assets
-wget http://mirror.fishros.com/install/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
+wget $FISHROS_URL/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 
 source /etc/profile
 
 SUDO=''

@@ -12,7 +12,7 @@ import subprocess
 import time
 
 _suported_languages = ['zh_CN', 'en_US']
-url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
+url_prefix = os.environ.get('FISHROS_URL','')
 lang_url = os.path.join(url_prefix,'tools/translation/assets/{}.py')
 
 COUNTRY_CODE_MAPPING = {
@@ -34,21 +34,22 @@ class Linguist:
         self.lang = self._currentLocale
         # Create directory for downloads
         CmdTask("mkdir -p /tmp/fishinstall/tools/translation/assets").run()
-        for lang in _suported_languages:
-            # Add timeout and retry mechanism for downloading language files
-            # Use /tmp/ directory directly to avoid permission issues
-            temp_file = "/tmp/fishros_lang_{}.py".format(lang)
-            final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
-            download_cmd = "wget {} -O {} --no-check-certificate --timeout=10 --tries=3".format(lang_url.format(lang), temp_file)
-            result = CmdTask(download_cmd).run()
-            # Move file to final destination if download was successful
-            if result[0] == 0:
-                CmdTask("mkdir -p $(dirname {})".format(final_path)).run()
-                CmdTask("mv {} {}".format(temp_file, final_path)).run()
-            else:
-                # Clean up temp file if download failed
-                CmdTask("rm -f {}".format(temp_file)).run()
-        
+        if url_prefix:
+            for lang in _suported_languages:
+                # Add timeout and retry mechanism for downloading language files
+                # Use /tmp/ directory directly to avoid permission issues
+                temp_file = "/tmp/fishros_lang_{}.py".format(lang)
+                final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
+                download_cmd = "wget {} -O {} --no-check-certificate --timeout=10 --tries=3".format(lang_url.format(lang), temp_file)
+                result = CmdTask(download_cmd).run()
+                # Move file to final destination if download was successful
+                if result[0] == 0:
+                    CmdTask("mkdir -p $(dirname {})".format(final_path)).run()
+                    CmdTask("mv {} {}".format(temp_file, final_path)).run()
+                else:
+                    # Clean up temp file if download failed
+                    CmdTask("rm -f {}".format(temp_file)).run()
+            
         self.loadTranslationFile()
         tools.base.tr = self
 
