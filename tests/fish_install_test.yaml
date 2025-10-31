@@ -14,7 +14,7 @@
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 1, desc: "中科大源" }
-    - { choose: 5, desc: "支持的第5个ros版本" }       # 中科大源不支持Ubuntu18.04安装ros2-bouncy
+    - { choose: 5, desc: "支持的第5个ros版本" }       # 中科大，清华，华为，中山大学源不支持Ubuntu18.04安装ros2-bouncy 其余ros2没测试
     - { choose: 2, desc: "基础版(小)" }
 
 - name: "Install_ROS_bionic_source2"
