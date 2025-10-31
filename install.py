@@ -2,7 +2,7 @@
 import os
 import importlib
 
-url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
+url_prefix = os.environ.get('FISHROS_URL','')
 base_url = os.path.join(url_prefix,'tools/base.py')
 translator_url = os.path.join(url_prefix,'tools/translation/translator.py')
 
@@ -54,16 +54,16 @@ for tool_id, tool_info in tools.items():
 tracking = None
 def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
-    
-    url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install')
-    os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
+    url_prefix = os.environ.get('FISHROS_URL','')
+    if url_prefix:
+        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
+        os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,'')))
 
     from tools.base import CmdTask,FileUtils,PrintUtils,ChooseTask,ChooseWithCategoriesTask,Tracking
     from tools.base import encoding_utf8,osversion,osarch
     from tools.base import run_tool_file,download_tools
     from tools.base import config_helper,tr
 
-    CmdTask("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,''))).run()
 
     importlib.import_module("tools.translation.translator").Linguist()
     from tools.base import tr
@@ -119,16 +119,16 @@ def main():
     code,result = ChooseWithCategoriesTask(tool_categories, tips=tr.tr("---众多工具，等君来用---"),categories=tools_type_map).run()
     if code==0: PrintUtils().print_success(tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~"))
     else: 
-        download_tools(code,tools,url_prefix)
+        if url_prefix:
+            download_tools(code,tools,url_prefix)
         run_tool_file(tools[code]['tool'].replace("/","."))
     
     # 检查是否在 GitHub Actions 环境中运行或使用了测试配置文件
     # 如果是，则跳过生成配置文件和后续的打印操作，因为这些操作需要用户输入
     if os.environ.get('GITHUB_ACTIONS') != 'true' and os.environ.get('FISH_INSTALL_CONFIG') is None:
         config_helper.gen_config_file()
-        
         PrintUtils.print_delay(tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"),0.05)
-        PrintUtils.print_delay(tr.tr("鱼香小铺正式开业，最低499可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
+        PrintUtils.print_delay(tr.tr("鱼香小铺正式开业，最低599可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"),0.001)
         PrintUtils.print_delay(tr.tr("如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"),0.001)
 
 if __name__=='__main__':
@@ -154,15 +154,15 @@ if __name__=='__main__':
                 print(text, file=f,end=end)  # 打印输出到文件中
             for text in tracing.err_logs:
                 print(text, file=f)  # 打印输出到文件中 
-        if tracing.need_report:
-            print("")
-            input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
-            ret = os.system("""curl -s -F "file=@/tmp/fishros_install.log" http://103.226.124.73:5000/upload > /tmp/fishros_upload 2>&1""")
-            if ret == 0:
-                with open("/tmp/fishros_upload","r") as f:
-                    print("错误日志上传成功，反馈码:",f.read())
-            else:
-                print("日志上传失败，若还需反馈请手动发帖!")
+        # if tracing.need_report:
+        #     print("")
+        #     input('检测到本次运行出现失败命令,直接退出按Ctrl+C,按任意键上传日志并退出\n')
+        #     ret = os.system("""curl -s -F "file=@/tmp/fishros_install.log" http://103.226.124.73:5000/upload > /tmp/fishros_upload 2>&1""")
+        #     if ret == 0:
+        #         with open("/tmp/fishros_upload","r") as f:
+        #             print("错误日志上传成功，反馈码:",f.read())
+        #     else:
+        #         print("日志上传失败，若还需反馈请手动发帖!")
     except:
         pass
 
