@@ -10,6 +10,13 @@ import json
 import re
 import argparse
 
+# 尝试导入select模块，用于非阻塞I/O操作
+try:
+    import select
+    HAVE_SELECT = True
+except ImportError:
+    HAVE_SELECT = False
+
 # 将项目根目录添加到 Python 路径中，以便能找到 tools 模块
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
@@ -285,17 +292,83 @@ def run_install_test(test_case):
             env={**os.environ, 'FISH_INSTALL_CONFIG': '../fish_install.yaml'}
         )
         
-        # 实时打印输出
+        # 实时打印输出，添加3分钟无日志超时检测
         print("=== 脚本输出开始 ===")
-        while True:
-            output_line = process.stdout.readline()
-            if output_line == '' and process.poll() is not None:
-                break
-            if output_line:
-                print(output_line.strip())
-                output += output_line
-                # 确保实时刷新输出
-                sys.stdout.flush()
+        last_output_time = time.time()
+        timeout_seconds = 180  # 3分钟超时
+        
+        if HAVE_SELECT:
+            # 在支持select的系统上使用非阻塞I/O
+            while True:
+                # 检查是否超时
+                if time.time() - last_output_time > timeout_seconds:
+                    print(f"错误: 测试 {name} 超时，超过 {timeout_seconds} 秒无日志输出，自动退出")
+                    # 终止进程
+                    process.terminate()
+                    try:
+                        process.wait(timeout=10)  # 等待最多10秒优雅退出
+                    except subprocess.TimeoutExpired:
+                        process.kill()  # 强制杀死进程
+                        process.wait()
+                    output += f"\n错误: 测试超时，超过 {timeout_seconds} 秒无日志输出，自动退出"
+                    return False, output
+                
+                # 检查进程是否已经结束
+                if process.poll() is not None:
+                    # 读取剩余的所有输出
+                    remaining_output = process.stdout.read()
+                    if remaining_output:
+                        print(remaining_output.strip())
+                        output += remaining_output
+                        last_output_time = time.time()  # 更新最后输出时间
+                    break
+                
+                # 非阻塞读取输出
+                if select.select([process.stdout], [], [], 0.1)[0]:
+                    output_line = process.stdout.readline()
+                    if output_line:
+                        print(output_line.strip())
+                        output += output_line
+                        last_output_time = time.time()  # 更新最后输出时间
+                        # 确保实时刷新输出
+                        sys.stdout.flush()
+                    elif process.poll() is not None:
+                        # 进程结束且没有更多输出
+                        break
+                else:
+                    # 没有可读取的数据，短暂休眠
+                    time.sleep(0.1)
+        else:
+            # 在不支持select的系统上使用标准方法（如Windows）
+            while True:
+                # 检查是否超时
+                if time.time() - last_output_time > timeout_seconds:
+                    print(f"错误: 测试 {name} 超时，超过 {timeout_seconds} 秒无日志输出，自动退出")
+                    # 终止进程
+                    process.terminate()
+                    try:
+                        process.wait(timeout=10)  # 等待最多10秒优雅退出
+                    except subprocess.TimeoutExpired:
+                        process.kill()  # 强制杀死进程
+                        process.wait()
+                    output += f"\n错误: 测试超时，超过 {timeout_seconds} 秒无日志输出，自动退出"
+                    return False, output
+                
+                # 检查进程是否已经结束
+                if process.poll() is not None:
+                    break
+                
+                # 使用poll方法检查是否有数据可读
+                output_line = process.stdout.readline()
+                if output_line:
+                    print(output_line.strip())
+                    output += output_line
+                    last_output_time = time.time()  # 更新最后输出时间
+                    # 确保实时刷新输出
+                    sys.stdout.flush()
+                else:
+                    # 没有输出，短暂休眠
+                    time.sleep(0.1)
         print("=== 脚本输出结束 ===")
         
         # 等待进程结束，超时时间为 2 小时
@@ -356,6 +429,7 @@ def main():
     # 解析命令行参数
     parser = argparse.ArgumentParser(description='运行一键安装工具测试')
     parser.add_argument('--target-os-version', type=str, help='目标Ubuntu版本代号 (例如: bionic, focal, jammy, noble)')
+    parser.add_argument('--test-index', type=int, help='特定测试用例的索引')
     args = parser.parse_args()
     
     target_os_version = args.target_os_version
@@ -396,6 +470,23 @@ def main():
         test_cases = [tc for tc in all_test_cases if 'target_os_version' not in tc]
         if not test_cases:
             print("错误: 没有找到适用于所有系统的通用测试用例")
+            sys.exit(1)
+    
+    # 如果指定了测试用例索引，则只运行该索引的测试用例
+    if args.test_index is not None:
+        # 直接根据索引在所有测试用例中查找
+        if 0 <= args.test_index < len(all_test_cases):
+            target_test_case = all_test_cases[args.test_index]
+            # 确保该测试用例适用于当前系统版本
+            if (target_test_case.get('target_os_version') == target_os_version or 
+                (target_os_version and 'target_os_version' not in target_test_case)):
+                test_cases = [target_test_case]
+                print(f"只运行指定索引的测试用例: {target_test_case.get('name', 'Unknown Test')}")
+            else:
+                print(f"错误: 索引为 {args.test_index} 的测试用例不适用于系统版本 {target_os_version}")
+                sys.exit(1)
+        else:
+            print(f"错误: 测试用例索引 {args.test_index} 超出范围 (0-{len(all_test_cases)-1})")
             sys.exit(1)
     
     print(f"共找到 {len(test_cases)} 个适用于当前系统版本的测试用例")
@@ -457,12 +548,14 @@ def main():
     print(f"失败: {failed}")
     print(f"总计: {len(test_cases)}")
     
+    # 根据是否有测试失败，设置适当的退出码
+    # 在并行测试环境中，这将由每个单独的job处理
     if failed > 0:
         print("部分测试失败，请检查日志和测试报告。")
-        sys.exit(1)
+        sys.exit(1)  # 有测试失败，返回非零退出码
     else:
         print("所有测试通过！")
-        sys.exit(0)
+        sys.exit(0)  # 所有测试通过，返回零退出码
 
 if __name__ == "__main__":
     main()
