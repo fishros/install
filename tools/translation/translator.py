@@ -4,7 +4,7 @@ A helper for translating string, inspired by Qt Linguist.
 Author: Elysia
 '''
 import locale
-import json
+import xml.etree.ElementTree as ET
 import os
 import tools.base
 from tools.base import CmdTask
@@ -77,21 +77,21 @@ class Linguist:
     
     def getLocalFromIP(self) -> str:
         local_str = ""
-        temp_file = "/tmp/fishros_check_country.json"
+        temp_file = "/tmp/fishros_check_country.xml"
         try:
             # Add timeout for IP detection
-            result = subprocess.run(["wget", "--header=Accept: application/json", "--no-check-certificate", 
+            result = subprocess.run(["wget", "--header=Accept: application/xml", "--no-check-certificate", 
                                    "https://ip.renfei.net/", "-O", temp_file, "-qq", "--timeout=10"], 
                                   capture_output=True, text=True, timeout=15)
             if result.returncode == 0:
-                with open(temp_file, 'r') as json_file:  
-                    data = json.loads(json_file.read())
-                    self.ip_info = data
-                    self.country = data['location']['countryCode']
-                    if data['location']['countryCode'] in COUNTRY_CODE_MAPPING:
-                        local_str = COUNTRY_CODE_MAPPING[data['location']['countryCode']]
-                    else:
-                        local_str = "en_US"
+                with open(temp_file, 'r') as xml_file:  
+                    self.ip_info = xml_file.read()
+                root = ET.fromstring(self.ip_info)
+                self.country = root.find('location/countryCode').text
+                if self.country in COUNTRY_CODE_MAPPING:
+                    local_str = COUNTRY_CODE_MAPPING[self.country]
+                else:
+                    local_str = "en_US"
             else:
                 local_str = "en_US"
         except Exception:
