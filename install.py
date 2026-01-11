@@ -2,7 +2,7 @@
 import os
 import importlib
 
-url_prefix = os.environ.get('FISHROS_URL','')
+url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
 base_url = os.path.join(url_prefix,'tools/base.py')
 translator_url = os.path.join(url_prefix,'tools/translation/translator.py')
 
@@ -54,7 +54,7 @@ for tool_id, tool_info in tools.items():
 tracking = None
 def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
-    url_prefix = os.environ.get('FISHROS_URL','')
+    url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
     if url_prefix:
         os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(base_url,base_url.replace(url_prefix,'')))
         os.system("wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(translator_url,translator_url.replace(url_prefix,'')))
