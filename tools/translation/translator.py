@@ -40,7 +40,7 @@ class Linguist:
                 # Use /tmp/ directory directly to avoid permission issues
                 temp_file = "/tmp/fishros_lang_{}.py".format(lang)
                 final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
-                download_cmd = "wget {} -O {} --no-check-certificate --timeout=10 --tries=3".format(lang_url.format(lang), temp_file)
+                download_cmd = "wget {} -O {} --no-check-certificate".format(lang_url.format(lang), temp_file)
                 result = CmdTask(download_cmd).run()
                 # Move file to final destination if download was successful
                 if result[0] == 0:
@@ -61,8 +61,9 @@ class Linguist:
             self._translations = importlib.import_module(_import_command).translations
         except Exception:
             # If the translation file does not exist, use the default translation file.
-            _import_command = "tools.translation.assets.en_US"
-            self._translations = importlib.import_module(_import_command).translations
+            # _import_command = "tools.translation.assets.en_US"
+            # self._translations = importlib.import_module(_import_command).translations
+            pass
 
     def tr(self, string) -> str:
         # Check whether the string exists in the translation file.
