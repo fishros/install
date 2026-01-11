@@ -51,6 +51,7 @@ class Linguist:
                     CmdTask("rm -f {}".format(temp_file)).run()
             
         self.loadTranslationFile()
+        
         tools.base.tr = self
 
     def loadTranslationFile(self):
@@ -60,10 +61,10 @@ class Linguist:
             _import_command = "tools.translation.assets.{}".format(self._currentLocale)
             self._translations = importlib.import_module(_import_command).translations
         except Exception:
+            self._translations = []
             # If the translation file does not exist, use the default translation file.
             # _import_command = "tools.translation.assets.en_US"
             # self._translations = importlib.import_module(_import_command).translations
-            pass
 
     def tr(self, string) -> str:
         # Check whether the string exists in the translation file.
