@@ -20,17 +20,17 @@ class RosVersion:
 class RosVersions:
     ros_version = [
         # ubuntu 24
-        RosVersion('kilted',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('kilted',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22 & 24
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22
-        RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 20
-        RosVersion('foxy',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('foxy',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('noetic',  'ROS1', RosVersion.STATUS_EOL, ['python3-catkin-tools','python3-rosdep']),
         # ubuntu 18
         RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['python-catkin-tools','python-rosdep']),
