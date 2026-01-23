@@ -81,7 +81,7 @@ class RosVersions:
 
 
 key_urls = [
-    'https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc',
+    'https://gitee.com/fishros/rosdistro/raw/master/ros.asc',
     'https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc',
 ]
 
