@@ -58,10 +58,8 @@ class RosVersions:
     @staticmethod
     def install_depend(name):
         depends = RosVersions.get_version(name).deps
-        if depends:
-            # 批量安装依赖包，提高效率
-            dep_string = " ".join(depends)
-            AptUtils.install_pkg(dep_string)
+        for dep in depends:
+            AptUtils.install_pkg(dep)
 
     @staticmethod
     def tip_test_command(name):
