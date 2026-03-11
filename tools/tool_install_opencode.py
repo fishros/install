@@ -8,6 +8,7 @@ from .tool_install_nodejs import Tool as NodejsTool
 
 class Tool(BaseTool):
     NPM_MIRROR = "https://registry.npmmirror.com"
+    NPM_TAOBAO = "https://registry.npm.taobao.org"
     PREFERRED_NRM_ALIASES = ["taobao", "tencent", "huawei", "npm", "yarn", "cnpm"]
 
     def __init__(self):
@@ -51,6 +52,10 @@ class Tool(BaseTool):
             if keyword in str(line).lower():
                 return True
         return False
+
+    def _check_registry_available(self, name):
+        ping_result = self._run_cmd("npm ping", 20, "测试{}连通性...".format(name))
+        return self._code(ping_result) == 0
 
     def _remove_local_opencode(self):
         local_dir = os.path.expanduser("~/.opencode")
@@ -132,10 +137,14 @@ class Tool(BaseTool):
         node_tool = NodejsTool()
         node_tool._run_cmd = self._run_cmd
 
-        nrm_check = self._run_cmd("/usr/local/bin/nrm --version", 10, "检查nrm是否可用...")
+        nrm_check = self._run_cmd(
+            "/usr/local/bin/nrm --version", 10, "检查nrm是否可用..."
+        )
         if self._code(nrm_check) != 0:
             PrintUtils.print_info("未检测到nrm，先安装nrm并切换npm源...")
-            install_result = self._run_cmd("sudo npm install -g nrm", 180, "安装nrm中...")
+            install_result = self._run_cmd(
+                "sudo npm install -g nrm", 180, "安装nrm中..."
+            )
             if self._code(install_result) != 0:
                 return False
 
@@ -150,33 +159,42 @@ class Tool(BaseTool):
                 )
 
         sources = node_tool._get_nrm_sources()
-        if len(sources) == 0:
-            PrintUtils.print_warn("未读取到nrm源列表")
+        taobao_url = self.NPM_TAOBAO
+        if "taobao" in sources:
+            taobao_url = sources["taobao"]
+
+        PrintUtils.print_info("自动切换npm源: 先taobao，失败回退npmmirror")
+
+        taobao_ready = False
+        if "taobao" in sources:
+            result = self._run_cmd("/usr/local/bin/nrm use taobao", 20)
+            if self._code(result) == 0 and (not node_tool._has_error_text(result)):
+                taobao_ready = node_tool._set_registry(taobao_url)
+            else:
+                PrintUtils.print_warn("nrm切换taobao失败，尝试直接写入taobao配置")
+                taobao_ready = node_tool._set_registry(taobao_url)
+        else:
+            PrintUtils.print_warn("nrm源中未找到taobao，尝试直接写入taobao配置")
+            taobao_ready = node_tool._set_registry(taobao_url)
+
+        if taobao_ready and self._check_registry_available("taobao"):
+            self._run_cmd("npm config get registry", 10, "当前npm源:")
+            PrintUtils.print_success("npm源已切换为taobao")
+            return True
+
+        PrintUtils.print_warn("taobao源不可用，回退到npmmirror")
+        mirror_ready = node_tool._set_registry(self.NPM_MIRROR)
+        if not mirror_ready:
             return False
 
-        alias = None
-        for item in self.PREFERRED_NRM_ALIASES:
-            if item in sources:
-                alias = item
-                break
-        if alias is None:
-            alias = list(sources.keys())[0]
-        registry_url = sources[alias]
+        if self._check_registry_available("npmmirror"):
+            self._run_cmd("npm config get registry", 10, "当前npm源:")
+            PrintUtils.print_success("npm源已切换为npmmirror")
+            return True
 
-        PrintUtils.print_info("自动切换npm源为{}".format(alias))
-        nrm_ok = False
-        result = self._run_cmd("/usr/local/bin/nrm use {}".format(alias), 20)
-        if self._code(result) == 0 and (not node_tool._has_error_text(result)):
-            nrm_ok = True
-
-        if not nrm_ok:
-            PrintUtils.print_warn("nrm切换失败，尝试直接写入npm源配置")
-
-        if not node_tool._set_registry(registry_url):
-            return False
-
-        verify = self._run_cmd("npm config get registry", 10, "当前npm源:")
-        return self._code(verify) == 0
+        PrintUtils.print_warn("npmmirror连通性检测失败，将继续尝试安装")
+        self._run_cmd("npm config get registry", 10, "当前npm源:")
+        return False
 
     def _ensure_nodejs(self):
         check_node = self._run_cmd("node -v", 10, "检查Node.js版本...")
