@@ -7,10 +7,112 @@ on:
     branches: [ dev, master, github_ci_docker_test ]
 
 jobs:
-  test-install:
+  generate-test-matrix-by-os:
+    runs-on: ubuntu-latest
+    outputs:
+      bionic_matrix: ${{ steps.set-bionic-matrix.outputs.matrix }}
+      focal_matrix: ${{ steps.set-focal-matrix.outputs.matrix }}
+      jammy_matrix: ${{ steps.set-jammy-matrix.outputs.matrix }}
+      noble_matrix: ${{ steps.set-noble-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+      - name: Generate bionic matrix
+        id: set-bionic-matrix
+        run: |
+          python -c "
+          import yaml
+          import json
+          with open('tests/fish_install_test.yaml', 'r') as f:
+              test_cases = yaml.safe_load(f)
+          
+          # 过滤出bionic系统的测试用例
+          bionic_tests = [case for case in test_cases if case.get('target_os_version') == 'bionic']
+          matrix = {'include': []}
+          for i, case in enumerate(bionic_tests):
+              matrix['include'].append({
+                  'test_name': case['name'],
+                  'test_index': test_cases.index(case)
+              })
+          
+          print('matrix=' + json.dumps(matrix))
+          " >> $GITHUB_OUTPUT
+      - name: Generate focal matrix
+        id: set-focal-matrix
+        run: |
+          python -c "
+          import yaml
+          import json
+          with open('tests/fish_install_test.yaml', 'r') as f:
+              test_cases = yaml.safe_load(f)
+          
+          # 过滤出focal系统的测试用例
+          focal_tests = [case for case in test_cases if case.get('target_os_version') == 'focal']
+          matrix = {'include': []}
+          for i, case in enumerate(focal_tests):
+              matrix['include'].append({
+                  'test_name': case['name'],
+                  'test_index': test_cases.index(case)
+              })
+          
+          print('matrix=' + json.dumps(matrix))
+          " >> $GITHUB_OUTPUT
+      - name: Generate jammy matrix
+        id: set-jammy-matrix
+        run: |
+          python -c "
+          import yaml
+          import json
+          with open('tests/fish_install_test.yaml', 'r') as f:
+              test_cases = yaml.safe_load(f)
+          
+          # 过滤出jammy系统的测试用例
+          jammy_tests = [case for case in test_cases if case.get('target_os_version') == 'jammy']
+          matrix = {'include': []}
+          for i, case in enumerate(jammy_tests):
+              matrix['include'].append({
+                  'test_name': case['name'],
+                  'test_index': test_cases.index(case)
+              })
+          
+          print('matrix=' + json.dumps(matrix))
+          " >> $GITHUB_OUTPUT
+      - name: Generate noble matrix
+        id: set-noble-matrix
+        run: |
+          python -c "
+          import yaml
+          import json
+          with open('tests/fish_install_test.yaml', 'r') as f:
+              test_cases = yaml.safe_load(f)
+          
+          # 过滤出noble系统的测试用例
+          noble_tests = [case for case in test_cases if case.get('target_os_version') == 'noble']
+          matrix = {'include': []}
+          for i, case in enumerate(noble_tests):
+              matrix['include'].append({
+                  'test_name': case['name'],
+                  'test_index': test_cases.index(case)
+              })
+          
+          print('matrix=' + json.dumps(matrix))
+          " >> $GITHUB_OUTPUT
+
+  test-install-bionic:
+    needs: generate-test-matrix-by-os
+    if: ${{ needs.generate-test-matrix-by-os.outputs.bionic_matrix != '{}' }}
     strategy:
-      matrix:
-        ubuntu_version: [18.04, 20.04, 22.04, 24.04]
+      matrix: ${{ fromJSON(needs.generate-test-matrix-by-os.outputs.bionic_matrix) }}
+      # max-parallel: 2
+      fail-fast: false  # 即使某些测试失败，也继续运行其他测试
     runs-on: ubuntu-latest
 
     steps:
@@ -19,10 +121,13 @@ jobs:
 
     - name: Run tests in Docker container
       run: |
+        TEST_CASE="bionic"
+        echo "Using Ubuntu version: $TEST_CASE"
+        
         docker run --rm \
           -v ${{ github.workspace }}:${{ github.workspace }} \
           -w ${{ github.workspace }} \
-          ubuntu:${{ matrix.ubuntu_version }} \
+          ubuntu:$TEST_CASE \
           bash -c "
             set -u && 
             export DEBIAN_FRONTEND=noninteractive &&
@@ -39,13 +144,163 @@ jobs:
             pip install --upgrade pip &&
             pip install pyyaml distro &&
             cd tests && 
-            PYTHONIOENCODING=utf-8 python3 -u test_runner.py
+            PYTHONIOENCODING=utf-8 python3 -u test_runner.py --target-os-version $TEST_CASE --test-index ${{ matrix.test_index }}
           "
     - name: Upload test reports
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-reports-ubuntu-${{ matrix.ubuntu_version }}
+        name: test-reports-${{ matrix.test_name }}
+        path: |
+          tests/test_report.json
+          tests/test_report.html
+        if-no-files-found: ignore
+
+  test-install-focal:
+    needs: generate-test-matrix-by-os
+    if: ${{ needs.generate-test-matrix-by-os.outputs.focal_matrix != '{}' }}
+    strategy:
+      matrix: ${{ fromJSON(needs.generate-test-matrix-by-os.outputs.focal_matrix) }}
+      max-parallel: 2
+      fail-fast: false  # 即使某些测试失败，也继续运行其他测试
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run tests in Docker container
+      run: |
+        TEST_CASE="focal"
+        echo "Using Ubuntu version: $TEST_CASE"
+        
+        docker run --rm \
+          -v ${{ github.workspace }}:${{ github.workspace }} \
+          -w ${{ github.workspace }} \
+          ubuntu:$TEST_CASE \
+          bash -c "
+            set -u && 
+            export DEBIAN_FRONTEND=noninteractive &&
+            # Set timezone to avoid tzdata interactive prompt
+            ln -sf /usr/share/zoneinfo/UTC /etc/localtime &&
+            apt update &&
+            apt install -y locales &&
+            locale-gen en_US.UTF-8 &&
+            export LANG=en_US.UTF-8 &&
+            export LC_ALL=en_US.UTF-8 &&
+            apt update && apt install -y sudo python3 python3-pip python3-venv python3-yaml python3-distro wget &&
+            python3 -m venv /tmp/test_env &&
+            source /tmp/test_env/bin/activate &&
+            pip install --upgrade pip &&
+            pip install pyyaml distro &&
+            cd tests && 
+            PYTHONIOENCODING=utf-8 python3 -u test_runner.py --target-os-version $TEST_CASE --test-index ${{ matrix.test_index }}
+          "
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports-${{ matrix.test_name }}
+        path: |
+          tests/test_report.json
+          tests/test_report.html
+        if-no-files-found: ignore
+
+  test-install-jammy:
+    needs: generate-test-matrix-by-os
+    if: ${{ needs.generate-test-matrix-by-os.outputs.jammy_matrix != '{}' }}
+    strategy:
+      matrix: ${{ fromJSON(needs.generate-test-matrix-by-os.outputs.jammy_matrix) }}
+      max-parallel: 2
+      fail-fast: false  # 即使某些测试失败，也继续运行其他测试
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run tests in Docker container
+      run: |
+        TEST_CASE="jammy"
+        echo "Using Ubuntu version: $TEST_CASE"
+        
+        docker run --rm \
+          -v ${{ github.workspace }}:${{ github.workspace }} \
+          -w ${{ github.workspace }} \
+          ubuntu:$TEST_CASE \
+          bash -c "
+            set -u && 
+            export DEBIAN_FRONTEND=noninteractive &&
+            # Set timezone to avoid tzdata interactive prompt
+            ln -sf /usr/share/zoneinfo/UTC /etc/localtime &&
+            apt update &&
+            apt install -y locales &&
+            locale-gen en_US.UTF-8 &&
+            export LANG=en_US.UTF-8 &&
+            export LC_ALL=en_US.UTF-8 &&
+            apt update && apt install -y sudo python3 python3-pip python3-venv python3-yaml python3-distro wget &&
+            python3 -m venv /tmp/test_env &&
+            source /tmp/test_env/bin/activate &&
+            pip install --upgrade pip &&
+            pip install pyyaml distro &&
+            cd tests && 
+            PYTHONIOENCODING=utf-8 python3 -u test_runner.py --target-os-version $TEST_CASE --test-index ${{ matrix.test_index }}
+          "
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports-${{ matrix.test_name }}
+        path: |
+          tests/test_report.json
+          tests/test_report.html
+        if-no-files-found: ignore
+
+  test-install-noble:
+    needs: generate-test-matrix-by-os
+    if: ${{ needs.generate-test-matrix-by-os.outputs.noble_matrix != '{}' }}
+    strategy:
+      matrix: ${{ fromJSON(needs.generate-test-matrix-by-os.outputs.noble_matrix) }}
+      max-parallel: 2
+      fail-fast: false  # 即使某些测试失败，也继续运行其他测试
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run tests in Docker container
+      run: |
+        TEST_CASE="noble"
+        echo "Using Ubuntu version: $TEST_CASE"
+        
+        docker run --rm \
+          -v ${{ github.workspace }}:${{ github.workspace }} \
+          -w ${{ github.workspace }} \
+          ubuntu:$TEST_CASE \
+          bash -c "
+            set -u && 
+            export DEBIAN_FRONTEND=noninteractive &&
+            # Set timezone to avoid tzdata interactive prompt
+            ln -sf /usr/share/zoneinfo/UTC /etc/localtime &&
+            apt update &&
+            apt install -y locales &&
+            locale-gen en_US.UTF-8 &&
+            export LANG=en_US.UTF-8 &&
+            export LC_ALL=en_US.UTF-8 &&
+            apt update && apt install -y sudo python3 python3-pip python3-venv python3-yaml python3-distro wget &&
+            python3 -m venv /tmp/test_env &&
+            source /tmp/test_env/bin/activate &&
+            pip install --upgrade pip &&
+            pip install pyyaml distro &&
+            cd tests && 
+            PYTHONIOENCODING=utf-8 python3 -u test_runner.py --target-os-version $TEST_CASE --test-index ${{ matrix.test_index }}
+          "
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports-${{ matrix.test_name }}
         path: |
           tests/test_report.json
           tests/test_report.html

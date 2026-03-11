@@ -1,4 +1,4 @@
-export FISHROS_URL=http://mirror.fishros.com/install
+export FISHROS_URL=http://mirror.fishros.com/install/
 
 mkdir -p /tmp/fishinstall/tools/translation/assets
 wget $FISHROS_URL/install.py -O /tmp/fishinstall/install.py 2>>/dev/null 

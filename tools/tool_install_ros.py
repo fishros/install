@@ -20,17 +20,17 @@ class RosVersion:
 class RosVersions:
     ros_version = [
         # ubuntu 24
-        RosVersion('kilted',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('kilted',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('jazzy',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22 & 24
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 22
-        RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
-        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         # ubuntu 20
-        RosVersion('foxy',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
+        RosVersion('foxy',  'ROS2', RosVersion.STATUS_EOL, ['python3-colcon-core','python3-colcon-common-extensions','python3-argcomplete','python3-rosdep']),
         RosVersion('noetic',  'ROS1', RosVersion.STATUS_EOL, ['python3-catkin-tools','python3-rosdep']),
         # ubuntu 18
         RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['python-catkin-tools','python-rosdep']),
@@ -61,7 +61,6 @@ class RosVersions:
         for dep in depends:
             AptUtils.install_pkg(dep)
 
-
     @staticmethod
     def tip_test_command(name):
         version = RosVersions.get_version(name).version
@@ -80,7 +79,7 @@ class RosVersions:
 
 
 key_urls = [
-    'https://gitee.com/ohhuo/rosdistro/raw/master/ros.asc',
+    'https://gitee.com/fishros/rosdistro/raw/master/ros.asc',
     'https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc',
 ]
 
@@ -90,60 +89,58 @@ ros_mirror_dic = {
     "ustc":{"ROS1":"https://mirrors.ustc.edu.cn/ros/ubuntu/","ROS2":"https://mirrors.ustc.edu.cn/ros2/ubuntu/"},
     "huawei":{"ROS1":"https://repo.huaweicloud.com/ros/ubuntu/","ROS2":"https://repo.huaweicloud.com/ros2/ubuntu/"},
     "packages.ros":{"ROS1":"http://packages.ros.org/ros/ubuntu/","ROS2":"http://packages.ros.org/ros2/ubuntu/"},
-    "https.packages.ros":{"ROS1":"https://packages.ros.org/ros/ubuntu/","ROS2":"https://packages.ros.org/ros2/ubuntu/"},
-    "repo-ros2":{"ROS2":"http://repo.ros2.org/ubuntu/"}
 }
 
 
 ros_dist_dic = {
-    'artful':{"packages.ros"},
-    'bionic':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
-    'buster':{"packages.ros"},
-    'cosmic':{"packages.ros"},
-    'disco':{"packages.ros"},
-    'eoan':{"packages.ros"},
-    'focal':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'lucid':{"packages.ros"},
-    'maverick':{"packages.ros"},
-    'natty':{"packages.ros"},
-    'oneiric':{"packages.ros"},
-    'precise':{"packages.ros"},
-    'quantal':{"packages.ros"},
-    'raring':{"packages.ros"},
-    'saucy':{"packages.ros"},
-    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'utopic':{"packages.ros"},
-    'vivid':{"packages.ros"},
-    'wheezy':{"packages.ros"},
-    'wily':{"packages.ros"},
-    'xenial':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
-    'yakkety':{"packages.ros"},
-    'zesty':{"packages.ros"},
+    'artful': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'bionic': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'buster': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'cosmic': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'disco': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'eoan': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'focal': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'jessie': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'lucid': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'maverick': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'natty': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'oneiric': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'precise': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'quantal': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'raring': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'saucy': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'stretch': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'trusty': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'utopic': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'vivid': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'wheezy': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'wily': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'xenial': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'yakkety': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'zesty': {"tsinghua", "ustc", "huawei", "packages.ros", },
 }
 
 
 ros2_dist_dic = {
-    'bionic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'bullseye':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'buster':{"packages.ros"},
-    'cosmic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'disco':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'eoan':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'focal':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'jessie':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'jammy':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
-    'noble':{"tsinghua","ustc","huawei","mirrorz","packages.ros","https.packages.ros"},
-    'stretch':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'trusty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'utopic':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'xenial':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'yakkety':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
-    'zesty':{"tsinghua","ustc","huawei","packages.ros","https.packages.ros"},
+    'bionic': {"tsinghua", "mirrorz", "huawei", "packages.ros", },
+    'bookworm': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'bullseye': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'buster': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'cosmic': {"packages.ros", },
+    'disco': {"packages.ros", },
+    'eoan': {"packages.ros", },
+    'focal': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'jessie': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'jammy': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'noble': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'stretch': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'trixie': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'trusty': {"tsinghua", "ustc", "huawei", "packages.ros", },
+    'xenial': {"tsinghua", "ustc", "huawei", "mirrorz", "packages.ros", },
+    'utopic': {"packages.ros", },
+    'yakkety': {"packages.ros", },
+    'zesty': {"packages.ros", },
 }
-
-
 
 class Tool(BaseTool):
     def __init__(self):

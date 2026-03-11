@@ -2,9 +2,9 @@
 import os
 import importlib
 
-url_prefix = os.environ.get("FISHROS_URL", "")
-base_url = os.path.join(url_prefix, "tools/base.py")
-translator_url = os.path.join(url_prefix, "tools/translation/translator.py")
+url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
+base_url = os.path.join(url_prefix,'tools/base.py')
+translator_url = os.path.join(url_prefix,'tools/translation/translator.py')
 
 INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
@@ -160,7 +160,7 @@ tracking = None
 
 def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
-    url_prefix = os.environ.get("FISHROS_URL", "")
+    url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
     if url_prefix:
         os.system(
             "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
