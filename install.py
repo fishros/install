@@ -2,9 +2,9 @@
 import os
 import importlib
 
-url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
-base_url = os.path.join(url_prefix,'tools/base.py')
-translator_url = os.path.join(url_prefix,'tools/translation/translator.py')
+url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
+base_url = os.path.join(url_prefix, "tools/base.py")
+translator_url = os.path.join(url_prefix, "tools/translation/translator.py")
 
 INSTALL_ROS = 0  # 安装ROS相关
 INSTALL_SOFTWARE = 1  # 安装软件
@@ -98,12 +98,12 @@ tools = {
         "tool": "tools/tool_config_python_source.py",
         "dep": [],
     },
-    # 14: {
-    #     "tip": "一键安装:科学上网代理工具",
-    #     "type": INSTALL_AI,
-    #     "tool": "tools/tool_install_proxy_tool.py",
-    #     "dep": [8],
-    # },
+    14: {
+        "tip": "一键安装:科学上网代理工具",
+        "type": INSTALL_AI,
+        "tool": "tools/tool_install_proxy_tool.py",
+        "dep": [8],
+    },
     15: {
         "tip": "一键安装：QQ for Linux",
         "type": INSTALL_SOFTWARE,
@@ -160,7 +160,7 @@ tracking = None
 
 def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
-    url_prefix = os.environ.get('FISHROS_URL','http://mirror.fishros.com/install/')
+    url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
     if url_prefix:
         os.system(
             "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(

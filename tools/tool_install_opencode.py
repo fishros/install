@@ -57,6 +57,82 @@ class Tool(BaseTool):
         ping_result = self._run_cmd("npm ping", 20, "测试{}连通性...".format(name))
         return self._code(ping_result) == 0
 
+    def _print_runtime_diagnostics(self):
+        self._run_cmd("npm prefix -g", 10, "当前用户npm全局目录:")
+        self._run_cmd("sudo npm prefix -g", 10, "sudo环境npm全局目录:")
+        self._run_cmd("which npm", 10, "npm路径:")
+        self._run_cmd("which node", 10, "node路径:")
+
+    def _fix_npm_prefix(self):
+        prefix_result = self._run_cmd("sudo npm prefix -g", 10, "检查npm全局目录...")
+        prefix_out = self._out(prefix_result)
+        if self._code(prefix_result) != 0 or len(prefix_out) == 0:
+            PrintUtils.print_warn("未能读取sudo环境npm全局目录")
+            return False
+
+        prefix = str(prefix_out[0]).strip()
+        if not prefix.startswith("/root"):
+            return True
+
+        PrintUtils.print_warn("检测到npm全局目录位于/root，开始修复为/usr/local")
+        self._run_cmd("sudo npm config delete prefix", 10, "清理错误npm prefix配置...")
+        set_result = self._run_cmd(
+            "sudo npm config set prefix /usr/local",
+            10,
+            "设置npm全局目录为/usr/local...",
+        )
+        if self._code(set_result) != 0:
+            return False
+
+        verify = self._run_cmd("sudo npm prefix -g", 10, "校验修复后的npm全局目录...")
+        verify_out = self._out(verify)
+        if self._code(verify) != 0 or len(verify_out) == 0:
+            return False
+        fixed_prefix = str(verify_out[0]).strip()
+        if fixed_prefix.startswith("/root"):
+            PrintUtils.print_warn("npm全局目录仍在/root，请手动检查 /root/.npmrc")
+            return False
+        return True
+
+    def _cleanup_bad_opencode_link(self):
+        target_result = self._run_cmd("readlink -f /usr/local/bin/opencode", 10)
+        if self._code(target_result) != 0 or len(self._out(target_result)) == 0:
+            return True
+        target = str(self._out(target_result)[0]).strip()
+        if target.startswith("/root/"):
+            PrintUtils.print_warn("检测到opencode链接指向/root，清理旧链接...")
+            rm_result = self._run_cmd("sudo rm -f /usr/local/bin/opencode", 10)
+            return self._code(rm_result) == 0
+        return True
+
+    def _ensure_opencode_command(self):
+        user_check = self._run_cmd("command -v opencode", 10)
+        if self._code(user_check) == 0:
+            return True
+
+        prefix_result = self._run_cmd(
+            "sudo npm prefix -g", 10, "定位OpenCode安装目录..."
+        )
+        prefix_out = self._out(prefix_result)
+        if self._code(prefix_result) != 0 or len(prefix_out) == 0:
+            return False
+
+        npm_prefix = str(prefix_out[0]).strip()
+        if npm_prefix.startswith("/root"):
+            PrintUtils.print_warn("OpenCode安装目录位于/root，普通用户可能无法访问")
+            return False
+
+        link_result = self._run_cmd(
+            "sudo ln -sf {}/bin/opencode /usr/local/bin/opencode".format(npm_prefix),
+            10,
+            "写入opencode命令到系统PATH...",
+        )
+        if self._code(link_result) != 0:
+            return False
+
+        verify = self._run_cmd("command -v opencode", 10)
+        return self._code(verify) == 0
+
     def _remove_local_opencode(self):
         local_dir = os.path.expanduser("~/.opencode")
         local_bin = os.path.join(local_dir, "bin", "opencode")
@@ -214,6 +290,13 @@ class Tool(BaseTool):
             PrintUtils.print_error("Node.js环境准备失败，无法安装OpenCode")
             return False
 
+        if not self._fix_npm_prefix():
+            PrintUtils.print_warn("npm全局目录修复失败，安装可能受影响")
+        if not self._cleanup_bad_opencode_link():
+            PrintUtils.print_warn("旧版opencode命令链接清理失败")
+
+        self._print_runtime_diagnostics()
+
         registry_ready = self._switch_npm_registry()
         if not registry_ready:
             PrintUtils.print_warn("npm源切换失败，将直接使用镜像参数继续安装")
@@ -222,19 +305,8 @@ class Tool(BaseTool):
             PrintUtils.print_error("OpenCode安装失败，请检查npm网络、镜像可用性和权限")
             return False
 
-        prefix_result = self._run_cmd(
-            "sudo npm prefix -g", 10, "定位OpenCode安装目录..."
-        )
-        prefix_out = self._out(prefix_result)
-        if self._code(prefix_result) == 0 and len(prefix_out) > 0:
-            npm_prefix = str(prefix_out[0]).strip()
-            self._run_cmd(
-                "sudo ln -sf {}/bin/opencode /usr/local/bin/opencode".format(
-                    npm_prefix
-                ),
-                10,
-                "写入opencode命令到系统PATH...",
-            )
+        if not self._ensure_opencode_command():
+            PrintUtils.print_warn("未能自动修复opencode命令路径，将继续进行安装校验")
 
         verify = self._run_cmd("opencode --version", 10, "验证OpenCode版本...")
         if self._code(verify) != 0:
