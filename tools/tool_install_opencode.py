@@ -236,10 +236,42 @@ class Tool(BaseTool):
 
         sources = node_tool._get_nrm_sources()
         taobao_url = self.NPM_TAOBAO
-        if "taobao" in sources:
-            taobao_url = sources["taobao"]
+        if "taobao" in sources and str(sources["taobao"]).strip() != taobao_url:
+            PrintUtils.print_warn(
+                "检测到nrm中的taobao源为{}，将优先使用固定taobao地址{}".format(
+                    sources["taobao"], taobao_url
+                )
+            )
 
-        PrintUtils.print_info("自动切换npm源: 先taobao，失败回退npmmirror")
+        PrintUtils.print_info(
+            "自动切换npm源: 先tencent，失败再试taobao，最后回退npmmirror"
+        )
+
+        if "tencent" in sources:
+            PrintUtils.print_info("先尝试切换到tencent源并检测连通性...")
+            tencent_result = self._run_cmd("/usr/local/bin/nrm use tencent", 20)
+            tencent_ok = False
+            if self._code(tencent_result) == 0 and (
+                not node_tool._has_error_text(tencent_result)
+            ):
+                tencent_url = str(sources["tencent"]).strip()
+                if node_tool._set_registry(
+                    tencent_url
+                ) and self._check_registry_available("tencent"):
+                    current_registry = self._run_cmd(
+                        "npm config get registry", 10, "当前npm源:"
+                    )
+                    registry_out = self._out(current_registry)
+                    if len(registry_out) > 0:
+                        PrintUtils.print_success(
+                            "npm源已切换为 tencent -> {}".format(registry_out[0])
+                        )
+                    else:
+                        PrintUtils.print_success("npm源已切换为 tencent")
+                    tencent_ok = True
+            if tencent_ok:
+                return True
+            PrintUtils.print_warn("tencent源不可用，继续尝试taobao")
 
         taobao_ready = False
         if "taobao" in sources:
@@ -254,8 +286,16 @@ class Tool(BaseTool):
             taobao_ready = node_tool._set_registry(taobao_url)
 
         if taobao_ready and self._check_registry_available("taobao"):
-            self._run_cmd("npm config get registry", 10, "当前npm源:")
-            PrintUtils.print_success("npm源已切换为taobao")
+            current_registry = self._run_cmd(
+                "npm config get registry", 10, "当前npm源:"
+            )
+            registry_out = self._out(current_registry)
+            if len(registry_out) > 0:
+                PrintUtils.print_success(
+                    "npm源已切换为 taobao -> {}".format(registry_out[0])
+                )
+            else:
+                PrintUtils.print_success("npm源已切换为 taobao")
             return True
 
         PrintUtils.print_warn("taobao源不可用，回退到npmmirror")
@@ -264,8 +304,16 @@ class Tool(BaseTool):
             return False
 
         if self._check_registry_available("npmmirror"):
-            self._run_cmd("npm config get registry", 10, "当前npm源:")
-            PrintUtils.print_success("npm源已切换为npmmirror")
+            current_registry = self._run_cmd(
+                "npm config get registry", 10, "当前npm源:"
+            )
+            registry_out = self._out(current_registry)
+            if len(registry_out) > 0:
+                PrintUtils.print_success(
+                    "npm源已切换为 npmmirror -> {}".format(registry_out[0])
+                )
+            else:
+                PrintUtils.print_success("npm源已切换为 npmmirror")
             return True
 
         PrintUtils.print_warn("npmmirror连通性检测失败，将继续尝试安装")
