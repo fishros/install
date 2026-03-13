@@ -22,7 +22,7 @@ class Tool(BaseTool):
     def _run_cmd(self, cmd, timeout=0, msg=None):
         if msg:
             PrintUtils.print_info(msg)
-        return CmdTask(cmd, timeout, os_command=True).run()
+        return CmdTask(cmd, timeout).run()
 
     def _code(self, result):
         if isinstance(result, tuple) and len(result) > 0:
@@ -89,26 +89,40 @@ class Tool(BaseTool):
             return False
 
         install = self._run_cmd(
-            'sudo dpkg -i "{}"'.format(temp_file), 180, "安装代理工具中..."
+            'sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "{}"'.format(
+                temp_file
+            ),
+            300,
+            "安装代理工具中(自动处理依赖)...",
         )
-        if self._code(install) != 0:
-            PrintUtils.print_warn("安装依赖不完整，尝试自动修复后重试...")
+        if self._code(install) == 0:
+            self._run_cmd('rm -f "{}"'.format(temp_file), 10)
+            return True
+
+        PrintUtils.print_warn("apt安装失败，回退到dpkg+fix-broken方案...")
+        dpkg_install = self._run_cmd(
+            'sudo dpkg -i "{}"'.format(temp_file), 180, "使用dpkg安装中..."
+        )
+        if self._code(dpkg_install) != 0:
             fix_dep = self._run_cmd(
-                "sudo DEBIAN_FRONTEND=noninteractive apt-get install -f -y",
-                300,
+                "sudo DEBIAN_FRONTEND=noninteractive apt-get --fix-broken install -y",
+                600,
                 "修复依赖中...",
             )
             if self._code(fix_dep) != 0:
                 self._run_cmd('rm -f "{}"'.format(temp_file), 10)
                 return False
-            install_retry = self._run_cmd(
-                'sudo dpkg -i "{}"'.format(temp_file),
-                180,
-                "重新安装代理工具中...",
-            )
-            if self._code(install_retry) != 0:
-                self._run_cmd('rm -f "{}"'.format(temp_file), 10)
-                return False
+
+        final_install = self._run_cmd(
+            'sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "{}"'.format(
+                temp_file
+            ),
+            300,
+            "再次确认代理工具安装状态...",
+        )
+        if self._code(final_install) != 0:
+            self._run_cmd('rm -f "{}"'.format(temp_file), 10)
+            return False
 
         self._run_cmd('rm -f "{}"'.format(temp_file), 10)
         return True
@@ -223,7 +237,7 @@ class Tool(BaseTool):
         PrintUtils.print_info("当前架构: {}".format(osarch))
         PrintUtils.print_info("准备安装: {} ({})".format(package_name, file_name))
         if not self._install_deb_package(package_url):
-            PrintUtils.print_error("安装失败，请检查网络或包是否可用")
+            PrintUtils.print_error("安装失败，请检查网络、系统软件源或依赖修复状态")
             return False
 
         PrintUtils.print_success("{} 安装完成".format(package_name))
