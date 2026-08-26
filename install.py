@@ -2,7 +2,7 @@
 import os
 import importlib
 
-url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
+url_prefix = os.environ.get("FISHROS_URL", "https://mirror.fishros.com/install/")
 base_url = os.path.join(url_prefix, "tools/base.py")
 translator_url = os.path.join(url_prefix, "tools/translation/translator.py")
 
@@ -160,15 +160,15 @@ tracking = None
 
 def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
-    url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
+    url_prefix = os.environ.get("FISHROS_URL", "https://mirror.fishros.com/install/")
     if url_prefix:
         os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/{}".format(
                 base_url, base_url.replace(url_prefix, "")
             )
         )
         os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/{}".format(
                 translator_url, translator_url.replace(url_prefix, "")
             )
         )
@@ -194,7 +194,7 @@ def main():
 
     # 使用量统计
     CmdTask(
-        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 && rm -rf /tmp/t1733"
+        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --timeout 10 && rm -rf /tmp/t1733"
     ).run()
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:") + tr.lang)
