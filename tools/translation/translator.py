@@ -40,7 +40,7 @@ class Linguist:
                 # Use /tmp/ directory directly to avoid permission issues
                 temp_file = "/tmp/fishros_lang_{}.py".format(lang)
                 final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
-                download_cmd = "wget {} -O {} --no-check-certificate".format(lang_url.format(lang), temp_file)
+                download_cmd = "wget {} -O {}".format(lang_url.format(lang), temp_file)
                 result = CmdTask(download_cmd).run()
                 # Move file to final destination if download was successful
                 if result[0] == 0:

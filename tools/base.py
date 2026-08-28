@@ -1642,7 +1642,7 @@ def run_tool_file(file, authorun=True):
 
 def run_tool_url(url, url_prefix):
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{}".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1654,7 +1654,7 @@ def download_tools(id, tools, url_prefix):
     url = tools[id]["tool"]
     url = os.path.join(url_prefix, url)
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{}".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1663,7 +1663,7 @@ def download_tools(id, tools, url_prefix):
         url = tools[dep]["tool"]
         url = os.path.join(url_prefix, url)
         CmdTask(
-            "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/tools/{}".format(
                 url, url[url.rfind("/") + 1 :]
             )
         ).run()

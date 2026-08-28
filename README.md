@@ -21,7 +21,7 @@
 
 ## 使用方法
 ```
-source <(wget -qO- http://fishros.com/install)
+source <(wget -qO- https://fishros.com/install)
 ```
 
 ## 如何自动选择(Dockerfile中使用)
@@ -48,7 +48,7 @@ RUN apt update \
     && echo "- {choose: 2, desc: 清理三方源}\n" >> fish_install.yaml \
     && echo "- {choose: 1, desc: melodic(ROS1)}\n" >> fish_install.yaml \
     && echo "- {choose: 1, desc: melodic(ROS1)桌面版}\n" >> fish_install.yaml \
-    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
+    && wget https://fishros.com/install  -O fishros && /bin/bash fishros \
     # 进行最后的清理
     && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
     && apt-get clean && apt autoclean 
@@ -65,7 +65,7 @@ RUN apt update \
     && echo "- {choose: 5, desc: '一键安装:ROS(支持ROS和ROS2,树莓派Jetson)'}\n" >> fish_install.yaml \
     && echo "- {choose: 2, desc: 更换源继续安装}\n" >> fish_install.yaml \
     && echo "- {choose: 1, desc: 清理三方源}\n" >> fish_install.yaml \
-    && wget http://fishros.com/install  -O fishros && /bin/bash fishros \
+    && wget https://fishros.com/install  -O fishros && /bin/bash fishros \
     # 进行最后的清理
     && rm -rf fish_install.yaml \
     && rm -rf /var/lib/apt/lists/*  /tmp/* /var/tmp/* \
