@@ -593,15 +593,17 @@ class Tool(BaseTool):
     def http_status(self, url):
         """
         返回 url 跟随跳转后的 HTTP 状态码, 取不到返回空串.
-        Ubuntu 22.04/24.04 桌面版默认没装 curl, 系统源坏了又装不上时用 wget 兜底
+        Ubuntu 22.04/24.04 桌面版默认没装 curl, 系统源坏了又装不上时用 wget 兜底.
+        带上 apt 的 User-Agent: 中科大镜像对 wget 默认 UA 一律返回 403, 会被误判成包已删除
         """
+        user_agent = "Debian APT-HTTP/1.3"
         if self.has_command("curl"):
             check = CmdTask(
-                "curl -sIL -o /dev/null -w '%{{http_code}}' --max-time 15 '{}'".format(url), 20
+                "curl -sIL -A '{}' -o /dev/null -w '%{{http_code}}' --max-time 15 '{}'".format(user_agent, url), 20
             ).run()
             return "".join(check[1]).strip()
         check = CmdTask(
-            "wget --spider -S --timeout=15 --tries=1 '{}' 2>&1 | grep 'HTTP/'".format(url), 20
+            "wget --spider -S -U '{}' --timeout=15 --tries=1 '{}' 2>&1 | grep 'HTTP/'".format(user_agent, url), 20
         ).run()
         codes = re.findall(r"HTTP/[\d.]+ (\d+)", " ".join(check[1]))
         return codes[-1] if codes else ""
