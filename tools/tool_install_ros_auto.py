@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 import shutil
 from urllib.parse import urlparse
 from .base import BaseTool
-from .base import PrintUtils, AptUtils, ChooseTask
+from .base import PrintUtils, AptUtils, ChooseTask, AdUtils
 from .base import osversion
 from .base import run_tool_file
 from .tool_install_ros import RosVersions
@@ -119,7 +120,7 @@ class Tool(BaseTool):
         if code == 0:
             return False
         if code == 3:
-            return self.ros_tool.run()
+            return self.ros_tool.install_ros()
         with_pkgs = code == 2
 
         # 之前跑过一半(自定义模式选到一半退出、Ctrl+C 打断)留下的 apt 锁/未配置完的包先处理掉
@@ -154,9 +155,61 @@ class Tool(BaseTool):
                 break
             PrintUtils.print_warn("系统镜像下载中途失败, 已自动换用 {} 继续安装(已下载的包不会重复下载)".format(new_source))
             self.ros_tool.install_ros_packages(version, install_code, dic_base)
+        pkgs_ok = None
         if with_pkgs and self.ros_tool.install_success(version):
-            run_tool_file("tools.tool_install_ros_pkgs", authorun=False).install_common(version, auto=True)
+            pkgs_ok = run_tool_file("tools.tool_install_ros_pkgs", authorun=False).install_common(version, auto=True)
         self.ros_tool.config_env_and_tip(version)
         if self.ros_tool.install_success(version):
             self.print_next_steps(version, desktop)
+        self.print_summary(source_tool, expect, version, desktop, pkgs_ok)
+        if self.ros_tool.install_success(version):
+            AdUtils.show("pkgs_installed" if pkgs_ok else "ros_installed")
         return True
+
+    def print_summary(self, source_tool, expect, version, desktop, pkgs_ok):
+        """小白模式装完后列出帮用户选了什么; 没装成功时也列出来, 方便反馈问题时对照排查"""
+        ok = self.ros_tool.install_success(version)
+        PrintUtils.print_success("=" * 60)
+        if ok:
+            PrintUtils.print_success("安装完成! 小白模式帮你做了这些选择:")
+        else:
+            PrintUtils.print_warn("安装没有成功, 本次自动做的选择如下, 到社区反馈问题时请一起贴上:")
+
+        source = getattr(source_tool, "current_source", None)
+        if source:
+            backups = [b for b, original in source_tool.backups if original == "/etc/apt/sources.list"]
+            if source_tool.use_deb822:
+                backups.append("/etc/apt/ubuntu.sources.fishros.bak")
+            PrintUtils.print_info("  系统软件源: {} {} (测速最快)".format(source_tool.source_names.get(source, ""), source))
+            if backups:
+                PrintUtils.print_info("              原来的配置已备份到 {}".format(backups[0]))
+        else:
+            PrintUtils.print_info("  系统软件源: 自动更换失败, 保留了原来的系统源")
+
+        mirrors = getattr(self.ros_tool, "ros_mirrors", None)
+        PrintUtils.print_info("  ROS软件源:  {} (测速最快, 且确认包能下载)".format(", ".join(mirrors) if mirrors else "添加失败"))
+        key = getattr(self.ros_tool, "key_source", None)
+        PrintUtils.print_info("  ROS公钥:    {}".format("来自 {}, 已核对官方指纹".format(key) if key else "已通过备用方式导入"))
+
+        reason = "{} {} 对应的推荐版本".format(osversion.get_name().capitalize(), osversion.get_version())
+        if expect and version != expect:
+            reason = "推荐的 {} 当前无法安装, 改装了它".format(expect)
+        kind = "桌面版(带小乌龟、RViz 等图形工具)" if desktop else "基础版(磁盘剩余不足 {}GB, 没装图形工具)".format(min_free_gb_for_desktop)
+        PrintUtils.print_info("  ROS版本:    {} {}, {}".format(RosVersions.get_version_string(version), kind, reason))
+
+        if pkgs_ok is None:
+            PrintUtils.print_info("  常用功能包: 没有选择, 以后需要可以在菜单 [22] 安装(导航、建图、键盘/手柄遥控)")
+        else:
+            PrintUtils.print_info("  常用功能包: 导航 Nav2、建图 slam_toolbox/Cartographer、键盘/手柄遥控等, {}".format(
+                "已全部装好" if pkgs_ok else "部分没装上, 可以在菜单 [22] 重试"))
+
+        if ok:
+            PrintUtils.print_info("  环境变量:   已写入 ~/.bashrc, 新开终端自动生效")
+            cmake = "/opt/ros/{}/share/rosidl_adapter/cmake/rosidl_adapt_interfaces.cmake".format(version)
+            if os.path.exists(cmake):
+                with open(cmake) as f:
+                    fixed = "idl_tuples ENCODING UTF-8)" in f.read()
+                PrintUtils.print_info("  中文路径:   {}".format(
+                    "已修复工作空间放在中文路径(如 ~/桌面)下编译消息包报错的问题" if fixed
+                    else "修复没有生效, 工作空间请先放在英文路径下, 或运行菜单 [4] 重试"))
+        PrintUtils.print_success("=" * 60)

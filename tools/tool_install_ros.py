@@ -2,7 +2,7 @@
 import os
 import re
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask
+from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask, AdUtils
 from .base import osversion
 from .base import run_tool_file
 from .base import tr
@@ -585,6 +585,7 @@ class Tool(BaseTool):
             source_data += "deb [arch={}]  {} {} main\n".format(arch, mirror, codename)
         FileUtils.delete("/etc/apt/sources.list.d/ros-fish.list")
         FileUtils.new("/etc/apt/sources.list.d/", "ros-fish.list", source_data)
+        self.ros_mirrors = mirrors
 
     @staticmethod
     def has_command(name):
@@ -780,6 +781,7 @@ class Tool(BaseTool):
                     PrintUtils.print_warn("{} 的公钥指纹不对, 不予采用".format(key_url))
                     break
                 PrintUtils.print_success(tr.tr("已获取ROS公钥:{}").format(key_url))
+                self.key_source = key_url
                 return key_file
         return None
 
@@ -949,6 +951,7 @@ class Tool(BaseTool):
 
         if install_tool == "aptitude":
             AptUtils.install_pkg("aptitude")
+        AdUtils.show("installing")
 
         # ======================================================基础版本==============================================================
         if code == 2:
@@ -1107,6 +1110,7 @@ class Tool(BaseTool):
                 "恭喜你，安装成功了，再附赠你机器人学习宝藏网站：鱼香社区:https://fishros.org.cn/forum"
             )
         else:
+            AdUtils.mark_failed()
             PrintUtils.print_error(
                 "安装失败了,请打开鱼香社区：https://fishros.org.cn/forum 在一键安装专区反馈问题..."
             )
@@ -1127,6 +1131,19 @@ class Tool(BaseTool):
         self.config_env_and_tip(ros_version)
         if self.install_success(ros_version):
             RosVersions.tip_test_command(ros_version)
+            AdUtils.show("ros_installed")
 
     def run(self):
+        # 网上的教程都写"输入 1", 所以小白模式也放在菜单 1 里, 进来先选模式
+        code, _ = ChooseTask(
+            {
+                1: "小白模式(推荐): 自动识别系统, 自动换源、选版本, 中途不用再做选择, 装完列出帮你选了什么",
+                2: "高手模式: 自己选择系统源、ROS镜像源、ROS版本和安装内容",
+            },
+            "请选择安装模式(不知道怎么选就选1):",
+        ).run()
+        if code == 0:
+            return False
+        if code == 1:
+            return run_tool_file("tools.tool_install_ros_auto", authorun=False).run()
         self.install_ros()

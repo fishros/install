@@ -1623,10 +1623,12 @@ class AptUtils:
             try:
                 # 记录开始时间
                 start_time = time.time()
-                # 创建连接并发送请求
-                conn = http.client.HTTPSConnection(
-                    host, timeout=timeout
-                )  # 使用 HTTPS 连接
+                # 按地址本身的协议连接: 原来一律走 https, http 地址测的其实是 https 的延迟,
+                # 设备时钟不准时 https 证书校验失败, 所有地址都会被判成超时
+                if parsed_url.scheme == "http":
+                    conn = http.client.HTTPConnection(host, timeout=timeout)
+                else:
+                    conn = http.client.HTTPSConnection(host, timeout=timeout)
                 conn.request("GET", path)
                 response = conn.getresponse()
                 # 记录结束时间
@@ -1648,6 +1650,109 @@ class AptUtils:
         sorted_urls = sorted(latencies, key=latencies.get)
 
         return sorted_urls
+
+
+class AdUtils:
+    """
+    一键安装里的推广信息. 内容从服务器上的 ads.json(和 install.py 同目录)读取, 改文案、换商品不用改代码,
+    读不到时用下面的内置内容. 按场景展示, 每个场景一次运行只展示一次; 安装失败后不再展示商品推广.
+    ads.json 格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "qr": [...], "shop": true}}}
+    """
+
+    shop_url = "https://item.taobao.com/item.htm?abbucket=0&id=1083795293714"
+    default_scenes = {
+        # 开始下载安装 ROS, 要等好几分钟
+        "installing": {
+            "shop": True,
+            "lines": ["安装需要几分钟, 等待的时候可以逛逛鱼香ROS小铺: 淘宝搜店「鱼香ROS」"],
+        },
+        # ROS 装好了
+        "ros_installed": {
+            "shop": True,
+            "title": "鱼香ROS小铺",
+            "lines": [
+                "ROS 装好了, 想让它跑在真机器人上? 小铺有能建图、会导航的 ROS 机器人",
+                "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+            ],
+        },
+        # 导航/建图等常用功能包装好了
+        "pkgs_installed": {
+            "shop": True,
+            "title": "鱼香ROS小铺",
+            "lines": [
+                "导航、建图功能包已就绪, 配一台能建图会导航的机器人就能上手实战",
+                "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+            ],
+        },
+        # 程序结束, 本次没展示过商品推广时补一条
+        "finish_shop": {
+            "shop": True,
+            "lines": ["鱼香ROS小铺: ROS 学习用的移动机器人, 淘宝搜店「鱼香ROS」或打开: " + shop_url],
+        },
+        # 程序结束, 不论成败都展示
+        "finish": {
+            "lines": [
+                "欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)",
+                "如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",
+            ],
+            "lines_en": [
+                "Welcome to join the robot learning exchange QQ group (In Chinese): 438144612",
+                "If you encounter any problems, please visit https://fishros.org.cn/forum for feedback",
+            ],
+        },
+    }
+    scenes = None
+    shown_scenes = set()
+    failed = False
+
+    @classmethod
+    def load(cls):
+        if cls.scenes is not None:
+            return cls.scenes
+        cls.scenes = dict(cls.default_scenes)
+        url = os.path.join(os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/"), "ads.json")
+        try:
+            import json
+            import urllib.request
+
+            with urllib.request.urlopen(url, timeout=3) as resp:
+                cls.scenes.update(json.loads(resp.read().decode("utf-8")).get("scenes", {}))
+        except Exception:
+            pass
+        return cls.scenes
+
+    @classmethod
+    def mark_failed(cls):
+        cls.failed = True
+
+    @classmethod
+    def show(cls, scene):
+        if scene in cls.shown_scenes:
+            return
+        ad = cls.load().get(scene)
+        if not ad:
+            return
+        if ad.get("shop"):
+            if cls.failed:
+                return
+            if scene == "finish_shop" and any(cls.load().get(s, {}).get("shop") for s in cls.shown_scenes):
+                return
+        # 推广内容是中文的, 英文界面只展示提供了英文的场景
+        chinese = tr is None or getattr(tr, "lang", "zh_CN") == "zh_CN"
+        lines = ad.get("lines", []) if chinese else ad.get("lines_en", [])
+        if not lines:
+            return
+        cls.shown_scenes.add(scene)
+        if ad.get("title"):
+            PrintUtils.print_success("-" * 20 + " {} ".format(ad["title"]) + "-" * 20)
+        for line in lines:
+            PrintUtils.print_success(line)
+        if chinese and ad.get("qr"):
+            # 二维码自带黑白配色, 深色/浅色终端都能扫
+            for row in ad["qr"]:
+                PrintUtils.print_text(row)
+            if ad.get("qr_tip"):
+                PrintUtils.print_info(ad["qr_tip"])
 
 
 """

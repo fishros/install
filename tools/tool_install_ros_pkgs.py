@@ -2,7 +2,7 @@
 import glob
 import os
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask
+from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask, AdUtils
 from .tool_install_ros import RosVersions
 
 # ROS 桌面版不带导航、建图这些功能包, 新手装完 ROS 编译 FishBot 等机器人工作空间时最常缺的就是它们.
@@ -120,11 +120,14 @@ class Tool(BaseTool):
     def run(self):
         versions = self.installed_ros()
         if not versions:
-            PrintUtils.print_error("当前系统还没有安装ROS, 请先使用一键安装 [21] 或 [1] 安装ROS")
+            PrintUtils.print_error("当前系统还没有安装ROS, 请先使用一键安装 [1] 安装ROS")
             return False
         version = versions[0]
         if len(versions) > 1:
             code, version = ChooseTask(versions, "检测到安装了多个ROS, 请选择要给哪个版本安装功能包:", True).run()
             if code == 0:
                 return False
-        return self.install_common(version)
+        if not self.install_common(version):
+            AdUtils.mark_failed()
+            return False
+        AdUtils.show("pkgs_installed")

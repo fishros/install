@@ -25,17 +25,19 @@ tools_type_map = {
 # 菜单里按本字典的书写顺序展示, 所以调整顺序只需要挪位置, 不要改编号
 tools = {
     # ---------------- ROS安装 ----------------
+    # 小白模式已并入菜单 1, 这里只保留条目供菜单 1 下载依赖, 不在菜单里展示
     21: {
         "tip": "一键安装:ROS全自动版(新手推荐,自动识别系统/换源/选版本,只需确认一次)",
         "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros_auto.py",
         "dep": [1, 4, 5, 22],
+        "hidden": True,
     },
     1: {
-        "tip": "一键安装:ROS自定义版(高手适用,自选镜像源和版本,支持ROS1/ROS2/树莓派/Jetson)",
+        "tip": "一键安装(推荐):ROS(小白/高手两种模式,自动识别系统并换源,支持ROS1/ROS2/树莓派/Jetson)",
         "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros.py",
-        "dep": [4, 5],
+        "dep": [4, 5, 21, 22],
     },
     11: {
         "tip": "一键安装:ROS Docker版(支持所有版本ROS/ROS2,系统版本不匹配时使用)",
@@ -169,6 +171,8 @@ tool_categories = {tool_type: {} for tool_type in tools_type_map}
 
 # 遍历tools字典，根据type值进行分类
 for tool_id, tool_info in tools.items():
+    if tool_info.get("hidden"):
+        continue
     tool_type = tool_info["type"]
     tool_categories[tool_type][tool_id] = tool_info
 
@@ -200,6 +204,7 @@ def main():
         ChooseTask,
         ChooseWithCategoriesTask,
         Tracking,
+        AdUtils,
     )
     from tools.base import encoding_utf8, osversion, osarch
     from tools.base import run_tool_file, download_tools
@@ -273,7 +278,8 @@ def main():
     else:
         if url_prefix:
             download_tools(code, tools, url_prefix)
-        run_tool_file(tools[code]["tool"].replace("/", "."))
+        if run_tool_file(tools[code]["tool"].replace("/", ".")) == False:
+            AdUtils.mark_failed()
 
     # 检查是否在 GitHub Actions 环境中运行或使用了测试配置文件
     # 如果是，则跳过生成配置文件和后续的打印操作，因为这些操作需要用户输入
@@ -282,21 +288,9 @@ def main():
         and os.environ.get("FISH_INSTALL_CONFIG") is None
     ):
         config_helper.gen_config_file()
-        PrintUtils.print_delay(
-            tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"), 0.05
-        )
-        PrintUtils.print_delay(
-            tr.tr(
-                "鱼香小铺正式开业，最低599可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"
-            ),
-            0.001,
-        )
-        PrintUtils.print_delay(
-            tr.tr(
-                "如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"
-            ),
-            0.001,
-        )
+        # 推广内容从服务器的 ads.json 读取, 见 tools/base.py 的 AdUtils
+        AdUtils.show("finish_shop")
+        AdUtils.show("finish")
 
 
 def ensure_utf8():
