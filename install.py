@@ -38,6 +38,7 @@ tools = {
         "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros.py",
         "dep": [4, 5, 21],
+        "highlight": True,
     },
     11: {
         "tip": "一键安装:ROS Docker版(支持所有版本ROS/ROS2,系统版本不匹配时使用)",
@@ -264,6 +265,8 @@ def main():
 如果觉得工具好用,请给个star,如果你想和小鱼一起编写工具,请关注B站/公众号<鱼香ROS>,联系小鱼
 更多工具教程，请访问鱼香ROS官方网站:http://fishros.com
     """)
+    # 菜单最上面先放一行商品链接和公众号提示(不放二维码), 内容来自服务器的 ads.json
+    AdUtils.show("welcome")
     PrintUtils.print_delay(tip, 0.001)
     PrintUtils.print_delay(book, 0.001)
     # download tools

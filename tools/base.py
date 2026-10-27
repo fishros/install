@@ -1236,10 +1236,11 @@ class ChooseWithCategoriesTask(Task):
             PrintUtils.print_delay("{}:".format(tr.tr(categories[tool_type])), 0.005)
             # 按 install.py 里的书写顺序展示, 方便把推荐项排在前面
             for tool_id in tools_list.keys():
-                PrintUtils.print_delay(
-                    "  [{:>2}]:{}".format(tool_id, tr.tr(tools_list[tool_id]["tip"])),
-                    0.005,
-                )
+                item = "  [{:>2}]:{}".format(tool_id, tr.tr(tools_list[tool_id]["tip"]))
+                if tools_list[tool_id].get("highlight"):
+                    # 推荐项用加粗的亮黄色, 一眼就能看到
+                    item = "\033[1;93m{}\033[0m".format(item)
+                PrintUtils.print_delay(item, 0.005)
                 tool_ids.append(tool_id)
             print()
         PrintUtils.print_delay("[0]:{}\n".format(tr.tr("退出")), 0.005)
@@ -1664,7 +1665,13 @@ class AdUtils:
     """
 
     shop_url = "https://item.taobao.com/item.htm?abbucket=0&id=1083795293714"
+    mp_line = "关注微信公众号「鱼香ROS」, 获取 ROS 教程、答疑和新品消息"
     default_scenes = {
+        # 刚运行一键安装、菜单出现之前, 只放文字
+        "welcome": {
+            "shop": True,
+            "lines": ["鱼香ROS小铺: 能建图、会导航的 ROS 机器人, 淘宝搜店「鱼香ROS」或打开: " + shop_url, mp_line],
+        },
         # 开始下载安装 ROS, 要等好几分钟
         "installing": {
             "shop": True,
@@ -1677,6 +1684,7 @@ class AdUtils:
             "lines": [
                 "ROS 装好了, 想让它跑在真机器人上? 小铺有能建图、会导航的 ROS 机器人",
                 "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+                mp_line,
             ],
         },
         # 导航/建图等常用功能包装好了
@@ -1686,6 +1694,7 @@ class AdUtils:
             "lines": [
                 "导航、建图功能包已就绪, 配一台能建图会导航的机器人就能上手实战",
                 "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+                mp_line,
             ],
         },
         # 程序结束, 本次没展示过商品推广时补一条
@@ -1697,6 +1706,7 @@ class AdUtils:
         "finish": {
             "lines": [
                 "欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)",
+                mp_line,
                 "如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",
             ],
             "lines_en": [
