@@ -119,6 +119,9 @@ domestic_hosts = {
     "mirrors.aliyun.com": "阿里云",
     "mirrors.cloud.tencent.com": "腾讯云",
     "mirrors.tencent.com": "腾讯云",
+    # 云服务器自带的内网镜像
+    "mirrors.tencentyun.com": "腾讯云内网镜像",
+    "mirrors.cloud.aliyuncs.com": "阿里云内网镜像",
     "mirrors.163.com": "网易",
 }
 foreign_hosts = {
