@@ -30,14 +30,14 @@ tools = {
         "tip": "一键安装:ROS全自动版(新手推荐,自动识别系统/换源/选版本,只需确认一次)",
         "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros_auto.py",
-        "dep": [1, 4, 5, 22],
+        "dep": [1, 4, 5],
         "hidden": True,
     },
     1: {
         "tip": "一键安装(推荐):ROS(小白/高手两种模式,自动识别系统并换源,支持ROS1/ROS2/树莓派/Jetson)",
         "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros.py",
-        "dep": [4, 5, 21, 22],
+        "dep": [4, 5, 21],
     },
     11: {
         "tip": "一键安装:ROS Docker版(支持所有版本ROS/ROS2,系统版本不匹配时使用)",

@@ -74,7 +74,6 @@ class Tool(BaseTool):
         PrintUtils.print_info("  2. 添加ROS软件源: 自动测速选镜像, 遇到坏掉的镜像自动换下一个")
         PrintUtils.print_info("  3. 安装 {}".format(ros_name))
         PrintUtils.print_info("  4. 配置环境变量, 新开终端就能直接使用ROS; 工作空间放在中文路径(如 ~/桌面)下也能编译")
-        PrintUtils.print_info("  (选 2 会再装上导航、建图等常用功能包, 也可以以后在菜单 [22] 单独装)")
         if desktop:
             PrintUtils.print_info("预计下载 0.5~1GB, 占用磁盘 3~4GB, 用时 10~40 分钟(取决于网速)")
         PrintUtils.print_success("=" * 60)
@@ -112,16 +111,14 @@ class Tool(BaseTool):
         code, _ = ChooseTask(
             {
                 1: "开始全自动安装(推荐)",
-                2: "全自动安装 + 常用功能包(导航/建图等, 做FishBot等机器人项目选这个, 多下载几百MB)",
-                3: "我要自己选(进入高手自定义模式)",
+                2: "我要自己选(进入高手自定义模式)",
             },
             "请确认:",
         ).run()
         if code == 0:
             return False
-        if code == 3:
+        if code == 2:
             return self.ros_tool.install_ros()
-        with_pkgs = code == 2
 
         # 之前跑过一半(自定义模式选到一半退出、Ctrl+C 打断)留下的 apt 锁/未配置完的包先处理掉
         AptUtils.wait_and_repair()
@@ -155,18 +152,15 @@ class Tool(BaseTool):
                 break
             PrintUtils.print_warn("系统镜像下载中途失败, 已自动换用 {} 继续安装(已下载的包不会重复下载)".format(new_source))
             self.ros_tool.install_ros_packages(version, install_code, dic_base)
-        pkgs_ok = None
-        if with_pkgs and self.ros_tool.install_success(version):
-            pkgs_ok = run_tool_file("tools.tool_install_ros_pkgs", authorun=False).install_common(version, auto=True)
         self.ros_tool.config_env_and_tip(version)
         if self.ros_tool.install_success(version):
             self.print_next_steps(version, desktop)
-        self.print_summary(source_tool, expect, version, desktop, pkgs_ok)
+        self.print_summary(source_tool, expect, version, desktop)
         if self.ros_tool.install_success(version):
-            AdUtils.show("pkgs_installed" if pkgs_ok else "ros_installed")
+            AdUtils.show("ros_installed")
         return True
 
-    def print_summary(self, source_tool, expect, version, desktop, pkgs_ok):
+    def print_summary(self, source_tool, expect, version, desktop):
         """小白模式装完后列出帮用户选了什么; 没装成功时也列出来, 方便反馈问题时对照排查"""
         ok = self.ros_tool.install_success(version)
         PrintUtils.print_success("=" * 60)
@@ -197,11 +191,8 @@ class Tool(BaseTool):
         kind = "桌面版(带小乌龟、RViz 等图形工具)" if desktop else "基础版(磁盘剩余不足 {}GB, 没装图形工具)".format(min_free_gb_for_desktop)
         PrintUtils.print_info("  ROS版本:    {} {}, {}".format(RosVersions.get_version_string(version), kind, reason))
 
-        if pkgs_ok is None:
-            PrintUtils.print_info("  常用功能包: 没有选择, 以后需要可以在菜单 [22] 安装(导航、建图、键盘/手柄遥控)")
-        else:
-            PrintUtils.print_info("  常用功能包: 导航 Nav2、建图 slam_toolbox/Cartographer、键盘/手柄遥控等, {}".format(
-                "已全部装好" if pkgs_ok else "部分没装上, 可以在菜单 [22] 重试"))
+        PrintUtils.print_info("  常用功能包: 没有安装. 做 FishBot 等导航、建图项目时, 重新运行一键安装选菜单 [22] 安装")
+        PrintUtils.print_info("              (导航 Nav2、建图 slam_toolbox/Cartographer、键盘/手柄遥控等)")
 
         if ok:
             PrintUtils.print_info("  环境变量:   已写入 ~/.bashrc, 新开终端自动生效")
