@@ -538,11 +538,19 @@ class Tool(BaseTool):
                     break
         return mirror
 
+    def supported_mirrors(self):
+        """当前系统可选的国内 ROS 镜像(按推荐顺序)"""
+        codename = osversion.get_codename()
+        return [
+            mirror
+            for mirror in ("ustc", "tsinghua", "huawei", "mirrorz", "aliyun")
+            if mirror in ros_dist_dic.get(codename, ()) or mirror in ros2_dist_dic.get(codename, ())
+        ]
+
     def select_mirror(self):
         """
-        让用户选择镜像源
+        让用户选择镜像源, 选 [0] 返回 BaseTool.BACK
         """
-        codename = osversion.get_codename()
         mirror_names = {
             "ustc": "中科大镜像源 (推荐国内用户使用)",
             "tsinghua": "清华镜像源 (容易被封禁)",
@@ -550,12 +558,7 @@ class Tool(BaseTool):
             "mirrorz": "MirrorZ 校园网联合镜像站",
             "aliyun": "阿里云镜像源 (仅ROS2, Ubuntu20.04/18.04 装ROS2请选它)",
         }
-        supported_mirrors = []
-        for mirror in mirror_names.keys():
-            if mirror in ros_dist_dic.get(codename, ()) or mirror in ros2_dist_dic.get(
-                codename, ()
-            ):
-                supported_mirrors.append(mirror)
+        supported_mirrors = self.supported_mirrors()
 
         # 只有官方源或只有一个国内源时不再询问
         if len(supported_mirrors) <= 1:
@@ -573,11 +576,11 @@ class Tool(BaseTool):
             mirror_dict,
             "检测到您的系统支持多个ROS镜像源，请选择您想要使用的ROS镜像源：",
         ).run()
+        if code == 0:
+            return BaseTool.BACK
         if code == official:
             return "packages.ros"
-        if code in mirror_dict:
-            return supported_mirrors[code - 1]
-        return supported_mirrors[0]
+        return supported_mirrors[code - 1]
 
     def write_ros_source(self, arch, codename, mirrors):
         source_data = ""
@@ -678,6 +681,8 @@ class Tool(BaseTool):
         else:
             # 让用户选择镜像源
             selected_mirror = self.select_mirror()
+            if selected_mirror == BaseTool.BACK:
+                return BaseTool.BACK
             PrintUtils.print_info("您选择的镜像源: {}".format(selected_mirror))
         excluded = {"ROS1": set(), "ROS2": set()}
 
@@ -718,6 +723,8 @@ class Tool(BaseTool):
                 continue
             PrintUtils.print_warn("换源后更新失败，您可以重新选择镜像源再尝试！")
             selected_mirror = self.select_mirror()
+            if selected_mirror == BaseTool.BACK:
+                return BaseTool.BACK
             PrintUtils.print_info("您重新选择的镜像源: {}".format(selected_mirror))
             for version in excluded.keys():
                 excluded[version].discard(selected_mirror)
@@ -849,18 +856,9 @@ class Tool(BaseTool):
         return cmd_result
 
     def check_sys_source(self):
-        # 更换系统源
-        dic = {1: "更换系统源再继续安装", 2: "不更换继续安装"}
-        PrintUtils.print_warn(
-            "=========接下来这一步很很很很重要，如果不知道怎么选请选择1========"
-        )
-        code, result = ChooseTask(
-            dic,
-            "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!",
-        ).run()
-        if code == 1:
-            tool = run_tool_file("tools.tool_config_system_source", authorun=False)
-            tool.change_sys_source()
+        """高手模式第一步: 问要不要换系统源(会先检测当前系统源是国内还是国外再给建议), 选 [0] 返回 BaseTool.BACK"""
+        tool = run_tool_file("tools.tool_config_system_source", authorun=False)
+        return tool.ask_change_before_install()
 
     def get_all_instsll_ros_pkgs(self):
         AptUtils.checkapt()
@@ -905,13 +903,15 @@ class Tool(BaseTool):
             return True
         return False
 
-    def choose_and_install_ros(self):
-        # search ros packages
+    def choose_ros_version(self):
+        """
+        选择 ROS 版本. 返回 (版本名, dic_base); 选 [0] 返回 BaseTool.BACK; 软件源里搜不到 ROS 时返回 None
+        """
         dic_base = AptUtils.search_package(
             "ros-base", "ros-[A-Za-z]+-ros-base", "ros-", "-base"
         )
         if dic_base == None:
-            return False
+            return None
 
         ros_name = {}
         for a in dic_base.keys():
@@ -921,23 +921,23 @@ class Tool(BaseTool):
             ros_name.keys(), "请选择你要安装的ROS版本名称(请注意ROS1和ROS2区别):", True
         ).run()
         if code == 0:
-            PrintUtils.print_error("你选择退出")
             PrintUtils.print_delay(
                 "是因为没有自己想要的ROS版本吗？ROS版本和操作系统版本是有对应关系的哦，所以可能是你的系统版本{}不对!具体请查看：https://fishros.org.cn/forum/topic/96".format(
                     str(str(osversion.get_name()) + str(osversion.get_version()))
-                )
+                ),
+                0.001,
             )
-            return False
+            return BaseTool.BACK
+        return ros_name[rosname], dic_base
+
+    def choose_ros_kind(self, version):
+        """桌面版还是基础版, 返回 1(桌面版) / 2(基础版); 选 [0] 返回 BaseTool.BACK"""
+        rosname = RosVersions.get_version_string(version)
         version_dic = {1: rosname + "桌面版", 2: rosname + "基础版(小)"}
         code, name = ChooseTask(
             version_dic, "请选择安装的具体版本(如果不知道怎么选,请选1桌面版):", False
         ).run()
-
-        if code == 0:
-            PrintUtils.print_error("你选择退出。。。。")
-            return False
-
-        return self.install_ros_packages(ros_name[rosname], code, dic_base)
+        return BaseTool.BACK if code == 0 else code
 
     def install_ros_packages(self, install_version, code, dic_base):
         """
@@ -1116,34 +1116,67 @@ class Tool(BaseTool):
             )
 
     def install_ros(self):
+        """
+        高手模式: 依次选择 系统源 -> ROS镜像源 -> ROS版本 -> 桌面版/基础版, 然后安装.
+        每一步选 [0] 都退回前一步, 在第一步退回时返回 BaseTool.BACK
+        """
         PrintUtils.print_delay("欢迎使用ROS开箱子工具，本工具由[鱼香ROS]小鱼贡献..")
         if not self.support_install():
             return False
 
         AptUtils.wait_and_repair()
-        self.check_sys_source()
-        self.add_key()
-        self.add_source()
+        step, forward, key_added = 0, True, False
+        version, dic_base, kind = None, None, None
+        while step < 4:
+            if step < 0:
+                return BaseTool.BACK
+            if step == 0:
+                result = self.check_sys_source()
+            elif step == 1:
+                # 只有一个可选镜像时这一步不提问, 从下一步退回来时直接再往前退, 否则会卡在两步之间
+                if not forward and len(self.supported_mirrors()) <= 1:
+                    step -= 1
+                    continue
+                if not key_added:
+                    self.add_key()
+                    key_added = True
+                result = self.add_source()
+                if result is False:
+                    return False
+            elif step == 2:
+                result = self.choose_ros_version()
+                if result is None:
+                    return False
+                if result != BaseTool.BACK:
+                    version, dic_base = result
+            else:
+                result = self.choose_ros_kind(version)
+                kind = result
+            forward = result != BaseTool.BACK
+            step += 1 if forward else -1
 
-        ros_version = self.choose_and_install_ros()
-        if not ros_version:
-            return
-        self.config_env_and_tip(ros_version)
-        if self.install_success(ros_version):
-            RosVersions.tip_test_command(ros_version)
+        self.install_ros_packages(version, kind, dic_base)
+        self.config_env_and_tip(version)
+        if self.install_success(version):
+            RosVersions.tip_test_command(version)
             AdUtils.show("ros_installed")
 
     def run(self):
         # 网上的教程都写"输入 1", 所以小白模式也放在菜单 1 里, 进来先选模式
-        code, _ = ChooseTask(
-            {
-                1: "小白模式(推荐): 自动识别系统, 自动换源、选版本, 中途不用再做选择, 装完列出帮你选了什么",
-                2: "高手模式: 自己选择系统源、ROS镜像源、ROS版本和安装内容",
-            },
-            "请选择安装模式(不知道怎么选就选1):",
-        ).run()
-        if code == 0:
-            return False
-        if code == 1:
-            return run_tool_file("tools.tool_install_ros_auto", authorun=False).run()
-        self.install_ros()
+        while True:
+            code, _ = ChooseTask(
+                {
+                    1: "小白模式(推荐): 自动识别系统, 自动换源、选版本, 中途不用再做选择, 装完列出帮你选了什么",
+                    2: "高手模式: 自己选择系统源、ROS镜像源、ROS版本和安装内容",
+                },
+                "请选择安装模式(不知道怎么选就选1):",
+            ).run()
+            if code == 0:
+                return BaseTool.BACK
+            if code == 1:
+                result = run_tool_file("tools.tool_install_ros_auto", authorun=False).run()
+            else:
+                result = self.install_ros()
+            # 在模式里的第一步选了返回上一步, 回到选模式
+            if result != BaseTool.BACK:
+                return result

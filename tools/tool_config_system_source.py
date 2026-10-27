@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import time
 import urllib.error
 import urllib.request
 from .base import BaseTool
 from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
-from .base import osversion
+from .base import osversion, tr
 from .base import run_tool_file
+from urllib.parse import urlparse
 
 
 
@@ -111,6 +113,24 @@ debian_mirrors = [
     ("Debian官方", "http://deb.debian.org/debian"),
 ]
 
+# 判断当前系统源是国内还是国外: 上面列表里的都认识, 另外补几个常见的; 其余以 .cn 结尾的域名也算国内
+domestic_hosts = {
+    "cn.archive.ubuntu.com": "Ubuntu官方中国镜像",
+    "mirrors.aliyun.com": "阿里云",
+    "mirrors.cloud.tencent.com": "腾讯云",
+    "mirrors.tencent.com": "腾讯云",
+    "mirrors.163.com": "网易",
+}
+foreign_hosts = {
+    "archive.ubuntu.com": "Ubuntu官方",
+    "security.ubuntu.com": "Ubuntu官方",
+    "ports.ubuntu.com": "Ubuntu官方",
+    "old-releases.ubuntu.com": "Ubuntu官方",
+    "deb.debian.org": "Debian官方",
+    "security.debian.org": "Debian官方",
+    "mirrors.kernel.org": "kernel.org",
+}
+
 
 class Tool(BaseTool):
     def __init__(self):
@@ -125,14 +145,18 @@ class Tool(BaseTool):
 
 
     def add_ros_source(self):
-        """快速添加ROS源"""
-        dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
-        code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
-        if code!=1: return
-        tool = run_tool_file('tools.tool_install_ros',authorun=False)
-        if not tool.support_install(): return False
-        tool.add_key()
-        tool.add_source()
+        """快速添加ROS源. 选 [0] 返回 BaseTool.BACK"""
+        while True:
+            dic = {1:"添加ROS/ROS2源",2:"不添加ROS/ROS2源"}
+            code,result = ChooseTask(dic, "请问是否添加ROS和ROS2源？").run()
+            if code==0: return BaseTool.BACK
+            if code!=1: return
+            tool = run_tool_file('tools.tool_install_ros',authorun=False)
+            if not tool.support_install(): return False
+            tool.add_key()
+            # 在选择ROS镜像那一步返回上一步, 回到这个问题
+            if tool.add_source() == BaseTool.BACK: continue
+            return
 
     def backup_path(self, path):
         """把要清理的源文件/目录改名备份, 而不是直接删除, 出问题可以手动恢复"""
@@ -171,27 +195,37 @@ class Tool(BaseTool):
         self.backups = []
         if getattr(self, 'original_deb822', None) is not None:
             FileUtils.new('/etc/apt/sources.list.d/', 'ubuntu.sources', self.original_deb822)
-        PrintUtils.print_warn('已取消换源, 系统源已恢复成原来的配置')
+        PrintUtils.print_warn('已撤销本次换源, 系统源恢复成原来的配置')
 
-    def clean_old_source(self, auto=False):
-        """备份旧的源配置. 用户在提问里选了退出时返回 False, 这时还没有动任何文件"""
-        if auto:
-            # 全自动模式: 只换系统源, 第三方源先保留, apt update 失败时再挪走(见 change_sys_source)
-            code = 1
-            self.source_method_code = 1
-        else:
-            dic = {1:"仅更换系统源",2:"更换系统源并清理第三方源"}
-            code,result = ChooseTask(dic, "请选择换源方式,如果不知道选什么请选2").run()
-            if code == 0:
-                return False
+    def ask_source_options(self, step=0):
+        """高手模式换源前的两个问题, 选 [0] 退回前一个问题; 在第一个问题退回时返回 BaseTool.BACK"""
+        while True:
+            if step == 0:
+                dic = {1:"仅更换系统源",2:"更换系统源并清理第三方源"}
+                self.clean_code,result = ChooseTask(dic, "请选择换源方式,如果不知道选什么请选2").run()
+                if self.clean_code == 0:
+                    return BaseTool.BACK
+                step = 1
+                continue
             PrintUtils.print_info("源选择方式说明:")
             PrintUtils.print_info("1. 自动测速选择最快的源: 系统将自动测试各个源的速度，并选择最快的源")
             PrintUtils.print_info("2. 根据测速结果手动选择源: 系统将测试各个源的速度，然后让您从测试结果中选择")
             dic_source_method = {1:"自动测速选择最快的源", 2:"根据测速结果手动选择源"}
             self.source_method_code, _ = ChooseTask(dic_source_method, "请选择源的选择方式").run()
             if self.source_method_code == 0:
-                return False
+                step = 0
+                continue
+            return True
 
+    def clean_old_source(self, auto=False):
+        """备份旧的源配置: 改名备份而不是删除, 用户中途返回上一步时可以原样恢复"""
+        if auto:
+            # 全自动模式: 只换系统源, 第三方源先保留, apt update 失败时再挪走(见 apply_source)
+            code = 1
+            self.source_method_code = 1
+        else:
+            code = self.clean_code
+        self.backups = []
         # 清理前先记下系统是否使用 deb822 格式(24.04+), 否则清理三方源时会连 ubuntu.sources 一起挪走, 就判断不出来了
         self.use_deb822 = os.path.exists(ubuntu_deb822_file)
         self.original_deb822 = None
@@ -208,7 +242,69 @@ class Tool(BaseTool):
                 PrintUtils.print_info('第三方源已备份到 {}, 如需恢复可把里面的文件挪回 /etc/apt/sources.list.d/'.format(backup_dir))
             # fix add source failed before config system source
             CmdTask('sudo mkdir -p /etc/apt/sources.list.d').run()
-        return True
+
+    def detect_current_source(self):
+        """
+        读出当前系统源的第一个地址, 判断是国内源还是国外源.
+        返回 (地址, 名称, 'cn'/'foreign'/'unknown'), 读不到地址时地址为 None
+        """
+        url = None
+        for path in (ubuntu_deb822_file, '/etc/apt/sources.list.d/debian.sources', '/etc/apt/sources.list'):
+            try:
+                with open(path, encoding='utf-8', errors='ignore') as f:
+                    lines = f.read().splitlines()
+            except Exception:
+                continue
+            for line in lines:
+                m = re.match(r'\s*(?:URIs:\s*|deb\s+(?:\[[^\]]*\]\s+)?)(\S+)', line)
+                if m:
+                    url = m.group(1)
+                    break
+            if url:
+                break
+        if not url:
+            return None, '', 'unknown'
+        host = urlparse(url).netloc.lower()
+        names = {}
+        for name, mirror in ubuntu_mirrors + ubuntu_ports_mirrors + ubuntu_old_mirrors + debian_mirrors:
+            names[urlparse(mirror).netloc] = name
+        if host in domestic_hosts:
+            return url, domestic_hosts[host], 'cn'
+        if host in foreign_hosts or host.endswith('.archive.ubuntu.com'):
+            return url, foreign_hosts.get(host, 'Ubuntu官方'), 'foreign'
+        if host in names or host.endswith('.cn'):
+            return url, names.get(host, ''), 'cn'
+        return url, '', 'unknown'
+
+    def ask_change_before_install(self):
+        """
+        装 ROS 前问要不要换系统源(高手模式第一步、菜单 16 都用它): 先检测当前系统源, 国外源建议换, 国内源建议不换.
+        选 [0] 返回 BaseTool.BACK
+        """
+        url, name, region = self.detect_current_source()
+        source = '{} {}'.format(name, url).strip() if url else '没有找到'
+        if tr is not None and hasattr(tr, 'isCN') and not tr.isCN():
+            PrintUtils.print_info('检测到当前系统源: {}'.format(source))
+            tips = '您不在中国大陆, 一般不用换, 建议选2'
+        elif region == 'cn':
+            PrintUtils.print_success('检测到当前系统源是国内源: {}'.format(source))
+            tips = '当前已经是国内源, 一般不用换, 建议选2; 如果之前安装失败过或下载很慢, 可以选1重新测速换源'
+        elif region == 'foreign':
+            PrintUtils.print_warn('检测到当前系统源是国外源: {}'.format(source))
+            tips = '国外源在国内下载慢、容易失败, 建议选1换成国内源'
+        else:
+            PrintUtils.print_warn('检测到当前系统源: {}, 无法判断是国内还是国外源'.format(source))
+            tips = '如果不确定, 建议选1自动测速换成国内源'
+        dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
+        while True:
+            code,result = ChooseTask(dic, tips).run()
+            if code == 0:
+                return BaseTool.BACK
+            if code == 2:
+                return
+            # 换源时在第一个问题选了返回上一步, 回到这个问题
+            if self.change_sys_source() != BaseTool.BACK:
+                return
 
     def get_debian_template(self, codename):
         if codename in ('wheezy', 'jessie', 'stretch', 'buster'):
@@ -340,15 +436,38 @@ class Tool(BaseTool):
 
 
     def change_sys_source(self, auto=False):
-        self.cancelled = False
+        """
+        更换系统源. 高手模式先问两个问题, 手动选镜像时选 [0] 会撤销本次换源并退回前一个问题;
+        在第一个问题选 [0] 时返回 BaseTool.BACK
+        """
         self.current_source = None
         self.failed_sources = []
-        if not self.clean_old_source(auto=auto):
-            self.cancelled = True
-            PrintUtils.print_warn('已取消换源, 系统源没有改动')
-            return
+        step = 0
+        while True:
+            if not auto and self.ask_source_options(step) == BaseTool.BACK:
+                return BaseTool.BACK
+            self.cancelled = False
+            self.clean_old_source(auto=auto)
+            source, result = self.apply_source(auto)
+            if not self.cancelled:
+                break
+            # 手动选镜像时选了返回上一步: 撤销本次换源, 回到"源的选择方式"这个问题
+            self.restore_sources()
+            step = 1
 
+        if not source:
+            PrintUtils.print_error("没有找到合适的镜像源,臣妾告退!")
+            return
+        self.current_source = source if result[0] == 0 else None
+        if result[0]==0:
+            PrintUtils.print_success("搞定了,不信你看,累死宝宝了，还不快去给小鱼点个赞~")
+            PrintUtils.print_info(result[1])
+        PrintUtils.print_success("镜像更新完成.....")
+
+    def apply_source(self, auto=False):
+        """测速、写入镜像并更新索引, 更新失败时自动(手动模式下让用户)换下一个. 返回 (镜像地址, apt update 结果)"""
         failed_sources = []
+        self.failed_sources = failed_sources
         result = (-1, [], [])
         source = self.replace_source(failed_sources)
         if source:
@@ -370,20 +489,7 @@ class Tool(BaseTool):
                     if not source:
                         break
                     result = CmdTask('sudo apt update',100).run()
-
-        if self.cancelled:
-            self.restore_sources()
-            return
-        if not source:
-            PrintUtils.print_error("没有找到合适的镜像源,臣妾告退!")
-            return
-
-        self.current_source = source if result[0] == 0 else None
-        self.failed_sources = failed_sources
-        if result[0]==0:
-            PrintUtils.print_success("搞定了,不信你看,累死宝宝了，还不快去给小鱼点个赞~")
-            PrintUtils.print_info(result[1])
-        PrintUtils.print_success("镜像更新完成.....")
+        return source, result
 
     def switch_to_next_source(self):
         """
@@ -409,8 +515,9 @@ class Tool(BaseTool):
 
     def run(self):
         # 正式的运行
-        self.change_sys_source()
-        if self.cancelled:
-            return
-        # 添加 ROS Source
-        self.add_ros_source()
+        while True:
+            if self.change_sys_source() == BaseTool.BACK:
+                return BaseTool.BACK
+            # 在"是否添加ROS源"选了返回上一步: 回到换源的第一个问题重新选
+            if self.add_ros_source() != BaseTool.BACK:
+                return

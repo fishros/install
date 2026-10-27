@@ -12,27 +12,24 @@ class Tool(BaseTool):
         PrintUtils.print_warn("警告！！此工具安装的ROS与从ROS官方软件源安装的ROS冲突！")
 
     def run(self):
-        #正式的运行
-        self.check_sys_source()
-        self.install_system_ros()
-        return True
+        #正式的运行: 每一步选 [0] 都退回前一步
+        while True:
+            if self.check_sys_source() == BaseTool.BACK:
+                return BaseTool.BACK
+            if self.install_system_ros() != BaseTool.BACK:
+                return True
 
     def check_sys_source(self):
-        # 更换系统源
-        dic = {1:"更换系统源再继续安装",2:"不更换继续安装"}
-        PrintUtils.print_warn("=========接下来这一步很很很很重要，如果不知道怎么选请选择1========")
-        code,result = ChooseTask(dic, "新手或首次安装一定要一定要一定要换源并清理三方源，换源!!!系统默认国外源容易失败!!").run()
-        if code==1: 
-            tool = run_tool_file('tools.tool_config_system_source',authorun=False)
-            tool.change_sys_source()
+        # 更换系统源: 先检测当前系统源是国内还是国外再给建议, 选 [0] 返回 BaseTool.BACK
+        tool = run_tool_file('tools.tool_config_system_source',authorun=False)
+        return tool.ask_change_before_install()
 
     def install_system_ros(self):
         version_dic = {1:"完整版",2:"基础版(小)"}
         code,name = ChooseTask(version_dic,"请选择安装的具体版本(如果不知道怎么选,请选1桌面版):",False).run()
 
-        if code==0: 
-            PrintUtils.print_error("你选择退出。。。。")
-            return False
+        if code==0:
+            return BaseTool.BACK
 
         install_tool = 'aptitude'
         install_tool_apt = 'apt'

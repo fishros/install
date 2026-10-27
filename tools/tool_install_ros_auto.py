@@ -107,18 +107,23 @@ class Tool(BaseTool):
 
         codename = osversion.get_codename()
         expect = recommend_ros.get(codename, [None])[0]
-        self.show_plan(expect, desktop)
-        code, _ = ChooseTask(
-            {
-                1: "开始全自动安装(推荐)",
-                2: "我要自己选(进入高手自定义模式)",
-            },
-            "请确认:",
-        ).run()
-        if code == 0:
-            return False
-        if code == 2:
-            return self.ros_tool.install_ros()
+        while True:
+            self.show_plan(expect, desktop)
+            code, _ = ChooseTask(
+                {
+                    1: "开始全自动安装(推荐)",
+                    2: "我要自己选(进入高手自定义模式)",
+                },
+                "请确认:",
+            ).run()
+            if code == 0:
+                return BaseTool.BACK
+            if code == 1:
+                break
+            # 高手模式第一步选了返回上一步, 回到这个确认界面
+            result = self.ros_tool.install_ros()
+            if result != BaseTool.BACK:
+                return result
 
         # 之前跑过一半(自定义模式选到一半退出、Ctrl+C 打断)留下的 apt 锁/未配置完的包先处理掉
         AptUtils.wait_and_repair()

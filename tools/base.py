@@ -1151,6 +1151,9 @@ class CmdTask(Task):
 
 
 class ChooseTask(Task):
+    # 最近一次选择是不是 [0] 返回上一步. 工具因此退出时, install.py 会回到主菜单而不是结束一键安装
+    last_back = False
+
     def __init__(self, dic, tips, array=False) -> None:
         self.tips = tips
         self.dic = dic
@@ -1167,8 +1170,8 @@ class ChooseTask(Task):
                 count += 1
         else:
             dic = data
-        dic[0] = "quit"
-        # 0 quit
+        # 0 统一表示返回上一步: 多步流程退回前一个问题, 第一个问题退回上一级菜单
+        dic[0] = "返回上一步"
         choose = -1
         for key in dic:
             PrintUtils.print_delay("[{}]:{}".format(key, tr.tr(dic[key])), 0.005)
@@ -1202,6 +1205,7 @@ class ChooseTask(Task):
                     choose = int(choose)
                     break
         config_helper.record_choose({"choose": choose, "desc": dic[choose]})
+        ChooseTask.last_back = choose == 0
         PrintUtils.print_fish()
         return choose, dic[choose]
 
@@ -1238,7 +1242,7 @@ class ChooseWithCategoriesTask(Task):
                 )
                 tool_ids.append(tool_id)
             print()
-        PrintUtils.print_delay("[0]:quit\n", 0.005)
+        PrintUtils.print_delay("[0]:{}\n".format(tr.tr("退出")), 0.005)
 
         choose = None
         choose_item = config_helper.get_input_value()
@@ -1764,6 +1768,8 @@ class BaseTool:
     TYPE_INSTALL = 0
     TYPE_UNINSTALL = 1
     TYPE_CONFIG = 2
+    # run() 或流程中的某一步返回它, 表示用户选了 [0] 返回上一步
+    BACK = "back"
 
     def __init__(self, name, tool_type):
         self.osinfo = osversion
@@ -1798,7 +1804,10 @@ def run_tool_file(file, authorun=True):
         return tool
     if tool.init() == False:
         return False
-    if tool.run() == False:
+    result = tool.run()
+    if result == BaseTool.BACK:
+        return BaseTool.BACK
+    if result == False:
         return False
     if tool.uninit() == False:
         return False

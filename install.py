@@ -205,6 +205,7 @@ def main():
         ChooseWithCategoriesTask,
         Tracking,
         AdUtils,
+        BaseTool,
     )
     from tools.base import encoding_utf8, osversion, osarch
     from tools.base import run_tool_file, download_tools
@@ -266,20 +267,28 @@ def main():
     PrintUtils.print_delay(tip, 0.001)
     PrintUtils.print_delay(book, 0.001)
     # download tools
-    code, result = ChooseWithCategoriesTask(
-        tool_categories,
-        tips=tr.tr("---众多工具，等君来用---"),
-        categories=tools_type_map,
-    ).run()
-    if code == 0:
-        PrintUtils().print_success(
-            tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
-        )
-    else:
+    while True:
+        code, result = ChooseWithCategoriesTask(
+            tool_categories,
+            tips=tr.tr("---众多工具，等君来用---"),
+            categories=tools_type_map,
+        ).run()
+        if code == 0:
+            PrintUtils().print_success(
+                tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
+            )
+            break
         if url_prefix:
             download_tools(code, tools, url_prefix)
-        if run_tool_file(tools[code]["tool"].replace("/", ".")) == False:
+        ChooseTask.last_back = False
+        ret = run_tool_file(tools[code]["tool"].replace("/", "."))
+        # 在工具里选了 [0] 返回上一步退出来的, 回到主菜单重新选
+        if ret == BaseTool.BACK or ChooseTask.last_back:
+            PrintUtils.print_info(tr.tr("已返回主菜单"))
+            continue
+        if ret == False:
             AdUtils.mark_failed()
+        break
 
     # 检查是否在 GitHub Actions 环境中运行或使用了测试配置文件
     # 如果是，则跳过生成配置文件和后续的打印操作，因为这些操作需要用户输入
