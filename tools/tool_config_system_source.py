@@ -250,6 +250,9 @@ class Tool(BaseTool):
         for name, url in mirrors:
             self.source_names[url] = name
             speed, status = self.measure_source(url, codename)
+            # 镜像偶尔会有一次连接超时(实测每轮都有一两个), 再试一次, 免得把最快的镜像误判掉
+            if status == 'fail':
+                speed, status = self.measure_source(url, codename)
             if status == 'ok':
                 speeds[url] = speed
                 PrintUtils.print_success('- {}\t{}\t速度: {:.0f}KB/s'.format(name, url, speed))
