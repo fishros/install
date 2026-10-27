@@ -219,7 +219,8 @@ def main():
     global tracing
     tracing = copy.copy(Tracking)
 
-    # 使用量统计
+    # 使用量统计: 官网按天计运行次数(后台线程, 失败忽略), 论坛 1733 帖子的访问照旧保留
+    AdUtils.report_run()
     CmdTask(
         "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 && rm -rf /tmp/t1733"
     ).run()
@@ -265,7 +266,7 @@ def main():
 如果觉得工具好用,请给个star,如果你想和小鱼一起编写工具,请关注B站/公众号<鱼香ROS>,联系小鱼
 更多工具教程，请访问鱼香ROS官方网站:http://fishros.com
     """)
-    # 菜单最上面先放一行商品链接和公众号提示(不放二维码), 内容来自服务器的 ads.json
+    # 菜单最上面先放一行商品链接和公众号提示(不放二维码), 内容来自官网 /api/install/ads
     AdUtils.show("welcome")
     PrintUtils.print_delay(tip, 0.001)
     PrintUtils.print_delay(book, 0.001)
@@ -300,7 +301,7 @@ def main():
         and os.environ.get("FISH_INSTALL_CONFIG") is None
     ):
         config_helper.gen_config_file()
-        # 推广内容从服务器的 ads.json 读取, 见 tools/base.py 的 AdUtils
+        # 推广内容从官网 /api/install/ads 读取, 见 tools/base.py 的 AdUtils
         AdUtils.show("finish_shop")
         AdUtils.show("finish")
 

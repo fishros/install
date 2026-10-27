@@ -1659,9 +1659,10 @@ class AptUtils:
 
 class AdUtils:
     """
-    一键安装里的推广信息. 内容从服务器上的 ads.json(和 install.py 同目录)读取, 改文案、换商品不用改代码,
+    一键安装里的推广信息. 内容从官网接口 /api/install/ads 读取(官网后台「一键安装」页可改商品链接、QQ 群等),
     读不到时用下面的内置内容. 按场景展示, 每个场景一次运行只展示一次; 安装失败后不再展示商品推广.
-    ads.json 格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "qr": [...], "shop": true}}}
+    接口返回格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "qr": [...], "shop": true}}}
+    测试时可用环境变量 FISHROS_API_URL 指向别的官网地址, 默认 http://fishros.com/api
     """
 
     shop_url = "https://item.taobao.com/item.htm?abbucket=0&id=1083795293714"
@@ -1719,17 +1720,41 @@ class AdUtils:
     shown_scenes = set()
     failed = False
 
+    @staticmethod
+    def api_url(path):
+        return os.environ.get("FISHROS_API_URL", "http://fishros.com/api").rstrip("/") + path
+
+    @classmethod
+    def report_run(cls):
+        """
+        官网按天统计一键安装的运行次数, 只发一个不带任何信息的请求. 放后台线程, 3 秒超时,
+        失败就忽略, 不拖慢也不打断安装; GitHub Actions 自动测试不计入
+        """
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            return
+
+        def send():
+            try:
+                import urllib.request
+
+                urllib.request.urlopen(cls.api_url("/install/stat"), timeout=3).close()
+            except Exception:
+                pass
+
+        thread = threading.Thread(target=send)
+        thread.daemon = True
+        thread.start()
+
     @classmethod
     def load(cls):
         if cls.scenes is not None:
             return cls.scenes
         cls.scenes = dict(cls.default_scenes)
-        url = os.path.join(os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/"), "ads.json")
         try:
             import json
             import urllib.request
 
-            with urllib.request.urlopen(url, timeout=3) as resp:
+            with urllib.request.urlopen(cls.api_url("/install/ads"), timeout=3) as resp:
                 cls.scenes.update(json.loads(resp.read().decode("utf-8")).get("scenes", {}))
         except Exception:
             pass
