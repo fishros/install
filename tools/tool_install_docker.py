@@ -22,6 +22,30 @@ class Tool(BaseTool):
         self.author = 'alyssa'
 
     @staticmethod
+    def docker_repo():
+        """
+        返回 (源路径, 系统代号). 原来写死 linux/ubuntu + lsb_release -cs, Debian 路径不对,
+        Linux Mint 的 lsb_release 给的是 Mint 自己的代号(如 wilma), Docker 源里都没有
+        """
+        info = {}
+        try:
+            with open("/etc/os-release", "r") as f:
+                for line in f:
+                    if "=" in line:
+                        key, value = line.strip().split("=", 1)
+                        info[key] = value.strip('"')
+        except Exception:
+            pass
+        # Ubuntu 及基于 Ubuntu 的发行版(Mint、Pop!_OS 等)都带 UBUNTU_CODENAME
+        if info.get("UBUNTU_CODENAME"):
+            return "ubuntu", info["UBUNTU_CODENAME"]
+        if info.get("ID") == "raspbian":
+            return "raspbian", info.get("VERSION_CODENAME")
+        if info.get("ID") == "debian" or "debian" in info.get("ID_LIKE", "").split():
+            return "debian", info.get("VERSION_CODENAME")
+        return "ubuntu", info.get("VERSION_CODENAME")
+
+    @staticmethod
     def key_ok():
         try:
             with open(docker_key, "r") as f:
@@ -38,10 +62,10 @@ class Tool(BaseTool):
             PrintUtils.print_warn("检测到上次没装好留下的Docker软件源(缺少公钥), 先清理掉再重新安装~")
             CmdTask("sudo rm -f {}".format(docker_list)).run()
 
-    def download_key(self):
+    def download_key(self, distro):
         """依次从各镜像下载公钥, 返回下载成功的镜像地址, 都失败返回 None"""
         for mirror in docker_mirrors:
-            CmdTask('curl -fsSL --retry 3 --connect-timeout 15 --max-time 60 "{}/linux/ubuntu/gpg" -o {}'.format(mirror, docker_key)).run()
+            CmdTask('curl -fsSL --retry 3 --connect-timeout 15 --max-time 60 "{}/linux/{}/gpg" -o {}'.format(mirror, distro, docker_key)).run()
             if self.key_ok():
                 CmdTask('chmod a+r {}'.format(docker_key)).run()
                 return mirror
@@ -54,9 +78,13 @@ class Tool(BaseTool):
         Executing Docker install script with updated commands for new installation steps.
         """
         PrintUtils.print_info("开始根据系统架构,为你下载对应版本的docker~")
-        if osarch not in ('amd64', 'arm64'):
-            PrintUtils.print_error("暂不支持当前系统架构:{}, 目前只支持amd64和arm64".format(osarch))
+        # osarch 会把 armhf 当成 arm64, 写软件源要用 dpkg 报的真实架构(32 位树莓派系统是 armhf)
+        arch = CmdTask("dpkg --print-architecture").run()[1][0].strip()
+        if arch not in ('amd64', 'arm64', 'armhf'):
+            PrintUtils.print_error("暂不支持当前系统架构:{}, 目前只支持amd64、arm64和armhf".format(arch))
             return False
+        distro, codename = self.docker_repo()
+        PrintUtils.print_info("将使用Docker的{}软件源, 系统代号:{}".format(distro, codename))
 
         self.remove_broken_source()
         # Check if apt is available
@@ -68,14 +96,14 @@ class Tool(BaseTool):
         CmdTask('install -m 0755 -d /etc/apt/keyrings', 10, os_command=True).run()
 
         # Add Docker GPG key
-        mirror = self.download_key()
+        mirror = self.download_key(distro)
         if mirror is None:
             PrintUtils.print_error("Docker公钥下载失败, 请检查网络后重试")
             return False
 
         # Add Docker repository
-        CmdTask('echo "deb [arch={} signed-by={}] {}/linux/ubuntu $(lsb_release -cs) stable" > {}'.format(
-            osarch, docker_key, mirror, docker_list), os_command=True).run()
+        CmdTask('echo "deb [arch={} signed-by={}] {}/linux/{} {} stable" > {}'.format(
+            arch, docker_key, mirror, distro, codename, docker_list), os_command=True).run()
 
         # Update apt index and install Docker
         PrintUtils.print_info("下载完成,接下来升级apt索引~")
