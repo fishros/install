@@ -3,7 +3,7 @@ import os
 import shutil
 from urllib.parse import urlparse
 from .base import BaseTool
-from .base import PrintUtils, AptUtils, ChooseTask, AdUtils
+from .base import PrintUtils, AptUtils, ChooseTask, AdUtils, StatUtils
 from .base import osversion
 from .base import run_tool_file
 from .tool_install_ros import RosVersions
@@ -125,6 +125,8 @@ class Tool(BaseTool):
             if result != BaseTool.BACK:
                 return result
 
+        # 统计: 确认开始算一次「开始安装」, 之后中途报错退出和装完检测不到都记失败
+        StatUtils.report("ros:novice:start")
         # 之前跑过一半(自定义模式选到一半退出、Ctrl+C 打断)留下的 apt 锁/未配置完的包先处理掉
         AptUtils.wait_and_repair()
         source_tool = run_tool_file("tools.tool_config_system_source", authorun=False)
@@ -132,11 +134,13 @@ class Tool(BaseTool):
 
         self.ros_tool.add_key()
         if not self.ros_tool.add_source(auto=True):
+            StatUtils.report_ros_result("novice", False)
             return False
 
         dic_base = AptUtils.search_package("ros-base", "ros-[A-Za-z]+-ros-base", "ros-", "-base")
         if not dic_base:
             PrintUtils.print_error("软件源里没有找到可安装的ROS, 请携带 /tmp/fishros_install.log 到鱼香社区反馈")
+            StatUtils.report_ros_result("novice", False)
             return False
         version = self.pick_version(codename, list(dic_base.keys()))
         if expect and version != expect:
@@ -158,6 +162,7 @@ class Tool(BaseTool):
             PrintUtils.print_warn("系统镜像下载中途失败, 已自动换用 {} 继续安装(已下载的包不会重复下载)".format(new_source))
             self.ros_tool.install_ros_packages(version, install_code, dic_base)
         self.ros_tool.config_env_and_tip(version)
+        StatUtils.report_ros_result("novice", self.ros_tool.install_success(version))
         if self.ros_tool.install_success(version):
             self.print_next_steps(version, desktop)
         self.print_summary(source_tool, expect, version, desktop)

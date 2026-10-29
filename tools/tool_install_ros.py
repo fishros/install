@@ -2,7 +2,7 @@
 import os
 import re
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask, AdUtils
+from .base import PrintUtils, CmdTask, FileUtils, AptUtils, ChooseTask, AdUtils, StatUtils
 from .base import osversion
 from .base import run_tool_file
 from .base import tr
@@ -1106,7 +1106,7 @@ class Tool(BaseTool):
         """
         if self.install_success(version_name):
             run_tool_file("tools.tool_config_rosenv")
-            PrintUtils.print_success(
+            PrintUtils.print_highlight(
                 "恭喜你，安装成功了，再附赠你机器人学习宝藏网站：鱼香社区:https://fishros.org.cn/forum"
             )
         else:
@@ -1155,8 +1155,11 @@ class Tool(BaseTool):
             forward = result != BaseTool.BACK
             step += 1 if forward else -1
 
+        # 统计: 选完开始装算一次「开始安装」, 装完按 install_success 记成功/失败(小白模式里转自定义的也算这里)
+        StatUtils.report("ros:expert:start")
         self.install_ros_packages(version, kind, dic_base)
         self.config_env_and_tip(version)
+        StatUtils.report_ros_result("expert", self.install_success(version))
         if self.install_success(version):
             RosVersions.tip_test_command(version)
             AdUtils.show("ros_installed")
@@ -1173,6 +1176,7 @@ class Tool(BaseTool):
             ).run()
             if code == 0:
                 return BaseTool.BACK
+            StatUtils.report("ros:novice:pick" if code == 1 else "ros:expert:pick")
             if code == 1:
                 result = run_tool_file("tools.tool_install_ros_auto", authorun=False).run()
             else:

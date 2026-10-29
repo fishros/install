@@ -10,7 +10,7 @@ fi
 $SUDO rm -rf /tmp/fishinstall/
 mkdir -p /tmp/fishinstall/tools/translation/assets
 # 与 install.py 里其它下载保持一致不校验证书: 老系统证书库过旧、树莓派等开机时钟不准时, 服务器跳转到 https 也能下载
-wget -q --no-check-certificate $FISHROS_URL/install.py -O /tmp/fishinstall/install.py
+wget -q -T 15 -t 3 --no-check-certificate $FISHROS_URL/install.py -O /tmp/fishinstall/install.py
 source /etc/profile
 
 if [ -s /tmp/fishinstall/install.py ]; then

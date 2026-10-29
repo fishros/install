@@ -914,6 +914,11 @@ class PrintUtils:
         PrintUtils.print_text("\033[33m{}\033[37m".format(data), end=end)
 
     @staticmethod
+    def print_highlight(data, end="\n"):
+        # 淡黄色(256 色里的 229), 用于「安装成功」这类要让用户一眼看到的好消息
+        PrintUtils.print_text("\033[38;5;229m{}\033[37m".format(data), end=end)
+
+    @staticmethod
     def print_text(values="", end="\n", flush=False):
         print(values, end=str(end), flush=flush)  # force to string
         Tracking.put_log(values, end=end)
@@ -1661,7 +1666,8 @@ class AdUtils:
     """
     一键安装里的推广信息. 内容从官网接口 /api/install/ads 读取(官网后台「一键安装」页可改商品链接、QQ 群等),
     读不到时用下面的内置内容. 按场景展示, 每个场景一次运行只展示一次; 安装失败后不再展示商品推广.
-    接口返回格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "qr": [...], "shop": true}}}
+    接口返回格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "shop": true}}}
+    10-28 导师定不放二维码(终端里画出来太大), 只放链接, 链接用淡蓝色加下划线, 和前后文字区分开
     测试时可用环境变量 FISHROS_API_URL 指向别的官网地址, 默认 http://fishros.com/api
     """
 
@@ -1725,37 +1731,22 @@ class AdUtils:
         return os.environ.get("FISHROS_API_URL", "http://fishros.com/api").rstrip("/") + path
 
     @classmethod
-    def report_run(cls):
-        """
-        官网按天统计一键安装的运行次数, 只发一个不带任何信息的请求. 放后台线程, 3 秒超时,
-        失败就忽略, 不拖慢也不打断安装; GitHub Actions 自动测试不计入
-        """
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            return
-
-        def send():
-            try:
-                import urllib.request
-
-                urllib.request.urlopen(cls.api_url("/install/stat"), timeout=3).close()
-            except Exception:
-                pass
-
-        thread = threading.Thread(target=send)
-        thread.daemon = True
-        thread.start()
-
-    @classmethod
     def load(cls):
         if cls.scenes is not None:
             return cls.scenes
         cls.scenes = dict(cls.default_scenes)
         try:
+            import gzip
             import json
             import urllib.request
 
-            with urllib.request.urlopen(cls.api_url("/install/ads"), timeout=3) as resp:
-                cls.scenes.update(json.loads(resp.read().decode("utf-8")).get("scenes", {}))
+            # 二维码的颜色转义很占地方, 压缩后从约 48KB 变成 2KB 不到, 网差时 3 秒内也能读完
+            req = urllib.request.Request(cls.api_url("/install/ads"), headers={"Accept-Encoding": "gzip"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = resp.read()
+                if resp.headers.get("Content-Encoding") == "gzip":
+                    data = gzip.decompress(data)
+            cls.scenes.update(json.loads(data.decode("utf-8")).get("scenes", {}))
         except Exception:
             pass
         return cls.scenes
@@ -1785,13 +1776,65 @@ class AdUtils:
         if ad.get("title"):
             PrintUtils.print_success("-" * 20 + " {} ".format(ad["title"]) + "-" * 20)
         for line in lines:
-            PrintUtils.print_success(line)
-        if chinese and ad.get("qr"):
-            # 二维码自带黑白配色, 深色/浅色终端都能扫
-            for row in ad["qr"]:
-                PrintUtils.print_text(row)
-            if ad.get("qr_tip"):
-                PrintUtils.print_info(ad["qr_tip"])
+            PrintUtils.print_success(cls.color_links(line))
+
+    @staticmethod
+    def color_links(line):
+        # 链接改成淡蓝色(256 色里的 117)加下划线, 链接后面的文字恢复成 print_success 的绿色
+        return re.sub(r"(https?://[^\s，。]+)", "\033[4;38;5;117m\\1\033[0;32m", line)
+
+
+class StatUtils:
+    """
+    官网按天匿名计数: 每个事件只发一个 /install/stat?e=<事件> 请求, 服务器只记 日期+事件 的次数.
+    事件: run(启动) / menu:<编号>(主菜单选择) / ros:<novice|expert>:<pick|start|ok|fail[:系统代号]>(菜单 [1] 安装 ROS).
+    放后台线程, 3 秒超时, 失败就忽略, 不拖慢也不打断安装;
+    GitHub Actions 和用配置文件(FISH_INSTALL_CONFIG)自动跑的测试不计入
+    """
+
+    threads = []
+
+    @staticmethod
+    def enabled():
+        return os.environ.get("GITHUB_ACTIONS") != "true" and os.environ.get("FISH_INSTALL_CONFIG") is None
+
+    @classmethod
+    def report(cls, event):
+        if not cls.enabled():
+            return
+
+        def send():
+            try:
+                import urllib.request
+
+                urllib.request.urlopen(AdUtils.api_url("/install/stat?e=" + event), timeout=3).close()
+            except Exception:
+                pass
+
+        thread = threading.Thread(target=send)
+        thread.daemon = True
+        thread.start()
+        cls.threads.append(thread)
+
+    @classmethod
+    def flush(cls, timeout=2):
+        """程序结束前最多再等 timeout 秒, 让最后才发的(装成功/失败)统计发出去; 平时早就发完了, 不用等"""
+        deadline = time.time() + timeout
+        for thread in cls.threads:
+            thread.join(max(0, deadline - time.time()))
+
+    @staticmethod
+    def system():
+        """失败按系统代号(jammy、focal 等)分开计数, 取不到时记 unknown"""
+        try:
+            codename = re.sub("[^a-z0-9]", "", str(osversion.get_codename()).lower())[:20]
+        except Exception:
+            codename = ""
+        return codename or "unknown"
+
+    @classmethod
+    def report_ros_result(cls, mode, ok):
+        cls.report("ros:{}:ok".format(mode) if ok else "ros:{}:fail:{}".format(mode, cls.system()))
 
 
 """
@@ -1851,7 +1894,7 @@ def run_tool_file(file, authorun=True):
 
 def run_tool_url(url, url_prefix):
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1863,7 +1906,7 @@ def download_tools(id, tools, url_prefix):
     url = tools[id]["tool"]
     url = os.path.join(url_prefix, url)
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1872,7 +1915,7 @@ def download_tools(id, tools, url_prefix):
         url = tools[dep]["tool"]
         url = os.path.join(url_prefix, url)
         CmdTask(
-            "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
                 url, url[url.rfind("/") + 1 :]
             )
         ).run()

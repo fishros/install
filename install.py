@@ -188,12 +188,12 @@ def main():
     url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
     if url_prefix:
         os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
                 base_url, base_url.replace(url_prefix, "")
             )
         )
         os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
                 translator_url, translator_url.replace(url_prefix, "")
             )
         )
@@ -206,6 +206,7 @@ def main():
         ChooseWithCategoriesTask,
         Tracking,
         AdUtils,
+        StatUtils,
         BaseTool,
     )
     from tools.base import encoding_utf8, osversion, osarch
@@ -219,10 +220,10 @@ def main():
     global tracing
     tracing = copy.copy(Tracking)
 
-    # 使用量统计: 官网按天计运行次数(后台线程, 失败忽略), 论坛 1733 帖子的访问照旧保留
-    AdUtils.report_run()
+    # 使用量统计: 官网按天计启动次数(后台线程, 失败忽略), 论坛 1733 帖子的访问照旧保留
+    StatUtils.report("run")
     CmdTask(
-        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 && rm -rf /tmp/t1733"
+        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 -t 2 && rm -rf /tmp/t1733"
     ).run()
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:") + tr.lang)
@@ -282,6 +283,7 @@ def main():
                 tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
             )
             break
+        StatUtils.report("menu:{}".format(code))
         if url_prefix:
             download_tools(code, tools, url_prefix)
         ChooseTask.last_back = False
@@ -304,6 +306,7 @@ def main():
         # 推广内容从官网 /api/install/ads 读取, 见 tools/base.py 的 AdUtils
         AdUtils.show("finish_shop")
         AdUtils.show("finish")
+    StatUtils.flush()
 
 
 def ensure_utf8():
