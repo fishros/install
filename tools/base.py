@@ -1486,6 +1486,43 @@ class FileUtils:
         return False
 
 
+class DockerUtils:
+    # 国内直连 Docker Hub 不通, 拉镜像要靠加速地址. 2026-10 实测公开的加速地址里只有这个华为云的还稳定可用
+    # (dockerpull.com / docker.fxxk.dedyn.io 已失效, DaoCloud 只放行部分镜像, 对 fishros2/ros 返回 403)
+    registry_mirror = "https://ac77d18f43e44819b553040f294b8f9b.mirror.swr.myhuaweicloud.com"
+    daemon_json = "/etc/docker/daemon.json"
+
+    @staticmethod
+    def set_registry_mirror(url):
+        """写入 daemon.json 的 registry-mirrors 并重启 Docker, 保留文件里原有的其它配置"""
+        import json
+
+        config = {}
+        try:
+            with open(DockerUtils.daemon_json, "r") as f:
+                config = json.load(f)
+        except Exception:
+            config = {}
+        if not isinstance(config, dict):
+            config = {}
+        config["registry-mirrors"] = [url]
+        CmdTask("sudo mkdir -p /etc/docker").run()
+        with open(DockerUtils.daemon_json, "w") as f:
+            json.dump(config, f, indent=2)
+        CmdTask("sudo systemctl daemon-reload").run()
+        return CmdTask("sudo systemctl restart docker").run()[0] == 0
+
+    @staticmethod
+    def has_registry_mirror():
+        import json
+
+        try:
+            with open(DockerUtils.daemon_json, "r") as f:
+                return len(json.load(f).get("registry-mirrors", [])) > 0
+        except Exception:
+            return False
+
+
 class AptUtils:
     @staticmethod
     def checkapt():

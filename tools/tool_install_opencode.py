@@ -8,7 +8,8 @@ from .tool_install_nodejs import Tool as NodejsTool
 
 class Tool(BaseTool):
     NPM_MIRROR = "https://registry.npmmirror.com"
-    NPM_TAOBAO = "https://registry.npm.taobao.org"
+    # 淘宝源早已迁到 npmmirror, 旧域名 registry.npm.taobao.org 2024 年起停用, 连不上只会白白多试一次
+    NPM_TAOBAO = "https://registry.npmmirror.com"
     PREFERRED_NRM_ALIASES = ["taobao", "tencent", "huawei", "npm", "yarn", "cnpm"]
 
     def __init__(self):
@@ -236,7 +237,7 @@ class Tool(BaseTool):
 
         sources = node_tool._get_nrm_sources()
         taobao_url = self.NPM_TAOBAO
-        if "taobao" in sources and str(sources["taobao"]).strip() != taobao_url:
+        if "taobao" in sources and str(sources["taobao"]).strip().rstrip("/") != taobao_url:
             PrintUtils.print_warn(
                 "检测到nrm中的taobao源为{}，将优先使用固定taobao地址{}".format(
                     sources["taobao"], taobao_url
@@ -330,8 +331,8 @@ class Tool(BaseTool):
             and self._code(check_sudo_npm) == 0
         ):
             return True
-        PrintUtils.print_warn("检测到Node.js/npm环境不完整，将自动安装Node.js 22")
-        return NodejsTool().install_nodejs_version(22, with_registry=False)
+        PrintUtils.print_warn("检测到Node.js/npm环境不完整，将自动安装Node.js 24")
+        return NodejsTool().install_nodejs_version(24, with_registry=False)
 
     def install_opencode(self):
         if not self._ensure_nodejs():

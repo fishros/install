@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from .base import BaseTool
-from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask
+from .base import PrintUtils,CmdTask,FileUtils,AptUtils,ChooseTask,DockerUtils
 from .base import osversion,osarch
 from .base import run_tool_file
+from .base import tr
 
 class RosVersion:
     STATUS_EOL = 0
     STATUS_LTS = 1
+    STATUS_ACTIVE = 2  # 还在维护但不是长期支持版(普通版 / rolling)
     def __init__(self,name,version,status,images=[],arm_images=[]):
         self.name = name
         self.version = version
@@ -19,20 +21,21 @@ class RosVersions:
     ros_version = [ 
         RosVersion('lyrical', 'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:lyrical-desktop'],["osrf/ros:lyrical-desktop"]),
         RosVersion('jazzy', 'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:jazzy-desktop-full'],["ros:jazzy"]),
-        RosVersion('noetic',  'ROS1', RosVersion.STATUS_LTS, ['fishros2/ros:noetic-desktop-full'],["ros:noetic"]),
+        RosVersion('noetic',  'ROS1', RosVersion.STATUS_EOL, ['fishros2/ros:noetic-desktop-full'],["ros:noetic"]),
         RosVersion('humble',  'ROS2', RosVersion.STATUS_LTS, ['fishros2/ros:humble-desktop-full'],["ros:humble"]),
+        RosVersion('kilted',  'ROS2', RosVersion.STATUS_ACTIVE, ['osrf/ros:kilted-desktop-full'],["ros:kilted"]),
         RosVersion('foxy',  'ROS2', RosVersion.STATUS_EOL, ['fishros2/ros:foxy-desktop'],["ros:foxy"]),
-        RosVersion('galactic',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:galactic-desktop'],["ros:galactic"]),
-        RosVersion('iron',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:iron-desktop-full'],["ros:iron"]),
-        RosVersion('melodic', 'ROS1', RosVersion.STATUS_LTS, ['fishros2/ros:melodic-desktop-full'],["ros:melodic"]),
-        RosVersion('rolling',  'ROS2', RosVersion.STATUS_LTS, ['osrf/ros:rolling-desktop-full'],["ros:rolling"]),
+        RosVersion('galactic',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:galactic-desktop'],["ros:galactic"]),
+        RosVersion('iron',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:iron-desktop-full'],["ros:iron"]),
+        RosVersion('melodic', 'ROS1', RosVersion.STATUS_EOL, ['fishros2/ros:melodic-desktop-full'],["ros:melodic"]),
+        RosVersion('rolling',  'ROS2', RosVersion.STATUS_ACTIVE, ['osrf/ros:rolling-desktop-full'],["ros:rolling"]),
         RosVersion('kinetic', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:kinetic-desktop-full'],["ros:kinetic"]),
         RosVersion('eloquent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:eloquent-desktop'],["ros:eloquent"]),
         RosVersion('dashing',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:dashing-desktop'],["ros:dashing"]),
         RosVersion('crystal',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:crystal-desktop'],["ros:crystal"]),
         RosVersion('bouncy',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:bouncy-desktop'],["ros:bouncy"]),
         RosVersion('ardent',  'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:ardent-desktop'],["ros:ardent"]),
-        RosVersion('lunar', 'ROS2', RosVersion.STATUS_EOL, ['osrf/ros:lunar-desktop'],["ros:lunar"]),
+        RosVersion('lunar', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:lunar-desktop'],["ros:lunar"]),
         RosVersion('indigo', 'ROS1', RosVersion.STATUS_EOL, ['osrf/ros:indigo-desktop-full'],["ros:indigo"])
     ]
 
@@ -47,6 +50,8 @@ class RosVersions:
             if version.name == ros_version:
                 if version.status==RosVersion.STATUS_EOL:
                     eol = "停止维护"
+                elif version.status==RosVersion.STATUS_ACTIVE:
+                    eol = "维护中(非长期支持版)"
                 else:
                     eol = "长期支持"
                 return "{}({}),该版本目前状态:{}".format(version.name,version.version,eol), ros_version
@@ -149,9 +154,21 @@ newgrp docker
     def download_image(self,name):
         """"""
         PrintUtils.print_success("=================3.下载镜像（该步骤因网络原因会慢一些，若失败请重试）==================")
-        CmdTask('sudo docker pull {} '.format(RosVersions.get_image(name)),os_command=True).run()
-        CmdTask('sudo docker pull {} '.format(RosVersions.get_image(name)),os_command=True).run()
-        CmdTask('sudo docker pull {} '.format(RosVersions.get_image(name)),os_command=True).run()
+        # 国内直连 Docker Hub 不通, 没配加速地址时自动配上, 不用再先去跑一遍 [17]
+        if tr.isCN() and not DockerUtils.has_registry_mirror():
+            PrintUtils.print_info("检测到Docker还没有配置镜像加速, 自动为你配置华为云加速: {}".format(DockerUtils.registry_mirror))
+            DockerUtils.set_registry_mirror(DockerUtils.registry_mirror)
+        image = RosVersions.get_image(name)
+        PrintUtils.print_info("镜像{}一般有几个GB, 请确认磁盘空间足够, 耐心等待~".format(image))
+        # 华为云加速偶尔会断开连接(EOF), 一层断了整次拉取就失败, 但已下完的层会保留, 重拉会接着下, 最多 5 次
+        for i in range(5):
+            if i > 0:
+                PrintUtils.print_warn("镜像下载中断(加速服务器偶尔会断开), 第{}次重试, 已下载的部分不会重新下~".format(i))
+            CmdTask('sudo docker pull {} '.format(image),os_command=True).run()
+            if CmdTask('sudo docker image inspect {}'.format(image)).run()[0] == 0:
+                return True
+        PrintUtils.print_error("镜像{}下载失败, 请检查网络后重试".format(image))
+        return False
 
         # create image
         # TODO 更换好系统源
@@ -253,7 +270,11 @@ newgrp docker
         if not rosname: return False
 
         self.install_docker()
-        self.download_image(rosname)
+        if CmdTask("docker --version").run()[0] != 0:
+            PrintUtils.print_error("Docker没有装好, 无法继续安装ROS Docker版")
+            return False
+        if not self.download_image(rosname):
+            return False
         container_name = self.create_container(rosname)
         self.generte_command(container_name,rosname)
         self.install_use_tool()
@@ -266,4 +287,4 @@ newgrp docker
         PrintUtils.print_info("请访问社区的一键安装版块：https://fishros.org.cn/forum/topic/112")
 
     def run(self):
-        self.install_ros_with_docker()
+        return self.install_ros_with_docker()

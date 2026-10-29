@@ -12,12 +12,18 @@ class Tool(BaseTool):
         PrintUtils.print_warn("警告！！此工具安装的ROS与从ROS官方软件源安装的ROS冲突！")
 
     def run(self):
+        # Ubuntu 24.04 起软件源里已经没有系统自带 ROS(ros-base-dev 等), 先查一下, 免得换完源才发现装不了
+        if CmdTask("apt-cache show ros-base-dev").run()[0] != 0:
+            PrintUtils.print_error("当前系统(Ubuntu {})的软件源里没有系统自带ROS(Ubuntu 24.04起已移除)".format(osversion.get_version()))
+            PrintUtils.print_info("请使用菜单[1]一键安装ROS")
+            return False
         #正式的运行: 每一步选 [0] 都退回前一步
         while True:
             if self.check_sys_source() == BaseTool.BACK:
                 return BaseTool.BACK
-            if self.install_system_ros() != BaseTool.BACK:
-                return True
+            result = self.install_system_ros()
+            if result != BaseTool.BACK:
+                return result
 
     def check_sys_source(self):
         # 更换系统源: 先检测当前系统源是国内还是国外再给建议, 选 [0] 返回 BaseTool.BACK
@@ -73,4 +79,10 @@ class Tool(BaseTool):
                 if code==2: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,"ros-base-dev"),300,os_command=False).run()
                 elif code==1: cmd_result = CmdTask("sudo {} install   {} -y".format(install_tool,"ros-desktop-full-dev"),300,os_command=False).run()
 
+        # 按实际安装结果提示, 不再一律当成功
+        pkg = "ros-base-dev" if code==2 else "ros-desktop-full-dev"
+        if "install ok installed" not in " ".join(CmdTask("dpkg-query -W -f='${Status}' " + pkg).run()[1]):
+            PrintUtils.print_error("系统自带ROS安装失败: 如果之前装过ROS官方源的ROS2, 两者会冲突, 请使用菜单[1]一键安装ROS")
+            return False
+        PrintUtils.print_success("系统自带ROS安装成功~")
         return True
