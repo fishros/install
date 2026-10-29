@@ -4,7 +4,7 @@ import platform
 import re
 import shutil
 from .base import BaseTool
-from .base import PrintUtils,CmdTask,FileUtils,ChooseTask
+from .base import PrintUtils,CmdTask,FileUtils,ChooseTask,DockerUtils
 from .base import osversion,osarch
 from .base import run_tool_file
 
@@ -15,7 +15,7 @@ class Tool(BaseTool):
         self.author = '小鱼'
 
     def get_wechat_scripts(self,name,build):
-        return """xhost +local: >> /dev/null
+        return DockerUtils.permission_check_sh + """xhost +local: >> /dev/null
 echo "请输入指令控制{}: 启动(s) 配置:(w) 关闭(c) 重启(r) 删除(d) 重建(b):"
 read choose
 case $choose in

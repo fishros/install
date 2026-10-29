@@ -1491,6 +1491,14 @@ class DockerUtils:
     # (dockerpull.com / docker.fxxk.dedyn.io 已失效, DaoCloud 只放行部分镜像, 对 fishros2/ros 返回 403)
     registry_mirror = "https://ac77d18f43e44819b553040f294b8f9b.mirror.swr.myhuaweicloud.com"
     daemon_json = "/etc/docker/daemon.json"
+    # 放在生成的容器控制脚本(wechat、ROS 容器名等命令)开头: 刚装完 Docker 时加入 docker 组要重新登录才生效,
+    # 当前终端不加 sudo 执行 docker 会报 permission denied, 用户看不懂, 这里先给出提示
+    permission_check_sh = """if [ -S /var/run/docker.sock ] && [ ! -w /var/run/docker.sock ]; then
+    echo "当前终端还没有使用Docker的权限: 刚装完Docker时需要注销重新登录(或重启)才会生效"
+    echo "也可以先执行 newgrp docker, 再运行本命令"
+    exit 1
+fi
+"""
 
     @staticmethod
     def set_registry_mirror(url):

@@ -129,8 +129,8 @@ esac
 newgrp docker
 """.format(name,name,name,name,name,name,name,delete_command,name)
         if rosversion=="ROS1":
-            return ros1
-        return ros2
+            return DockerUtils.permission_check_sh + ros1
+        return DockerUtils.permission_check_sh + ros2
 
     def choose_image_version(self):
         """获取要安装的ROS版本"""
