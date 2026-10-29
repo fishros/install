@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import importlib
+import subprocess
 
 url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
 base_url = os.path.join(url_prefix, "tools/base.py")
@@ -187,16 +188,14 @@ def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
     url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
     if url_prefix:
-        os.system(
-            "wget {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
-                base_url, base_url.replace(url_prefix, "")
-            )
-        )
-        os.system(
-            "wget {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
-                translator_url, translator_url.replace(url_prefix, "")
-            )
-        )
+        # 静默下载, 只在失败时提示, 免得进菜单前刷一屏 wget 进度
+        for url in (base_url, translator_url):
+            if os.system(
+                "wget -q {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
+                    url, url.replace(url_prefix, "")
+                )
+            ):
+                print("下载失败, 请检查网络后重试: {}".format(url))
 
     from tools.base import (
         CmdTask,
@@ -221,10 +220,14 @@ def main():
     tracing = copy.copy(Tracking)
 
     # 使用量统计: 官网按天计启动次数(后台线程, 失败忽略), 论坛 1733 帖子的访问照旧保留
+    # 论坛这次访问只为计数, 不用等它返回, 交给后台进程(一键安装退出后它会自己结束)
     StatUtils.report("run")
-    CmdTask(
-        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 -t 2 && rm -rf /tmp/t1733"
-    ).run()
+    subprocess.Popen(
+        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 -t 2 && rm -rf /tmp/t1733",
+        shell=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:") + tr.lang)
     # 只有使用官方镜像站时才切到 GitHub; 自建服务器(FISHROS_URL 指向别处)测试时保持原地址

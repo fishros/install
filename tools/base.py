@@ -888,13 +888,22 @@ class Tracking:
 
 
 class PrintUtils:
+    # 打字机效果的速度倍率: 0.5 表示用原来一半的时间打完
+    delay_scale = 0.5
+
     @staticmethod
     def print_delay(data, delay=0.03, end="\n"):
+        # 按「第 i 个字该在什么时刻出现」来补齐时间, 而不是每个字都 sleep:
+        # 每字 1ms 这种短停顿, 实际会被系统调度拉长到 1.3ms 以上, 菜单越长误差越大
+        delay = delay * PrintUtils.delay_scale
         PrintUtils.print_text("\033[37m", end="")
-        for d in data:
+        start = time.perf_counter()
+        for i, d in enumerate(data):
             d = d.encode("utf-8").decode("utf-8")
             PrintUtils.print_text("{}".format(d), end="", flush=True)
-            time.sleep(delay)
+            wait = start + (i + 1) * delay - time.perf_counter()
+            if wait > 0.002:
+                time.sleep(wait)
         PrintUtils.print_text(end=end)
 
     @staticmethod
@@ -1089,6 +1098,7 @@ class CmdTask(Task):
             universal_newlines=True,
         )
         self.bar = Progress()
+        self.sub_started.set()
         err = []
         out = []
 
@@ -1117,18 +1127,17 @@ class CmdTask(Task):
         self.ret_ok = True
 
     def run_command(self, executable="/bin/sh"):
+        self.sub_started = threading.Event()
         self.command_thread = threading.Thread(target=self.command_thread)
         self.command_thread.start()
-        time.sleep(0.5)  # 等待线程启动
+        # 等子进程创建好就开始轮询. 原来固定 sleep(0.5), 哪怕 mkdir 这种命令也要白等半秒, 光启动阶段就累计 3~4 秒
+        while not self.sub_started.wait(0.01) and self.command_thread.is_alive():
+            pass
         while self.is_command_finish() == -1:
             self.bar.update_time()
-            time.sleep(0.1)
+            time.sleep(0.05)
 
-        start_time = time.time()
-        while (
-            not self.ret_ok and time.time() - start_time < 2.0
-        ):  # 2s timeout wait  command_thread end
-            time.sleep(0.1)
+        self.command_thread.join(2.0)  # 2s timeout wait  command_thread end
 
         Tracking.put_cmd_result(self.ret_code, self.ret_out, self.ret_err, self.command)
         return (self.ret_code, self.ret_out, self.ret_err)

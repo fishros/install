@@ -14,7 +14,10 @@ wget -q -T 15 -t 3 --no-check-certificate $FISHROS_URL/install.py -O /tmp/fishin
 source /etc/profile
 
 if [ -s /tmp/fishinstall/install.py ]; then
-    $SUDO apt install python3-distro python3-yaml -y
+    # 已经能导入就不再跑 apt: 每次都要读软件包列表(约 1s), 系统自动更新占着 apt 锁时还会卡住
+    if ! python3 -c "import distro, yaml" 2> /dev/null; then
+        $SUDO apt install python3-distro python3-yaml -y
+    fi
     # sudo 默认会清掉环境变量, 显式把 FISHROS_URL 传进去, 否则后续工具一律从默认地址下载(自建服务器测试时会拿到旧版)
     $SUDO env FISHROS_URL="$FISHROS_URL" python3 /tmp/fishinstall/install.py
 else

@@ -9,6 +9,7 @@ import os
 import tools.base
 from tools.base import CmdTask
 import subprocess
+import threading
 import time
 
 _suported_languages = ['zh_CN', 'en_US']
@@ -27,30 +28,29 @@ class Linguist:
     def __init__(self):
         # Initialize the current locale.
         self.country = 'CN'
-        self._currentLocale = self.getLocalFromIP()
+        # 查 IP 所在国家要走一趟外网(约 1s), 放到后台和下载语言文件同时进行
+        ip_result = []
+        ip_thread = threading.Thread(target=lambda: ip_result.append(self.getLocalFromIP()))
+        ip_thread.daemon = True
+        ip_thread.start()
+        if url_prefix:
+            # 两个语言文件用一条命令下完: 原来 mkdir/wget/mv 拆成 6 条 CmdTask, 刷屏且每条都有额外等待
+            # 先下到 /tmp/ 再挪过去, 避免目标目录权限问题; 下载失败就删掉半截文件
+            download_cmds = ["mkdir -p /tmp/fishinstall/tools/translation/assets"]
+            for lang in _suported_languages:
+                temp_file = "/tmp/fishros_lang_{}.py".format(lang)
+                final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
+                download_cmds.append("(wget -q {} -O {} -T 15 -t 3 --no-check-certificate && mv {} {} || rm -f {})".format(
+                    lang_url.format(lang), temp_file, temp_file, final_path, temp_file))
+            CmdTask("; ".join(download_cmds)).run()
+        ip_thread.join(16)
+        self._currentLocale = ip_result[0] if ip_result else None
         if self._currentLocale is None:
             # 查不到 IP 所在国家(断网、DNS 故障、接口不可用)时按系统语言来, 而不是一律英文
             self._currentLocale = self.getLocalFromSystem()
         # Load the translation file.
         self.lang = self._currentLocale
-        # Create directory for downloads
-        CmdTask("mkdir -p /tmp/fishinstall/tools/translation/assets").run()
-        if url_prefix:
-            for lang in _suported_languages:
-                # Add timeout and retry mechanism for downloading language files
-                # Use /tmp/ directory directly to avoid permission issues
-                temp_file = "/tmp/fishros_lang_{}.py".format(lang)
-                final_path = "/tmp/fishinstall/{}".format(lang_url.format(lang).replace(url_prefix, ''))
-                download_cmd = "wget {} -O {} -T 15 -t 3 --no-check-certificate".format(lang_url.format(lang), temp_file)
-                result = CmdTask(download_cmd).run()
-                # Move file to final destination if download was successful
-                if result[0] == 0:
-                    CmdTask("mkdir -p $(dirname {})".format(final_path)).run()
-                    CmdTask("mv {} {}".format(temp_file, final_path)).run()
-                else:
-                    # Clean up temp file if download failed
-                    CmdTask("rm -f {}".format(temp_file)).run()
-            
+
         self.loadTranslationFile()
         
         tools.base.tr = self
