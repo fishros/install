@@ -1,5 +1,6 @@
 translations = {
     "基础检查通过...": "Base check passed...",
+    "当前系统:": "Current system:",
     """===============================================================================\n======欢迎使用一键安装工具，人生苦短，三省吾身，省时省力省心!=======
 ======一键安装已开源，请放心使用：https://github.com/fishros/install =======\n===============================================================================\n    """: """===============================================================================\n====== Welcome to the One-Click Installation Tool, life is short, save your time and energy! =======\n====== One-click installation has been open sourced, please feel free to use: https://github.com/fishros/install =======\n===============================================================================\n""",
     R"""

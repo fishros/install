@@ -43,7 +43,15 @@ class ConfigHelper:
             self.record_file = os.environ.get(
                 "FISH_INSTALL_CONFIG", "./fish_install.yaml"
             )
+            # 每次运行结束都会把本次选择记到 /tmp/fish_install.yaml, 在 /tmp 下运行时默认路径正好指向这份记录,
+            # 就会不声不响地按上次的选项自动执行. 这份记录只在用 FISH_INSTALL_CONFIG 明确指定时才读
+            if "FISH_INSTALL_CONFIG" not in os.environ and os.path.realpath(
+                self.record_file
+            ) == os.path.realpath("/tmp/fish_install.yaml"):
+                self.record_file = ""
         self.default_input_queue = self.get_default_queue(self.record_file)
+        if self.default_input_queue.qsize() > 0:
+            print("检测到配置文件 {}, 将按其中的选项自动选择".format(self.record_file))
 
     def record_input(self, item):
         self.record_input_queue.put(item)
@@ -888,22 +896,13 @@ class Tracking:
 
 
 class PrintUtils:
-    # 打字机效果的速度倍率: 0.5 表示用原来一半的时间打完
-    delay_scale = 0.5
-
     @staticmethod
     def print_delay(data, delay=0.03, end="\n"):
-        # 按「第 i 个字该在什么时刻出现」来补齐时间, 而不是每个字都 sleep:
-        # 每字 1ms 这种短停顿, 实际会被系统调度拉长到 1.3ms 以上, 菜单越长误差越大
-        delay = delay * PrintUtils.delay_scale
         PrintUtils.print_text("\033[37m", end="")
-        start = time.perf_counter()
-        for i, d in enumerate(data):
+        for d in data:
             d = d.encode("utf-8").decode("utf-8")
             PrintUtils.print_text("{}".format(d), end="", flush=True)
-            wait = start + (i + 1) * delay - time.perf_counter()
-            if wait > 0.002:
-                time.sleep(wait)
+            time.sleep(delay)
         PrintUtils.print_text(end=end)
 
     @staticmethod

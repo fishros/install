@@ -249,6 +249,12 @@ def main():
         print("Solutions: https://fishros.org.cn/forum/topic/24 ")
         return False
     PrintUtils.print_success(tr.tr("基础检查通过..."))
+    # 把系统和架构打出来: 用户发截图求助时一眼能看到是什么系统(dpkg 查到的架构原来会被进度行盖掉)
+    try:
+        PrintUtils.print_info(tr.tr("当前系统:") + " {} {} ({}) {}".format(
+            osversion.get_name(), osversion.get_version(), osversion.get_codename(), osarch))
+    except Exception:
+        pass
 
     book = tr.tr("""
                         .-~~~~~~~~~-._       _.-~~~~~~~~~-.
