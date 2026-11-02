@@ -1,17 +1,55 @@
 # -*- coding: utf-8 -*-
+import collections
 import os
+import shutil
+import sys
+import time
+import urllib.request
 from urllib.parse import quote
 
 from .base import BaseTool
 from .base import PrintUtils, CmdTask, FileUtils, ChooseTask
 from .base import osarch
 
+# 可选的客户端. port 是各客户端默认的混合代理端口, 写进 proxy_add 快捷命令
+# (Clash Verge Rev 默认是 7897 不是 7890, 原来一律写 7890, 装它的用户 proxy_add 用不了)
+CLIENTS = {
+    1: {
+        "name": "FlClash",
+        "tip": "FlClash(推荐): 有界面, 安装包最小(约40MB)",
+        "repo": "chen08209/FlClash",
+        "tag": "v0.9.2",
+        "cdn_dir": "FlClash/v0.9.2",
+        "file": "FlClash-0.9.2-linux-{arch}.deb",
+        "port": 7890,
+        "cmds": ["FlClash", "flclash"],
+    },
+    2: {
+        "name": "Clash Verge Rev",
+        "tip": "Clash Verge Rev: 有界面(约100MB)",
+        "repo": "clash-verge-rev/clash-verge-rev",
+        "tag": "v2.5.8",
+        "cdn_dir": "clash-verge-rev/Clash%20Verge%20Rev%20v2.5.8",
+        "file": "Clash.Verge_2.5.8_{arch}.deb",
+        "port": 7897,
+        "cmds": ["clash-verge", "clash-verge-rev"],
+    },
+}
+
+# 国内直连 GitHub 基本下不动, 按顺序尝试: 两个公共 GitHub 加速站(快但时好时坏, 有时会拒绝某些仓库),
+# 最后用 repo.trojan-cdn.com 兜底(一直能下, 但国内只有十几 KB/s). 2026-11 在国内服务器实测
+DOWNLOAD_SOURCES = [
+    ("ghfast.top 加速", "https://ghfast.top/https://github.com/{repo}/releases/download/{tag}/{file}"),
+    ("gh-proxy.com 加速", "https://gh-proxy.com/https://github.com/{repo}/releases/download/{tag}/{file}"),
+    ("trojan-cdn 镜像", "https://repo.trojan-cdn.com/{cdn_dir}/{file}"),
+]
+# 每个源先下 15 秒, 平均速度达到 200KB/s 就用它下完; 都达不到时, 用测下来最快的那个源下完
+# (不能简单地「慢了就换下一个」: 实测 gh-proxy.com 89KB/s 被放弃, 最后落到只有 15KB/s 的 trojan-cdn, 反而更慢)
+SLOW_CHECK_SECONDS = 15
+SLOW_SPEED = 200 * 1024
+
 
 class Tool(BaseTool):
-    CLASH_VERGE_BASE = (
-        "https://repo.trojan-cdn.com/clash-verge-rev/Clash%20Verge%20Rev%20v2.4.6"
-    )
-    MIHOMO_PARTY_BASE = "https://repo.trojan-cdn.com/mihomo-party/v1.9.2"
     RECOMMEND_SUBSCRIBE_URL = "https://fishros.org.cn/forum/topic/668"
 
     def __init__(self):
@@ -41,51 +79,101 @@ class Tool(BaseTool):
         return []
 
     def _choose_install_mode(self):
-        mode_dic = {
-            1: "有界面版: Clash Verge Rev",
-            2: "无界面版(按提供源): mihomo-party",
-        }
-        code, _ = ChooseTask(mode_dic, "请选择代理工具版本:", False).run()
+        mode_dic = {code: client["tip"] for code, client in CLIENTS.items()}
+        code, _ = ChooseTask(mode_dic, "请选择代理工具(不知道选哪个就选1):", False).run()
         return code
 
-    def _resolve_package(self, mode):
-        if osarch not in ["amd64", "arm64"]:
-            return None, None, None
+    @staticmethod
+    def _format_speed(speed):
+        if speed >= 1048576:
+            return "{:.1f}MB/s".format(speed / 1048576.0)
+        return "{:.0f}KB/s".format(speed / 1024.0)
 
-        if mode == 1:
-            filename_map = {
-                "amd64": "Clash.Verge_2.4.6_amd64.deb",
-                "arm64": "Clash.Verge_2.4.6_arm64.deb",
-            }
-            file_name = filename_map[osarch]
-            return (
-                "Clash Verge Rev",
-                "{}/{}".format(self.CLASH_VERGE_BASE, file_name),
-                file_name,
-            )
+    @staticmethod
+    def _draw_progress(done, total, speed):
+        """在同一行画进度条: [████████░░░░░░░░]  45%  17.5/38.7MB  2.4MB/s  剩余 9s"""
+        if total:
+            left = (total - done) / speed if speed > 0 else -1
+            eta = "--" if left < 0 else ("{}m{:02d}s".format(int(left) // 60, int(left) % 60) if left >= 60 else "{}s".format(int(left)))
+            info = " {:3.0f}%  {:.1f}/{:.1f}MB  {}  剩余 {}".format(
+                done * 100.0 / total, done / 1048576.0, total / 1048576.0, Tool._format_speed(speed), eta)
+            # 进度条宽度随终端宽度变化; info 里的「剩余」两个汉字各占 2 列, 多留几列余量免得折行
+            width = max(10, min(40, shutil.get_terminal_size((80, 20)).columns - len(info) - 10))
+            filled = int(width * done / total)
+            line = "  [{}{}]{}".format("█" * filled, "░" * (width - filled), info)
+        else:
+            line = "  已下载 {:.1f}MB  {}".format(done / 1048576.0, Tool._format_speed(speed))
+        sys.stdout.write("\r" + line + "   ")
+        sys.stdout.flush()
 
-        if mode == 2:
-            filename_map = {
-                "amd64": "mihomo-party-linux-1.9.2-amd64.deb",
-                "arm64": "mihomo-party-linux-1.9.2-arm64.deb",
-            }
-            file_name = filename_map[osarch]
-            return (
-                "mihomo-party",
-                "{}/{}".format(self.MIHOMO_PARTY_BASE, file_name),
-                file_name,
-            )
+    @staticmethod
+    def _download_from(url, path, give_up_if_slow):
+        """
+        下载到 path, 返回 (是否下完, 平均速度 B/s). give_up_if_slow 时, 下了 SLOW_CHECK_SECONDS 秒平均速度还太慢就放弃.
+        不走环境变量里的代理(和原来 wget --no-proxy 一致), 超时 15 秒
+        """
+        speed = 0
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        request = urllib.request.Request(url, headers={"User-Agent": "Wget/1.21"})
+        # 在终端里每 0.2 秒刷新一次; 输出被重定向到文件(日志、自动化测试)时 5 秒一次, 免得刷屏
+        interval = 0.2 if sys.stdout.isatty() else 5
+        try:
+            with opener.open(request, timeout=15) as resp, open(path, "wb") as f:
+                total = int(resp.headers.get("Content-Length") or 0)
+                done, start, last_print = 0, time.time(), 0
+                recent = collections.deque([(start, 0)])  # 最近约 2 秒的 (时间, 已下载), 算实时速度
+                while True:
+                    chunk = resp.read(64 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    done += len(chunk)
+                    now = time.time()
+                    used = now - start
+                    speed = done / max(used, 0.001)  # 平均速度, 用来判断这个源快不快
+                    recent.append((now, done))
+                    while len(recent) > 2 and now - recent[0][0] > 2:
+                        recent.popleft()
+                    if now - last_print >= interval:
+                        last_print = now
+                        span = now - recent[0][0]
+                        Tool._draw_progress(done, total, (done - recent[0][1]) / span if span > 0 else speed)
+                    if give_up_if_slow and used > SLOW_CHECK_SECONDS and speed < SLOW_SPEED:
+                        print("")
+                        PrintUtils.print_warn("速度较慢({}), 先试试下一个下载源".format(Tool._format_speed(speed)))
+                        return False, speed
+            Tool._draw_progress(done, total, speed)
+            print("")
+            return (total == 0 or done == total), speed
+        except Exception as e:
+            print("")
+            PrintUtils.print_warn("下载失败: {}".format(e))
+            return False, 0
 
-        return None, None, None
+    def _download_package(self, client, path):
+        """按 DOWNLOAD_SOURCES 的顺序尝试, 下到完整的 deb 就返回 True"""
+        params = dict(client, file=client["file"].format(arch=osarch))
+        slow_sources = []
+        for source_name, template in DOWNLOAD_SOURCES:
+            url = template.format(**params)
+            PrintUtils.print_info("从 {} 下载: {}".format(source_name, url))
+            ok, speed = self._download_from(url, path, give_up_if_slow=True)
+            if ok and self._code(CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()) == 0:
+                return True
+            if speed > 0:
+                slow_sources.append((speed, source_name, url))
+        # 没有一个源够快: 用测下来最快的那个下完
+        for speed, source_name, url in sorted(slow_sources, reverse=True):
+            PrintUtils.print_warn("几个下载源都比较慢, 改用其中最快的 {}({}) 下完, 请耐心等待".format(source_name, self._format_speed(speed)))
+            ok, _ = self._download_from(url, path, give_up_if_slow=False)
+            if ok and self._code(CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()) == 0:
+                return True
+        return False
 
-    def _install_deb_package(self, package_url):
+    def _install_deb_package(self, client):
         temp_file = "/tmp/fishros_proxy_tool.deb"
-        download = self._run_cmd(
-            'wget --no-proxy "{}" -O "{}"'.format(package_url, temp_file),
-            300,
-            "下载代理工具安装包中...",
-        )
-        if self._code(download) != 0:
+        if not self._download_package(client, temp_file):
+            self._run_cmd('rm -f "{}"'.format(temp_file), 10)
             return False
 
         install = self._run_cmd(
@@ -147,32 +235,34 @@ class Tool(BaseTool):
         PrintUtils.print_info(clash_link)
         return False
 
-    def _setup_proxy_alias(self, user_home):
+    def _setup_proxy_alias(self, user_home, port):
         bashrc = os.path.join(user_home.rstrip("/"), ".bashrc")
         if not os.path.exists(bashrc):
             FileUtils.new(user_home.rstrip("/") + "/", name=".bashrc", data="")
 
         start_flag = "# >>> fishros proxy alias >>>"
         end_flag = "# <<< fishros proxy alias <<<"
+        # 端口是所选客户端的默认端口, 在客户端里改过端口的话改这里的 FISHROS_PROXY_PORT 即可
         block = (
-            "{}\n"
-            "proxy_add(){\n"
-            "  export http_proxy=http://127.0.0.1:7890\n"
-            "  export https_proxy=http://127.0.0.1:7890\n"
-            "  export all_proxy=socks5://127.0.0.1:7890\n"
-            "  echo 'proxy on: 127.0.0.1:7890'\n"
-            "}\n"
-            "proxy_off(){\n"
+            "{start}\n"
+            "FISHROS_PROXY_PORT={port}\n"
+            "proxy_add(){{\n"
+            "  export http_proxy=http://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  export https_proxy=http://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  export all_proxy=socks5://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  echo \"proxy on: 127.0.0.1:$FISHROS_PROXY_PORT\"\n"
+            "}}\n"
+            "proxy_off(){{\n"
             "  unset http_proxy https_proxy all_proxy\n"
             "  echo 'proxy off'\n"
-            "}\n"
-            "proxy_status(){\n"
+            "}}\n"
+            "proxy_status(){{\n"
             '  echo "http_proxy=$http_proxy"\n'
             '  echo "https_proxy=$https_proxy"\n'
             '  echo "all_proxy=$all_proxy"\n'
-            "}\n"
-            "{}"
-        ).format(start_flag, end_flag)
+            "}}\n"
+            "{end}"
+        ).format(start=start_flag, end=end_flag, port=port)
 
         with open(bashrc, "r") as f:
             data = f.read()
@@ -189,7 +279,7 @@ class Tool(BaseTool):
         with open(bashrc, "w") as f:
             f.write(data)
 
-        PrintUtils.print_success("已写入终端快捷命令: proxy_add/proxy_off/proxy_status")
+        PrintUtils.print_success("已写入终端快捷命令: proxy_add/proxy_off/proxy_status(端口 {})".format(port))
 
     def _which(self, name):
         result = self._run_cmd("command -v {}".format(name), 10)
@@ -197,26 +287,15 @@ class Tool(BaseTool):
             return str(self._out(result)[0]).strip()
         return None
 
-    def _print_launch_tips(self, mode):
+    def _print_launch_tips(self, client):
         PrintUtils.print_delay("==========使用方法===========")
-        if mode == 1:
-            cmd_path = self._which("clash-verge")
-            if cmd_path is None:
-                cmd_path = self._which("clash-verge-rev")
-            if cmd_path:
-                PrintUtils.print_delay("1.启动有界面客户端: {}".format(cmd_path))
-            else:
-                PrintUtils.print_delay(
-                    "1.启动有界面客户端: 在应用菜单中搜索 Clash Verge"
-                )
+        cmd_path = None
+        for cmd in client["cmds"]:
+            cmd_path = cmd_path or self._which(cmd)
+        if cmd_path:
+            PrintUtils.print_delay("1.启动客户端: 在应用菜单中搜索 {}, 或终端运行 {}".format(client["name"], cmd_path))
         else:
-            cmd_path = self._which("mihomo-party")
-            if cmd_path is None:
-                cmd_path = self._which("clash-party")
-            if cmd_path:
-                PrintUtils.print_delay("1.启动工具: {}".format(cmd_path))
-            else:
-                PrintUtils.print_delay("1.启动工具: 在应用菜单中搜索 mihomo-party")
+            PrintUtils.print_delay("1.启动客户端: 在应用菜单中搜索 {}".format(client["name"]))
 
         PrintUtils.print_delay("2.开启终端代理: proxy_add")
         PrintUtils.print_delay("3.关闭终端代理: proxy_off")
@@ -225,22 +304,23 @@ class Tool(BaseTool):
 
     def install_proxy_tool(self):
         mode = self._choose_install_mode()
-        if mode not in [1, 2]:
+        if mode == 0:
+            return BaseTool.BACK
+        if mode not in CLIENTS:
             PrintUtils.print_warn("已取消安装")
             return False
-
-        package_name, package_url, file_name = self._resolve_package(mode)
-        if package_name is None:
+        if osarch not in ["amd64", "arm64"]:
             PrintUtils.print_error("当前仅支持 amd64/arm64 架构")
             return False
 
+        client = CLIENTS[mode]
         PrintUtils.print_info("当前架构: {}".format(osarch))
-        PrintUtils.print_info("准备安装: {} ({})".format(package_name, file_name))
-        if not self._install_deb_package(package_url):
+        PrintUtils.print_info("准备安装: {} {}".format(client["name"], client["tag"]))
+        if not self._install_deb_package(client):
             PrintUtils.print_error("安装失败，请检查网络、系统软件源或依赖修复状态")
             return False
 
-        PrintUtils.print_success("{} 安装完成".format(package_name))
+        PrintUtils.print_success("{} 安装完成".format(client["name"]))
 
         subscribe_url = self._read_input_subscription()
         if subscribe_url:
@@ -254,12 +334,12 @@ class Tool(BaseTool):
 
         user_homes = FileUtils.getusershome()
         if len(user_homes) > 0:
-            self._setup_proxy_alias(user_homes[0])
+            self._setup_proxy_alias(user_homes[0], client["port"])
         else:
             PrintUtils.print_warn("未找到用户目录，跳过 proxy_add 快捷命令写入")
 
-        self._print_launch_tips(mode)
+        self._print_launch_tips(client)
         return True
 
     def run(self):
-        self.install_proxy_tool()
+        return self.install_proxy_tool()
