@@ -166,7 +166,7 @@ tools = {
         "dep": [],
     },
     23: {
-        "tip": "一键安装:Chrome浏览器(系统自带的Firefox在国内常无法更新时使用)",
+        "tip": "一键安装:Chrome浏览器(强烈推荐下载设置成默认浏览器)",
         "type": CAT_DAILY,
         "tool": "tools/tool_install_chrome.py",
         "dep": [],

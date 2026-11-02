@@ -46,6 +46,7 @@ class Tool(BaseTool):
             return False
         PrintUtils.print_success("Chrome {} 安装完成".format(version))
         PrintUtils.print_info("启动: 在应用菜单中搜索 Chrome, 或终端运行 google-chrome")
+        PrintUtils.print_info("推荐设为默认浏览器: 首次打开 Chrome 时按提示设置, 或在 设置 -> 默认应用 -> 网页 里选 Google Chrome")
         return True
 
     def run(self):
