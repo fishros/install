@@ -165,6 +165,12 @@ tools = {
         "tool": "tools/tool_install_qq.py",
         "dep": [],
     },
+    23: {
+        "tip": "一键安装:Chrome浏览器(系统自带的Firefox在国内常无法更新时使用)",
+        "type": CAT_DAILY,
+        "tool": "tools/tool_install_chrome.py",
+        "dep": [],
+    },
 }
 
 

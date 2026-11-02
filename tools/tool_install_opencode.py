@@ -12,32 +12,44 @@ from .tool_install_nodejs import Tool as NodejsTool
 NPM_APPS = {
     1: {"name": "OpenCode", "tip": "OpenCode: 开源AI编程助手(命令行/网页)",
         "pkg": "opencode-ai", "bin": "opencode", "node": (20, 0),
-        "usage": ["启动: opencode", "网页版: opencode web"]},
+        "usage": ["1.启动: 在项目目录下运行 opencode (网页版: opencode web)",
+                  "2.第一次用: 在界面里输入 /connect, 选择模型供应商并填入 API Key(DeepSeek、Kimi、智谱等国内的也支持)"]},
     2: {"name": "Codex", "tip": "Codex: OpenAI 的命令行编程助手",
         "pkg": "@openai/codex", "bin": "codex", "node": (16, 0),
-        "usage": ["启动: codex (首次使用按提示登录 OpenAI 账号或配置 API Key)"]},
+        "usage": ["1.启动: 在项目目录下运行 codex",
+                  "2.第一次用: 按提示登录 ChatGPT 账号或填 OpenAI API Key; 想用国内模型, 可以用菜单[18]->[6] CC Switch 一键配置"]},
     3: {"name": "Claude Code", "tip": "Claude Code: Anthropic 的命令行编程助手",
         "pkg": "@anthropic-ai/claude-code", "bin": "claude", "node": (22, 0),
-        "usage": ["启动: claude (需要 Anthropic 账号, 或用 CC Switch 切换到其它兼容的模型供应商)"]},
+        "usage": ["1.启动: 在项目目录下运行 claude",
+                  "2.第一次用: 登录 Anthropic 账号; 想用国内模型(DeepSeek 等提供的 Anthropic 兼容接口), 可以用菜单[18]->[6] CC Switch 一键配置"]},
     4: {"name": "DeepSeek Harness", "tip": "DeepSeek Harness(dsh): DeepSeek 官方的智能体框架(预览版)",
         "pkg": "@deepseek-ai/dsh", "bin": "dsh", "node": (20, 0),
-        "usage": ["网页版: dsh web (启动后在浏览器打开它打印的 http://127.0.0.1:3080/?token=... 地址)",
-                  "查看用法: dsh --help", "目前是预览版, 用法可能会变"]},
+        "usage": ["1.启动: 在项目目录下运行 dsh web (直接输入 dsh 会报 --profile is required)",
+                  "2.在浏览器里打开它打印的完整地址 http://127.0.0.1:3080/?token=... (要带上 token), 在网页里配置 DeepSeek API Key",
+                  "3.网页需要较新的浏览器: Ubuntu 22.04 自带的 snap 版 Firefox 在国内一般没法更新,",
+                  "  打开后报 Intl.Segmenter is not a constructor 的话, 请改用 Chrome(一键安装主菜单[23]可安装)",
+                  "4.不开网页, 单次执行任务: dsh --profile headless \"要做的事\"; 更多用法: dsh --help",
+                  "5.目前是预览版, 用法可能会变"]},
     5: {"name": "Pi", "tip": "Pi: 极简、可扩展的命令行编程助手",
         "pkg": "@earendil-works/pi-coding-agent", "bin": "pi", "node": (22, 19),
-        "usage": ["启动: pi"]},
+        "usage": ["1.启动: 在项目目录下运行 pi",
+                  "2.第一次用: 在界面里输入 /login 登录模型账号(或先设好 API Key 环境变量), 再用 /model 选择模型"]},
 }
+# 命令行工具都要先接入模型账号或 API Key 才能干活, 装完统一提醒一句
+NPM_COMMON_USAGE = "提示: 这些 AI 编程工具都要先接入模型账号或 API Key 才能使用, 打开界面后按上面的第一次使用说明配置"
 # 从 GitHub Releases 下载 deb 安装的图形界面工具. tag 是自动获取最新版失败时用的版本;
 # file 里的 {tag} 是带 v 的版本号, {ver} 是不带 v 的; arch 是系统架构到安装包命名的对应
 DEB_APPS = {
     6: {"name": "CC Switch", "tip": "CC Switch: 图形界面, 一键切换 Claude Code/Codex 等工具的模型供应商",
         "repo": "farion1231/cc-switch", "tag": "v4.0.24", "deb": "cc-switch",
         "file": "CC-Switch-{tag}-Linux-{arch}.deb", "arch": {"amd64": "x86_64", "arm64": "arm64"},
-        "usage": ["启动: 在应用菜单中搜索 CC Switch"]},
+        "usage": ["1.启动: 在应用菜单中搜索 CC Switch, 或终端运行 cc-switch",
+                  "2.添加模型供应商(填 API 地址和 Key), 然后一键切换 Claude Code、Codex 等工具使用的供应商"]},
     7: {"name": "Cockpit Tools", "tip": "Cockpit Tools: 图形界面, 管理多个AI编程工具的账号和额度",
         "repo": "jlcodes99/cockpit-tools", "tag": "v1.3.78", "deb": "cockpit-tools",
         "file": "Cockpit.Tools_{ver}_{arch}.deb", "arch": {"amd64": "amd64", "arm64": "arm64"},
-        "usage": ["启动: 在应用菜单中搜索 Cockpit Tools"]},
+        "usage": ["1.启动: 在应用菜单中搜索 Cockpit Tools",
+                  "2.导入各个 AI 编程工具的账号后, 可以查看额度、一键切换账号"]},
 }
 
 
@@ -427,8 +439,10 @@ class Tool(BaseTool):
                 return False
 
         PrintUtils.print_success("{}安装完成".format(name))
+        PrintUtils.print_info("==========使用方法===========")
         for line in self.app["usage"]:
             PrintUtils.print_info(line)
+        PrintUtils.print_warn(NPM_COMMON_USAGE)
         return True
 
     def uninstall_npm_app(self):
@@ -496,6 +510,7 @@ class Tool(BaseTool):
             PrintUtils.print_error("{}安装失败(Ubuntu 22.04以下的系统可能缺少依赖), 请把上面的报错信息发到鱼香社区求助".format(app["name"]))
             return False
         PrintUtils.print_success("{}安装完成".format(app["name"]))
+        PrintUtils.print_info("==========使用方法===========")
         for line in app["usage"]:
             PrintUtils.print_info(line)
         return True
