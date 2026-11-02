@@ -135,7 +135,7 @@ tools = {
         "dep": [],
     },
     18: {
-        "tip": "一键安装/卸载:OpenCode(AI编程助手)",
+        "tip": "一键安装/卸载:AI编程工具(OpenCode/Codex/Claude Code/DeepSeek/Pi/CC Switch/Cockpit Tools)",
         "type": CAT_DEV_TOOLS,
         "tool": "tools/tool_install_opencode.py",
         "dep": [6],

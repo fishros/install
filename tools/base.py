@@ -1531,6 +1531,149 @@ fi
             return False
 
 
+class DownloadUtils:
+    """
+    从多个下载源里挑能用的下大文件(GitHub Releases 的安装包等), 带进度条、实时速度和剩余时间.
+    国内直连 GitHub 下载基本下不动, 一般按「公共加速站 → 兜底源」排列
+    """
+
+    # 2026-11 国内服务器实测可用的 GitHub 加速站, 快但时好时坏, 有时会拒绝某些仓库
+    github_mirrors = [
+        ("ghfast.top 加速", "https://ghfast.top/https://github.com/"),
+        ("gh-proxy.com 加速", "https://gh-proxy.com/https://github.com/"),
+    ]
+    # 每个源先下 15 秒, 平均速度达到 200KB/s 就用它下完; 都达不到时, 用测下来最快的那个源下完
+    # (不能简单地「慢了就换下一个」: 实测 gh-proxy.com 89KB/s 被放弃, 最后落到只有 15KB/s 的源, 反而更慢)
+    slow_check_seconds = 15
+    slow_speed = 200 * 1024
+
+    @staticmethod
+    def github_sources(repo, tag, file_name):
+        """GitHub Releases 文件的各个下载地址: 加速站在前, GitHub 直连最后"""
+        path = "{}/releases/download/{}/{}".format(repo, tag, file_name)
+        return [(name, prefix + path) for name, prefix in DownloadUtils.github_mirrors] + \
+            [("GitHub 直连", "https://github.com/" + path)]
+
+    @staticmethod
+    def github_latest_tag(repo):
+        """
+        读 github.com/<repo>/releases/latest 的跳转地址得到最新版本号(如 v4.0.24), 失败返回 None.
+        这个请求很小, 国内直连也能拿到; 直连不通再走加速站
+        """
+        import urllib.error
+        import urllib.request
+
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs):
+                return None
+
+        opener = urllib.request.build_opener(NoRedirect, urllib.request.ProxyHandler({}))
+        prefixes = ["https://github.com/"] + [prefix for _, prefix in DownloadUtils.github_mirrors]
+        for prefix in prefixes:
+            try:
+                opener.open(urllib.request.Request(prefix + repo + "/releases/latest", method="HEAD"), timeout=10)
+            except urllib.error.HTTPError as e:
+                match = re.search(r"/releases/tag/([^/?#]+)$", e.headers.get("Location") or "")
+                if match:
+                    return match.group(1)
+            except Exception:
+                pass
+        return None
+
+    @staticmethod
+    def format_speed(speed):
+        if speed >= 1048576:
+            return "{:.1f}MB/s".format(speed / 1048576.0)
+        return "{:.0f}KB/s".format(speed / 1024.0)
+
+    @staticmethod
+    def draw_progress(done, total, speed):
+        """在同一行画进度条: [████████░░░░░░░░]  45%  17.5/38.7MB  2.4MB/s  剩余 9s"""
+        if total:
+            left = (total - done) / speed if speed > 0 else -1
+            eta = "--" if left < 0 else ("{}m{:02d}s".format(int(left) // 60, int(left) % 60) if left >= 60 else "{}s".format(int(left)))
+            info = " {:3.0f}%  {:.1f}/{:.1f}MB  {}  剩余 {}".format(
+                done * 100.0 / total, done / 1048576.0, total / 1048576.0, DownloadUtils.format_speed(speed), eta)
+            # 进度条宽度随终端宽度变化; info 里的「剩余」两个汉字各占 2 列, 多留几列余量免得折行
+            width = max(10, min(40, shutil.get_terminal_size((80, 20)).columns - len(info) - 10))
+            filled = int(width * done / total)
+            line = "  [{}{}]{}".format("█" * filled, "░" * (width - filled), info)
+        else:
+            line = "  已下载 {:.1f}MB  {}".format(done / 1048576.0, DownloadUtils.format_speed(speed))
+        sys.stdout.write("\r" + line + "   ")
+        sys.stdout.flush()
+
+    @staticmethod
+    def download_from(url, path, give_up_if_slow):
+        """
+        下载到 path, 返回 (是否下完, 平均速度 B/s). give_up_if_slow 时, 下了 slow_check_seconds 秒平均速度还太慢就放弃.
+        不走环境变量里的代理(和 wget --no-proxy 一致), 超时 15 秒
+        """
+        import collections
+        import urllib.request
+
+        speed = 0
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        request = urllib.request.Request(url, headers={"User-Agent": "Wget/1.21"})
+        # 在终端里每 0.2 秒刷新一次; 输出被重定向到文件(日志、自动化测试)时 5 秒一次, 免得刷屏
+        interval = 0.2 if sys.stdout.isatty() else 5
+        try:
+            with opener.open(request, timeout=15) as resp, open(path, "wb") as f:
+                total = int(resp.headers.get("Content-Length") or 0)
+                done, start, last_print = 0, time.time(), 0
+                recent = collections.deque([(start, 0)])  # 最近约 2 秒的 (时间, 已下载), 算实时速度
+                while True:
+                    chunk = resp.read(64 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    done += len(chunk)
+                    now = time.time()
+                    used = now - start
+                    speed = done / max(used, 0.001)  # 平均速度, 用来判断这个源快不快
+                    recent.append((now, done))
+                    while len(recent) > 2 and now - recent[0][0] > 2:
+                        recent.popleft()
+                    if now - last_print >= interval:
+                        last_print = now
+                        span = now - recent[0][0]
+                        DownloadUtils.draw_progress(done, total, (done - recent[0][1]) / span if span > 0 else speed)
+                    if give_up_if_slow and used > DownloadUtils.slow_check_seconds and speed < DownloadUtils.slow_speed:
+                        print("")
+                        PrintUtils.print_warn("速度较慢({}), 先试试下一个下载源".format(DownloadUtils.format_speed(speed)))
+                        return False, speed
+            DownloadUtils.draw_progress(done, total, speed)
+            print("")
+            return (total == 0 or done == total), speed
+        except Exception as e:
+            print("")
+            PrintUtils.print_warn("下载失败: {}".format(e))
+            return False, 0
+
+    @staticmethod
+    def download_deb(sources, path):
+        """sources 是 [(名称, 地址), ...], 按顺序尝试, 下到完整的 deb 就返回 True"""
+        def deb_ok():
+            return CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()[0] == 0
+
+        slow_sources = []
+        for source_name, url in sources:
+            PrintUtils.print_info("从 {} 下载: {}".format(source_name, url))
+            ok, speed = DownloadUtils.download_from(url, path, give_up_if_slow=True)
+            if ok and deb_ok():
+                return True
+            if speed > 0:
+                slow_sources.append((speed, source_name, url))
+        # 没有一个源够快: 用测下来最快的那个下完
+        for speed, source_name, url in sorted(slow_sources, reverse=True):
+            PrintUtils.print_warn("几个下载源都比较慢, 改用其中最快的 {}({}) 下完, 请耐心等待".format(
+                source_name, DownloadUtils.format_speed(speed)))
+            ok, _ = DownloadUtils.download_from(url, path, give_up_if_slow=False)
+            if ok and deb_ok():
+                return True
+        return False
+
+
 class AptUtils:
     @staticmethod
     def checkapt():

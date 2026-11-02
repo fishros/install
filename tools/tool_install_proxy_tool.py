@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-import collections
 import os
-import shutil
-import sys
-import time
-import urllib.request
 from urllib.parse import quote
 
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, ChooseTask
+from .base import PrintUtils, CmdTask, FileUtils, ChooseTask, DownloadUtils
 from .base import osarch
 
 # 可选的客户端. port 是各客户端默认的混合代理端口, 写进 proxy_add 快捷命令
@@ -36,17 +31,6 @@ CLIENTS = {
     },
 }
 
-# 国内直连 GitHub 基本下不动, 按顺序尝试: 两个公共 GitHub 加速站(快但时好时坏, 有时会拒绝某些仓库),
-# 最后用 repo.trojan-cdn.com 兜底(一直能下, 但国内只有十几 KB/s). 2026-11 在国内服务器实测
-DOWNLOAD_SOURCES = [
-    ("ghfast.top 加速", "https://ghfast.top/https://github.com/{repo}/releases/download/{tag}/{file}"),
-    ("gh-proxy.com 加速", "https://gh-proxy.com/https://github.com/{repo}/releases/download/{tag}/{file}"),
-    ("trojan-cdn 镜像", "https://repo.trojan-cdn.com/{cdn_dir}/{file}"),
-]
-# 每个源先下 15 秒, 平均速度达到 200KB/s 就用它下完; 都达不到时, 用测下来最快的那个源下完
-# (不能简单地「慢了就换下一个」: 实测 gh-proxy.com 89KB/s 被放弃, 最后落到只有 15KB/s 的 trojan-cdn, 反而更慢)
-SLOW_CHECK_SECONDS = 15
-SLOW_SPEED = 200 * 1024
 
 
 class Tool(BaseTool):
@@ -83,92 +67,13 @@ class Tool(BaseTool):
         code, _ = ChooseTask(mode_dic, "请选择代理工具(不知道选哪个就选1):", False).run()
         return code
 
-    @staticmethod
-    def _format_speed(speed):
-        if speed >= 1048576:
-            return "{:.1f}MB/s".format(speed / 1048576.0)
-        return "{:.0f}KB/s".format(speed / 1024.0)
-
-    @staticmethod
-    def _draw_progress(done, total, speed):
-        """在同一行画进度条: [████████░░░░░░░░]  45%  17.5/38.7MB  2.4MB/s  剩余 9s"""
-        if total:
-            left = (total - done) / speed if speed > 0 else -1
-            eta = "--" if left < 0 else ("{}m{:02d}s".format(int(left) // 60, int(left) % 60) if left >= 60 else "{}s".format(int(left)))
-            info = " {:3.0f}%  {:.1f}/{:.1f}MB  {}  剩余 {}".format(
-                done * 100.0 / total, done / 1048576.0, total / 1048576.0, Tool._format_speed(speed), eta)
-            # 进度条宽度随终端宽度变化; info 里的「剩余」两个汉字各占 2 列, 多留几列余量免得折行
-            width = max(10, min(40, shutil.get_terminal_size((80, 20)).columns - len(info) - 10))
-            filled = int(width * done / total)
-            line = "  [{}{}]{}".format("█" * filled, "░" * (width - filled), info)
-        else:
-            line = "  已下载 {:.1f}MB  {}".format(done / 1048576.0, Tool._format_speed(speed))
-        sys.stdout.write("\r" + line + "   ")
-        sys.stdout.flush()
-
-    @staticmethod
-    def _download_from(url, path, give_up_if_slow):
-        """
-        下载到 path, 返回 (是否下完, 平均速度 B/s). give_up_if_slow 时, 下了 SLOW_CHECK_SECONDS 秒平均速度还太慢就放弃.
-        不走环境变量里的代理(和原来 wget --no-proxy 一致), 超时 15 秒
-        """
-        speed = 0
-        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-        request = urllib.request.Request(url, headers={"User-Agent": "Wget/1.21"})
-        # 在终端里每 0.2 秒刷新一次; 输出被重定向到文件(日志、自动化测试)时 5 秒一次, 免得刷屏
-        interval = 0.2 if sys.stdout.isatty() else 5
-        try:
-            with opener.open(request, timeout=15) as resp, open(path, "wb") as f:
-                total = int(resp.headers.get("Content-Length") or 0)
-                done, start, last_print = 0, time.time(), 0
-                recent = collections.deque([(start, 0)])  # 最近约 2 秒的 (时间, 已下载), 算实时速度
-                while True:
-                    chunk = resp.read(64 * 1024)
-                    if not chunk:
-                        break
-                    f.write(chunk)
-                    done += len(chunk)
-                    now = time.time()
-                    used = now - start
-                    speed = done / max(used, 0.001)  # 平均速度, 用来判断这个源快不快
-                    recent.append((now, done))
-                    while len(recent) > 2 and now - recent[0][0] > 2:
-                        recent.popleft()
-                    if now - last_print >= interval:
-                        last_print = now
-                        span = now - recent[0][0]
-                        Tool._draw_progress(done, total, (done - recent[0][1]) / span if span > 0 else speed)
-                    if give_up_if_slow and used > SLOW_CHECK_SECONDS and speed < SLOW_SPEED:
-                        print("")
-                        PrintUtils.print_warn("速度较慢({}), 先试试下一个下载源".format(Tool._format_speed(speed)))
-                        return False, speed
-            Tool._draw_progress(done, total, speed)
-            print("")
-            return (total == 0 or done == total), speed
-        except Exception as e:
-            print("")
-            PrintUtils.print_warn("下载失败: {}".format(e))
-            return False, 0
-
     def _download_package(self, client, path):
-        """按 DOWNLOAD_SOURCES 的顺序尝试, 下到完整的 deb 就返回 True"""
-        params = dict(client, file=client["file"].format(arch=osarch))
-        slow_sources = []
-        for source_name, template in DOWNLOAD_SOURCES:
-            url = template.format(**params)
-            PrintUtils.print_info("从 {} 下载: {}".format(source_name, url))
-            ok, speed = self._download_from(url, path, give_up_if_slow=True)
-            if ok and self._code(CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()) == 0:
-                return True
-            if speed > 0:
-                slow_sources.append((speed, source_name, url))
-        # 没有一个源够快: 用测下来最快的那个下完
-        for speed, source_name, url in sorted(slow_sources, reverse=True):
-            PrintUtils.print_warn("几个下载源都比较慢, 改用其中最快的 {}({}) 下完, 请耐心等待".format(source_name, self._format_speed(speed)))
-            ok, _ = self._download_from(url, path, give_up_if_slow=False)
-            if ok and self._code(CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()) == 0:
-                return True
-        return False
+        """GitHub 加速站在前, repo.trojan-cdn.com 兜底(一直能下, 但国内只有十几 KB/s)"""
+        file_name = client["file"].format(arch=osarch)
+        sources = DownloadUtils.github_sources(client["repo"], client["tag"], file_name)
+        sources = [s for s in sources if s[0] != "GitHub 直连"]  # 直连基本下不动, 用 trojan-cdn 兜底
+        sources.append(("trojan-cdn 镜像", "https://repo.trojan-cdn.com/{}/{}".format(client["cdn_dir"], file_name)))
+        return DownloadUtils.download_deb(sources, path)
 
     def _install_deb_package(self, client):
         temp_file = "/tmp/fishros_proxy_tool.deb"
