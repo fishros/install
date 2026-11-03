@@ -4,9 +4,12 @@ import os
 import re
 
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, ChooseTask, DownloadUtils
+from .base import PrintUtils, CmdTask, ChooseTask, DownloadUtils, AdUtils
 from .base import osarch
 from .tool_install_nodejs import Tool as NodejsTool
+
+# CC Switch 装完后提示里的中转模型供应商注册链接; 可在官网后台隐藏页 /admin/install/aff 配置, 留空则不提示
+DEFAULT_CC_SWITCH_RELAY_URL = "https://www.0809.one/sign-up?aff=8Zdc"
 
 # npm 安装的命令行工具. node 是需要的最低 Node.js 版本(取自各包 package.json 的 engines, 没写的按 20 算)
 NPM_APPS = {
@@ -46,12 +49,9 @@ DEB_APPS = {
         "repo": "farion1231/cc-switch", "tag": "v4.0.24", "deb": "cc-switch",
         "file": "CC-Switch-{tag}-Linux-{arch}.deb", "arch": {"amd64": "x86_64", "arm64": "arm64"},
         "usage": ["1.启动: 在应用菜单中搜索 CC Switch, 或终端运行 cc-switch",
-                  "2.添加模型供应商(填 API 地址和 Key), 然后一键切换 Claude Code、Codex 等工具使用的供应商"]},
-    7: {"name": "Cockpit Tools", "tip": "Cockpit Tools: 图形界面, 管理多个AI编程工具的账号和额度",
-        "repo": "jlcodes99/cockpit-tools", "tag": "v1.3.78", "deb": "cockpit-tools",
-        "file": "Cockpit.Tools_{ver}_{arch}.deb", "arch": {"amd64": "amd64", "arm64": "arm64"},
-        "usage": ["1.启动: 在应用菜单中搜索 Cockpit Tools",
-                  "2.导入各个 AI 编程工具的账号后, 可以查看额度、一键切换账号"]},
+                  "2.添加相应工具的模型供应商即可使用{relay}"],
+        "relay": {"link_name": "cc_switch_relay", "default": DEFAULT_CC_SWITCH_RELAY_URL,
+                  "text": "(如需中转模型供应商, 可点击 {} 获取)"}},
 }
 
 
@@ -513,7 +513,14 @@ class Tool(BaseTool):
             return False
         PrintUtils.print_success("{}安装完成".format(app["name"]))
         PrintUtils.print_info("==========使用方法===========")
-        for line in app["usage"]:
+        usage = app["usage"]
+        relay = app.get("relay")
+        if relay:
+            # 中转供应商链接从官网后台读, 后台留空就不提示这一段
+            url = AdUtils.link(relay["link_name"], relay["default"])
+            suffix = relay["text"].format(url) if url else ""
+            usage = [line.replace("{relay}", suffix) for line in usage]
+        for line in usage:
             PrintUtils.print_info(line)
         return True
 
