@@ -11,23 +11,30 @@ from .base import osarch
 CLIENTS = {
     1: {
         "name": "FlClash",
-        "tip": "FlClash(推荐): 有界面, 安装包最小(约40MB)",
+        "tip": "FlClash: 有界面, 安装包最小(约40MB); 虚拟机里可能白屏, 建议改用 Clash Verge",
         "repo": "chen08209/FlClash",
         "tag": "v0.9.2",
         "cdn_dir": "FlClash/v0.9.2",
         "file": "FlClash-0.9.2-linux-{arch}.deb",
         "port": 7890,
         "cmds": ["FlClash", "flclash"],
+        "deb": "flclash",
+        # Flutter 应用在虚拟机的 vmware/virtualbox 显卡上默认渲染会白屏, 待确认有效的开关后再填
+        "desktop_env": "",
     },
     2: {
         "name": "Clash Verge Rev",
-        "tip": "Clash Verge Rev: 有界面(约100MB)",
+        "tip": "Clash Verge Rev(推荐): 有界面(约100MB), 虚拟机/真机都能正常显示",
         "repo": "clash-verge-rev/clash-verge-rev",
         "tag": "v2.5.8",
         "cdn_dir": "clash-verge-rev/Clash%20Verge%20Rev%20v2.5.8",
         "file": "Clash.Verge_2.5.8_{arch}.deb",
         "port": 7897,
         "cmds": ["clash-verge", "clash-verge-rev"],
+        "deb": "clash-verge",
+        # WebKitGTK 的 DMABUF 渲染在 vmware/virtualbox 虚拟机显卡上会白屏, 关掉它改走更稳的渲染路径;
+        # 真机加上只是少用一个 GPU 优化, 无副作用, 所以默认都加(2026-11 在 136 VMware 实测有效)
+        "desktop_env": "WEBKIT_DISABLE_DMABUF_RENDERER=1",
     },
 }
 
@@ -66,7 +73,7 @@ class Tool(BaseTool):
 
     def _choose_install_mode(self):
         mode_dic = {code: client["tip"] for code, client in CLIENTS.items()}
-        code, _ = ChooseTask(mode_dic, "请选择代理工具(不知道选哪个就选1):", False).run()
+        code, _ = ChooseTask(mode_dic, "请选择代理工具(不知道选哪个就选2 Clash Verge):", False).run()
         return code
 
     def _download_package(self, client, path):
@@ -199,6 +206,24 @@ class Tool(BaseTool):
             return str(self._out(result)[0]).strip()
         return None
 
+    def _patch_desktop_env(self, client):
+        """
+        给桌面启动项的 Exec 前加上 env 变量, 解决这些 GUI 在虚拟机显卡上白屏的问题.
+        从应用菜单点图标启动时才会读 .desktop, 所以要改这里(终端直接运行命令的用户需要自己带变量).
+        幂等: 已经加过就不再加
+        """
+        env = client.get("desktop_env")
+        deb = client.get("deb")
+        if not env or not deb:
+            return
+        # .desktop 文件名可能带空格(如 "Clash Verge.desktop"), 用 while read 逐行处理
+        cmd = (
+            "dpkg -L {deb} 2>/dev/null | grep -E '/applications/.*\\.desktop$' | while read -r f; do "
+            "grep -q 'env {env}' \"$f\" || sudo sed -i 's#^Exec=#Exec=env {env} #' \"$f\"; "
+            "done; sudo update-desktop-database >/dev/null 2>&1 || true"
+        ).format(deb=deb, env=env)
+        self._run_cmd(cmd, 20, "优化 {} 在虚拟机里的启动方式(避免界面白屏)...".format(client["name"]))
+
     def _print_launch_tips(self, client):
         PrintUtils.print_delay("==========使用方法===========")
         cmd_path = None
@@ -233,6 +258,7 @@ class Tool(BaseTool):
             return False
 
         PrintUtils.print_success("{} 安装完成".format(client["name"]))
+        self._patch_desktop_env(client)
 
         subscribe_url = self._read_input_subscription()
         if subscribe_url:
