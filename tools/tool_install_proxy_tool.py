@@ -3,7 +3,7 @@ import os
 from urllib.parse import quote
 
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, ChooseTask, DownloadUtils
+from .base import PrintUtils, CmdTask, FileUtils, ChooseTask, DownloadUtils, AdUtils
 from .base import osarch
 
 # 可选的客户端. port 是各客户端默认的混合代理端口, 写进 proxy_add 快捷命令
@@ -34,7 +34,9 @@ CLIENTS = {
 
 
 class Tool(BaseTool):
-    RECOMMEND_SUBSCRIBE_URL = "https://fishros.org.cn/forum/topic/668"
+    # 推荐的订阅注册链接在官网后台隐藏页 /admin/install/aff 里配置, 读不到官网时用这个默认值.
+    # (原来指向论坛帖子 topic/668, 该帖 2024-10 已删除; 帖子里的 .au 注册地址国内也已连不上)
+    DEFAULT_SUBSCRIBE_URL = "https://portal.shadowsocks.nz/aff.php?aff=41638"
 
     def __init__(self):
         self.name = "一键安装 Linux 代理科学上网工具"
@@ -120,10 +122,15 @@ class Tool(BaseTool):
         self._run_cmd('rm -f "{}"'.format(temp_file), 10)
         return True
 
+    def _recommend_url(self):
+        return AdUtils.link("proxy_subscribe", self.DEFAULT_SUBSCRIBE_URL)
+
     def _read_input_subscription(self):
-        PrintUtils.print_warn(
-            "请输入订阅地址(若无请访问 {} 获取)".format(self.RECOMMEND_SUBSCRIBE_URL)
-        )
+        recommend = self._recommend_url()
+        if recommend:
+            PrintUtils.print_warn("请输入订阅地址(若无请访问 {} 获取)".format(recommend))
+        else:
+            PrintUtils.print_warn("请输入订阅地址")
         return input("订阅地址:").strip()
 
     def _auto_import_subscription(self, subscribe_url):
@@ -230,12 +237,12 @@ class Tool(BaseTool):
         subscribe_url = self._read_input_subscription()
         if subscribe_url:
             self._auto_import_subscription(subscribe_url)
-        else:
+        elif self._recommend_url():
             PrintUtils.print_warn(
-                "未输入订阅地址，可稍后在客户端导入，推荐: {}".format(
-                    self.RECOMMEND_SUBSCRIBE_URL
-                )
+                "未输入订阅地址，可稍后在客户端导入，推荐: {}".format(self._recommend_url())
             )
+        else:
+            PrintUtils.print_warn("未输入订阅地址，可稍后在客户端导入")
 
         user_homes = FileUtils.getusershome()
         if len(user_homes) > 0:

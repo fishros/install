@@ -1919,6 +1919,8 @@ class AdUtils:
         },
     }
     scenes = None
+    # 官网后台可配置的链接, 如 proxy_subscribe(代理工具推荐的订阅注册链接); 接口读不到时为空, 由调用方用默认值
+    links = {}
     shown_scenes = set()
     failed = False
 
@@ -1942,10 +1944,19 @@ class AdUtils:
                 data = resp.read()
                 if resp.headers.get("Content-Encoding") == "gzip":
                     data = gzip.decompress(data)
-            cls.scenes.update(json.loads(data.decode("utf-8")).get("scenes", {}))
+            data = json.loads(data.decode("utf-8"))
+            cls.scenes.update(data.get("scenes", {}))
+            cls.links = data.get("links") or {}
         except Exception:
             pass
         return cls.scenes
+
+    @classmethod
+    def link(cls, name, default):
+        """取官网后台配置的链接; 后台没配或接口读不到用 default, 后台特意留空则返回空字符串"""
+        cls.load()
+        value = cls.links.get(name)
+        return default if value is None else value
 
     @classmethod
     def mark_failed(cls):
