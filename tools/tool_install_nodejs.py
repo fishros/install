@@ -56,28 +56,28 @@ class Tool(BaseTool):
             )
 
     def _choose_target_major(self):
+        # 18 已于 2025-04、20 已于 2026-04 停止维护, 只为老项目保留
         version_dic = {
-            1: "Node.js 22 LTS(默认推荐)",
-            2: "Node.js 20 LTS",
-            3: "Node.js 18 LTS(兼容)",
-            4: "自定义主版本号",
+            1: "Node.js 18(已停止维护,仅兼容老项目)",
+            2: "Node.js 20(已停止维护,仅兼容老项目)",
+            3: "Node.js 22 LTS",
+            4: "Node.js 24 LTS(推荐)",
+            5: "Node.js 26 LTS(最新)",
+            6: "自定义主版本号",
         }
-        code, _ = ChooseTask(version_dic, "请选择Node.js默认版本:", False).run()
-        if code == 1:
-            return 22
-        if code == 2:
-            return 20
-        if code == 3:
-            return 18
-        if code == 4:
-            custom = input("请输入Node.js主版本号(如22):").strip()
+        version_map = {1: 18, 2: 20, 3: 22, 4: 24, 5: 26}
+        code, _ = ChooseTask(version_dic, "请选择Node.js默认版本(不知道选哪个就选4):", False).run()
+        if code in version_map:
+            return version_map[code]
+        if code == 6:
+            custom = input("请输入Node.js主版本号(如24):").strip()
             if custom.isdigit() and int(custom) > 0:
                 return int(custom)
-            PrintUtils.print_warn("输入无效，默认使用22")
-            return 22
+            PrintUtils.print_warn("输入无效，默认使用24")
+            return 24
         if os.environ.get("FISH_INSTALL_CONFIG") is not None:
-            PrintUtils.print_warn("自动化模式未提供Node.js版本，默认使用22")
-            return 22
+            PrintUtils.print_warn("自动化模式未提供Node.js版本，默认使用24")
+            return 24
         PrintUtils.print_warn("已取消Node.js安装")
         return None
 
@@ -379,7 +379,7 @@ class Tool(BaseTool):
         downloaded = False
         for tar_url, cur_tar_name in tar_urls:
             download_result = self._run_cmd(
-                "wget --no-proxy {} -O /tmp/nodejs.tar.xz".format(tar_url),
+                "wget --no-proxy -T 15 -t 3 {} -O /tmp/nodejs.tar.xz".format(tar_url),
                 300,
                 "下载Node.js安装包...",
             )
@@ -424,7 +424,7 @@ class Tool(BaseTool):
         self._run_cmd("rm -rf /tmp/nodejs.tar.xz", 10)
         return True
 
-    def install_nodejs_version(self, target_major=22, with_registry=True):
+    def install_nodejs_version(self, target_major=24, with_registry=True):
         self._cleanup_legacy()
         current_major = self._detect_node_major()
         if current_major is not None and current_major >= target_major:

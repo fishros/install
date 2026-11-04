@@ -5,6 +5,7 @@ import re
 import sys
 import time
 import subprocess
+import shutil
 import importlib
 import locale
 from queue import Queue
@@ -24,7 +25,9 @@ except:
     print("WARN:No Yaml Module!")
 
 encoding = locale.getpreferredencoding()
-encoding_utf8 = encoding.find("UTF") > -1
+# Python 3.11+ 在 C/POSIX 区域设置下自动切到 UTF-8 时返回的是小写 "utf-8", 要忽略大小写判断,
+# 否则会误判为不支持 UTF-8, 一直提示 Finish! Please Try Again!
+encoding_utf8 = "UTF" in encoding.upper()
 
 
 tr = None
@@ -40,7 +43,15 @@ class ConfigHelper:
             self.record_file = os.environ.get(
                 "FISH_INSTALL_CONFIG", "./fish_install.yaml"
             )
+            # 每次运行结束都会把本次选择记到 /tmp/fish_install.yaml, 在 /tmp 下运行时默认路径正好指向这份记录,
+            # 就会不声不响地按上次的选项自动执行. 这份记录只在用 FISH_INSTALL_CONFIG 明确指定时才读
+            if "FISH_INSTALL_CONFIG" not in os.environ and os.path.realpath(
+                self.record_file
+            ) == os.path.realpath("/tmp/fish_install.yaml"):
+                self.record_file = ""
         self.default_input_queue = self.get_default_queue(self.record_file)
+        if self.default_input_queue.qsize() > 0:
+            print("检测到配置文件 {}, 将按其中的选项自动选择".format(self.record_file))
 
     def record_input(self, item):
         self.record_input_queue.put(item)
@@ -151,15 +162,35 @@ def GetOsVersion():
     # to be removed after Ubuntu Xenial is out of support
     import sys
 
-    # @TODO 系统的python版本小于3.8，Conda版本>3.8
-    if sys.version_info >= (3, 8):
-        import distro
-    else:
-        import platform as distro
     import locale
     import os
     import platform
     import subprocess
+
+    class _OsReleaseDistro:
+        """python3-distro 装不上时(apt 源坏了/conda 环境)的兜底, 直接读 /etc/os-release"""
+
+        @staticmethod
+        def linux_distribution(full_distribution_name=False):
+            info = {}
+            for path in ("/etc/os-release", "/usr/lib/os-release"):
+                if os.path.exists(path):
+                    with codecs.open(path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            key, _, val = line.strip().partition("=")
+                            info[key] = val.strip('"')
+                    break
+            codename = info.get("VERSION_CODENAME") or info.get("UBUNTU_CODENAME", "")
+            return (info.get("ID", ""), info.get("VERSION_ID", ""), codename)
+
+    # @TODO 系统的python版本小于3.8，Conda版本>3.8
+    if sys.version_info >= (3, 8):
+        try:
+            import distro
+        except ImportError:
+            distro = _OsReleaseDistro
+    else:
+        import platform as distro
 
     def _read_stdout(cmd):
         try:
@@ -255,7 +286,7 @@ def GetOsVersion():
             elif hasattr(distro, "dist"):
                 self.lsb_info = distro.dist()
             else:
-                self.lsb_info = None
+                self.lsb_info = _OsReleaseDistro.linux_distribution()
 
         def is_os(self):
             if self.lsb_info is None:
@@ -289,7 +320,13 @@ def GetOsVersion():
                     return "stretch"
                 if v.startswith("10."):
                     return "buster"
-                return ""
+                # Debian 11 起版本号不再带小数点, 直接取 lsb/os-release 里的代号
+                codename = (self.lsb_info[2] or "").split(" ")[0].lower()
+                if codename:
+                    return codename
+                return {"11": "bullseye", "12": "bookworm", "13": "trixie"}.get(
+                    v.split(".")[0], ""
+                )
 
     class FdoDetect(OsDetector):
         """
@@ -885,6 +922,11 @@ class PrintUtils:
         PrintUtils.print_text("\033[33m{}\033[37m".format(data), end=end)
 
     @staticmethod
+    def print_highlight(data, end="\n"):
+        # 淡黄色(256 色里的 229), 用于「安装成功」这类要让用户一眼看到的好消息
+        PrintUtils.print_text("\033[38;5;229m{}\033[37m".format(data), end=end)
+
+    @staticmethod
     def print_text(values="", end="\n", flush=False):
         print(values, end=str(end), flush=flush)  # force to string
         Tracking.put_log(values, end=end)
@@ -985,29 +1027,42 @@ class CmdTask(Task):
         executable="/bin/sh",
     ) -> None:
         super().__init__(Task.TASK_TYPE_CMD)
-        self.command = command
+        self.command = CmdTask.strip_sudo_if_needed(command)
         self.timeout = timeout
         self.os_command = os_command
         self.cwd = path
         self.executable = executable
 
+    @staticmethod
+    def strip_sudo_if_needed(command):
+        """
+        Docker 容器里一般是 root 且没有装 sudo, 这时去掉命令里的 sudo 前缀, 否则一律 command not found
+        """
+        if not isinstance(command, str) or os.geteuid() != 0:
+            return command
+        if shutil.which("sudo"):
+            return command
+        return re.sub(r"(^|[|;&(]\s*)sudo\s+(?:-E\s+)?", r"\1", command)
+
     def getlog(self, callback=None):
-        stdout_line = ""
-        for line in iter(self.sub.stdout.readline, "b"):
+        # stdout 和 stderr 要同时读: 原来读完 stdout 才读 stderr, 子进程往 stderr 写满管道缓冲(64KB)后
+        # 会阻塞不退出, stdout 也就一直不结束, 两边互相等待. apt 一次装近千个包时实测会这样卡死
+        def read_stderr():
+            for line in iter(self.sub.stderr.readline, ""):
+                line = line.rstrip()
+                if callback and line:
+                    callback(line, "err")
+
+        err_thread = threading.Thread(target=read_stderr)
+        err_thread.daemon = True
+        err_thread.start()
+
+        for line in iter(self.sub.stdout.readline, ""):
             line = line.rstrip()  # .decode('utf8', errors="ignore")
             if callback and line:
                 callback(line, "out")
-            if subprocess.Popen.poll(self.sub) is not None:
-                if line == "":
-                    break
-
-        for line in iter(self.sub.stderr.readline, "b"):
-            line = line.rstrip()  # .decode('utf8', errors="ignore")
-            if callback and line:
-                callback(line, "err")
-            if subprocess.Popen.poll(self.sub) is not None:
-                if line == "":
-                    break
+        self.sub.wait()
+        err_thread.join(timeout=5)
 
     def getlogs(self):
         out = []
@@ -1042,6 +1097,7 @@ class CmdTask(Task):
             universal_newlines=True,
         )
         self.bar = Progress()
+        self.sub_started.set()
         err = []
         out = []
 
@@ -1070,18 +1126,17 @@ class CmdTask(Task):
         self.ret_ok = True
 
     def run_command(self, executable="/bin/sh"):
+        self.sub_started = threading.Event()
         self.command_thread = threading.Thread(target=self.command_thread)
         self.command_thread.start()
-        time.sleep(0.5)  # 等待线程启动
+        # 等子进程创建好就开始轮询. 原来固定 sleep(0.5), 哪怕 mkdir 这种命令也要白等半秒, 光启动阶段就累计 3~4 秒
+        while not self.sub_started.wait(0.01) and self.command_thread.is_alive():
+            pass
         while self.is_command_finish() == -1:
             self.bar.update_time()
-            time.sleep(0.1)
+            time.sleep(0.05)
 
-        start_time = time.time()
-        while (
-            not self.ret_ok and time.time() - start_time < 2.0
-        ):  # 2s timeout wait  command_thread end
-            time.sleep(0.1)
+        self.command_thread.join(2.0)  # 2s timeout wait  command_thread end
 
         Tracking.put_cmd_result(self.ret_code, self.ret_out, self.ret_err, self.command)
         return (self.ret_code, self.ret_out, self.ret_err)
@@ -1109,6 +1164,9 @@ class CmdTask(Task):
 
 
 class ChooseTask(Task):
+    # 最近一次选择是不是 [0] 返回上一步. 工具因此退出时, install.py 会回到主菜单而不是结束一键安装
+    last_back = False
+
     def __init__(self, dic, tips, array=False) -> None:
         self.tips = tips
         self.dic = dic
@@ -1125,8 +1183,8 @@ class ChooseTask(Task):
                 count += 1
         else:
             dic = data
-        dic[0] = "quit"
-        # 0 quit
+        # 0 统一表示返回上一步: 多步流程退回前一个问题, 第一个问题退回上一级菜单
+        dic[0] = "返回上一步"
         choose = -1
         for key in dic:
             PrintUtils.print_delay("[{}]:{}".format(key, tr.tr(dic[key])), 0.005)
@@ -1160,6 +1218,7 @@ class ChooseTask(Task):
                     choose = int(choose)
                     break
         config_helper.record_choose({"choose": choose, "desc": dic[choose]})
+        ChooseTask.last_back = choose == 0
         PrintUtils.print_fish()
         return choose, dic[choose]
 
@@ -1188,15 +1247,16 @@ class ChooseWithCategoriesTask(Task):
         # 打印不同类型工具的分类结果
         for tool_type, tools_list in dic.items():
             PrintUtils.print_delay("{}:".format(tr.tr(categories[tool_type])), 0.005)
-            sortkeys = sorted(tools_list.keys())
-            for tool_id in sortkeys:
-                PrintUtils.print_delay(
-                    "  [{}]:{}".format(tool_id, tr.tr(tools_list[tool_id]["tip"])),
-                    0.005,
-                )
+            # 按 install.py 里的书写顺序展示, 方便把推荐项排在前面
+            for tool_id in tools_list.keys():
+                item = "  [{:>2}]:{}".format(tool_id, tr.tr(tools_list[tool_id]["tip"]))
+                if tools_list[tool_id].get("highlight"):
+                    # 推荐项用加粗的亮黄色, 一眼就能看到
+                    item = "\033[1;93m{}\033[0m".format(item)
+                PrintUtils.print_delay(item, 0.005)
                 tool_ids.append(tool_id)
             print()
-        PrintUtils.print_delay("[0]:quit\n", 0.005)
+        PrintUtils.print_delay("[0]:{}\n".format(tr.tr("退出")), 0.005)
 
         choose = None
         choose_item = config_helper.get_input_value()
@@ -1419,10 +1479,198 @@ class FileUtils:
             line = str(line)  # 确保 line 是字符串
             # 对每个 pattern 进行检查
             for pattern in patterns:
-                # 如果找到一个匹配
-                if len(re.findall(pattern, line)) == 1:
+                # 如果找到匹配(输出被拼成一整段, 同一错误往往出现多次, 不能要求恰好一次)
+                if re.search(pattern, line):
                     return True  # 返回 True 表示匹配成功
         # 如果所有行和所有模式都未匹配，返回 False
+        return False
+
+
+class DockerUtils:
+    # 国内直连 Docker Hub 不通, 拉镜像要靠加速地址. 2026-10 实测公开的加速地址里只有这个华为云的还稳定可用
+    # (dockerpull.com / docker.fxxk.dedyn.io 已失效, DaoCloud 只放行部分镜像, 对 fishros2/ros 返回 403)
+    registry_mirror = "https://ac77d18f43e44819b553040f294b8f9b.mirror.swr.myhuaweicloud.com"
+    daemon_json = "/etc/docker/daemon.json"
+    # 放在生成的容器控制脚本(wechat、ROS 容器名等命令)开头: 刚装完 Docker 时加入 docker 组要重新登录才生效,
+    # 当前终端不加 sudo 执行 docker 会报 permission denied, 用户看不懂, 这里先给出提示
+    permission_check_sh = """if [ -S /var/run/docker.sock ] && [ ! -w /var/run/docker.sock ]; then
+    echo "当前终端还没有使用Docker的权限: 刚装完Docker时需要注销重新登录(或重启)才会生效"
+    echo "也可以先执行 newgrp docker, 再运行本命令"
+    exit 1
+fi
+"""
+
+    @staticmethod
+    def set_registry_mirror(url):
+        """写入 daemon.json 的 registry-mirrors 并重启 Docker, 保留文件里原有的其它配置"""
+        import json
+
+        config = {}
+        try:
+            with open(DockerUtils.daemon_json, "r") as f:
+                config = json.load(f)
+        except Exception:
+            config = {}
+        if not isinstance(config, dict):
+            config = {}
+        config["registry-mirrors"] = [url]
+        CmdTask("sudo mkdir -p /etc/docker").run()
+        with open(DockerUtils.daemon_json, "w") as f:
+            json.dump(config, f, indent=2)
+        CmdTask("sudo systemctl daemon-reload").run()
+        return CmdTask("sudo systemctl restart docker").run()[0] == 0
+
+    @staticmethod
+    def has_registry_mirror():
+        import json
+
+        try:
+            with open(DockerUtils.daemon_json, "r") as f:
+                return len(json.load(f).get("registry-mirrors", [])) > 0
+        except Exception:
+            return False
+
+
+class DownloadUtils:
+    """
+    从多个下载源里挑能用的下大文件(GitHub Releases 的安装包等), 带进度条、实时速度和剩余时间.
+    国内直连 GitHub 下载基本下不动, 一般按「公共加速站 → 兜底源」排列
+    """
+
+    # 2026-11 国内服务器实测可用的 GitHub 加速站, 快但时好时坏, 有时会拒绝某些仓库
+    github_mirrors = [
+        ("ghfast.top 加速", "https://ghfast.top/https://github.com/"),
+        ("gh-proxy.com 加速", "https://gh-proxy.com/https://github.com/"),
+    ]
+    # 每个源先下 15 秒, 平均速度达到 200KB/s 就用它下完; 都达不到时, 用测下来最快的那个源下完
+    # (不能简单地「慢了就换下一个」: 实测 gh-proxy.com 89KB/s 被放弃, 最后落到只有 15KB/s 的源, 反而更慢)
+    slow_check_seconds = 15
+    slow_speed = 200 * 1024
+
+    @staticmethod
+    def github_sources(repo, tag, file_name):
+        """GitHub Releases 文件的各个下载地址: 加速站在前, GitHub 直连最后"""
+        path = "{}/releases/download/{}/{}".format(repo, tag, file_name)
+        return [(name, prefix + path) for name, prefix in DownloadUtils.github_mirrors] + \
+            [("GitHub 直连", "https://github.com/" + path)]
+
+    @staticmethod
+    def github_latest_tag(repo):
+        """
+        读 github.com/<repo>/releases/latest 的跳转地址得到最新版本号(如 v4.0.24), 失败返回 None.
+        这个请求很小, 国内直连也能拿到; 直连不通再走加速站
+        """
+        import urllib.error
+        import urllib.request
+
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs):
+                return None
+
+        opener = urllib.request.build_opener(NoRedirect, urllib.request.ProxyHandler({}))
+        prefixes = ["https://github.com/"] + [prefix for _, prefix in DownloadUtils.github_mirrors]
+        for prefix in prefixes:
+            try:
+                opener.open(urllib.request.Request(prefix + repo + "/releases/latest", method="HEAD"), timeout=10)
+            except urllib.error.HTTPError as e:
+                match = re.search(r"/releases/tag/([^/?#]+)$", e.headers.get("Location") or "")
+                if match:
+                    return match.group(1)
+            except Exception:
+                pass
+        return None
+
+    @staticmethod
+    def format_speed(speed):
+        if speed >= 1048576:
+            return "{:.1f}MB/s".format(speed / 1048576.0)
+        return "{:.0f}KB/s".format(speed / 1024.0)
+
+    @staticmethod
+    def draw_progress(done, total, speed):
+        """在同一行画进度条: [████████░░░░░░░░]  45%  17.5/38.7MB  2.4MB/s  剩余 9s"""
+        if total:
+            left = (total - done) / speed if speed > 0 else -1
+            eta = "--" if left < 0 else ("{}m{:02d}s".format(int(left) // 60, int(left) % 60) if left >= 60 else "{}s".format(int(left)))
+            info = " {:3.0f}%  {:.1f}/{:.1f}MB  {}  剩余 {}".format(
+                done * 100.0 / total, done / 1048576.0, total / 1048576.0, DownloadUtils.format_speed(speed), eta)
+            # 进度条宽度随终端宽度变化; info 里的「剩余」两个汉字各占 2 列, 多留几列余量免得折行
+            width = max(10, min(40, shutil.get_terminal_size((80, 20)).columns - len(info) - 10))
+            filled = int(width * done / total)
+            line = "  [{}{}]{}".format("█" * filled, "░" * (width - filled), info)
+        else:
+            line = "  已下载 {:.1f}MB  {}".format(done / 1048576.0, DownloadUtils.format_speed(speed))
+        sys.stdout.write("\r" + line + "   ")
+        sys.stdout.flush()
+
+    @staticmethod
+    def download_from(url, path, give_up_if_slow):
+        """
+        下载到 path, 返回 (是否下完, 平均速度 B/s). give_up_if_slow 时, 下了 slow_check_seconds 秒平均速度还太慢就放弃.
+        不走环境变量里的代理(和 wget --no-proxy 一致), 超时 15 秒
+        """
+        import collections
+        import urllib.request
+
+        speed = 0
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        request = urllib.request.Request(url, headers={"User-Agent": "Wget/1.21"})
+        # 在终端里每 0.2 秒刷新一次; 输出被重定向到文件(日志、自动化测试)时 5 秒一次, 免得刷屏
+        interval = 0.2 if sys.stdout.isatty() else 5
+        try:
+            with opener.open(request, timeout=15) as resp, open(path, "wb") as f:
+                total = int(resp.headers.get("Content-Length") or 0)
+                done, start, last_print = 0, time.time(), 0
+                recent = collections.deque([(start, 0)])  # 最近约 2 秒的 (时间, 已下载), 算实时速度
+                while True:
+                    chunk = resp.read(64 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    done += len(chunk)
+                    now = time.time()
+                    used = now - start
+                    speed = done / max(used, 0.001)  # 平均速度, 用来判断这个源快不快
+                    recent.append((now, done))
+                    while len(recent) > 2 and now - recent[0][0] > 2:
+                        recent.popleft()
+                    if now - last_print >= interval:
+                        last_print = now
+                        span = now - recent[0][0]
+                        DownloadUtils.draw_progress(done, total, (done - recent[0][1]) / span if span > 0 else speed)
+                    if give_up_if_slow and used > DownloadUtils.slow_check_seconds and speed < DownloadUtils.slow_speed:
+                        print("")
+                        PrintUtils.print_warn("速度较慢({}), 先试试下一个下载源".format(DownloadUtils.format_speed(speed)))
+                        return False, speed
+            DownloadUtils.draw_progress(done, total, speed)
+            print("")
+            return (total == 0 or done == total), speed
+        except Exception as e:
+            print("")
+            PrintUtils.print_warn("下载失败: {}".format(e))
+            return False, 0
+
+    @staticmethod
+    def download_deb(sources, path):
+        """sources 是 [(名称, 地址), ...], 按顺序尝试, 下到完整的 deb 就返回 True"""
+        def deb_ok():
+            return CmdTask('dpkg-deb -f "{}" Package'.format(path)).run()[0] == 0
+
+        slow_sources = []
+        for source_name, url in sources:
+            PrintUtils.print_info("从 {} 下载: {}".format(source_name, url))
+            ok, speed = DownloadUtils.download_from(url, path, give_up_if_slow=True)
+            if ok and deb_ok():
+                return True
+            if speed > 0:
+                slow_sources.append((speed, source_name, url))
+        # 没有一个源够快: 用测下来最快的那个下完
+        for speed, source_name, url in sorted(slow_sources, reverse=True):
+            PrintUtils.print_warn("几个下载源都比较慢, 改用其中最快的 {}({}) 下完, 请耐心等待".format(
+                source_name, DownloadUtils.format_speed(speed)))
+            ok, _ = DownloadUtils.download_from(url, path, give_up_if_slow=False)
+            if ok and deb_ok():
+                return True
         return False
 
 
@@ -1452,6 +1700,24 @@ class AptUtils:
             )
             return False
         return True
+
+    @staticmethod
+    def wait_and_repair():
+        """
+        安装前的准备, 处理两种新手最常见的 apt 报错:
+        1. 刚开机时系统自动更新占着 apt 锁: Could not get lock /var/lib/dpkg/lock-frontend
+        2. 上次安装中途 Ctrl+C 留下没配置完的包: dpkg was interrupted, you must manually run 'dpkg --configure -a'
+        """
+        locks = "/var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock"
+        for i in range(60):
+            if CmdTask("fuser {} > /dev/null 2>&1".format(locks), 5).run()[0] != 0:
+                break
+            if i == 0:
+                PrintUtils.print_warn(
+                    tr.tr("检测到其他程序(通常是系统自动更新)正在使用软件包管理器, 等待它结束(最多5分钟)...")
+                )
+            time.sleep(5)
+        CmdTask("sudo dpkg --configure -a", 0).run()
 
     @staticmethod
     def getArch():
@@ -1563,10 +1829,12 @@ class AptUtils:
             try:
                 # 记录开始时间
                 start_time = time.time()
-                # 创建连接并发送请求
-                conn = http.client.HTTPSConnection(
-                    host, timeout=timeout
-                )  # 使用 HTTPS 连接
+                # 按地址本身的协议连接: 原来一律走 https, http 地址测的其实是 https 的延迟,
+                # 设备时钟不准时 https 证书校验失败, 所有地址都会被判成超时
+                if parsed_url.scheme == "http":
+                    conn = http.client.HTTPConnection(host, timeout=timeout)
+                else:
+                    conn = http.client.HTTPSConnection(host, timeout=timeout)
                 conn.request("GET", path)
                 response = conn.getresponse()
                 # 记录结束时间
@@ -1590,6 +1858,192 @@ class AptUtils:
         return sorted_urls
 
 
+class AdUtils:
+    """
+    一键安装里的推广信息. 内容从官网接口 /api/install/ads 读取(官网后台「一键安装」页可改商品链接、QQ 群等),
+    读不到时用下面的内置内容. 按场景展示, 每个场景一次运行只展示一次; 安装失败后不再展示商品推广.
+    接口返回格式: {"scenes": {"场景名": {"title": 标题, "lines": [...], "lines_en": [...], "shop": true}}}
+    10-28 导师定不放二维码(终端里画出来太大), 只放链接, 链接用淡蓝色加下划线, 和前后文字区分开
+    测试时可用环境变量 FISHROS_API_URL 指向别的官网地址, 默认 http://fishros.com/api
+    """
+
+    shop_url = "https://item.taobao.com/item.htm?abbucket=0&id=1083795293714"
+    mp_line = "关注微信公众号「鱼香ROS」, 获取 ROS 教程、答疑和新品消息"
+    default_scenes = {
+        # 刚运行一键安装、菜单出现之前, 只放文字
+        "welcome": {
+            "shop": True,
+            "lines": ["鱼香ROS小铺: 能建图、会导航的 ROS 机器人, 淘宝搜店「鱼香ROS」或打开: " + shop_url, mp_line],
+        },
+        # 开始下载安装 ROS, 要等好几分钟
+        "installing": {
+            "shop": True,
+            "lines": ["安装需要几分钟, 等待的时候可以逛逛鱼香ROS小铺: 淘宝搜店「鱼香ROS」"],
+        },
+        # ROS 装好了
+        "ros_installed": {
+            "shop": True,
+            "title": "鱼香ROS小铺",
+            "lines": [
+                "ROS 装好了, 想让它跑在真机器人上? 小铺有能建图、会导航的 ROS 机器人",
+                "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+                mp_line,
+            ],
+        },
+        # 导航/建图等常用功能包装好了
+        "pkgs_installed": {
+            "shop": True,
+            "title": "鱼香ROS小铺",
+            "lines": [
+                "导航、建图功能包已就绪, 配一台能建图会导航的机器人就能上手实战",
+                "淘宝搜店「鱼香ROS」或打开: " + shop_url,
+                mp_line,
+            ],
+        },
+        # 程序结束, 本次没展示过商品推广时补一条
+        "finish_shop": {
+            "shop": True,
+            "lines": ["鱼香ROS小铺: ROS 学习用的移动机器人, 淘宝搜店「鱼香ROS」或打开: " + shop_url],
+        },
+        # 程序结束, 不论成败都展示
+        "finish": {
+            "lines": [
+                "欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)",
+                mp_line,
+                "如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈",
+            ],
+            "lines_en": [
+                "Welcome to join the robot learning exchange QQ group (In Chinese): 438144612",
+                "If you encounter any problems, please visit https://fishros.org.cn/forum for feedback",
+            ],
+        },
+    }
+    scenes = None
+    # 官网后台可配置的链接, 如 proxy_subscribe(代理工具推荐的订阅注册链接); 接口读不到时为空, 由调用方用默认值
+    links = {}
+    shown_scenes = set()
+    failed = False
+
+    @staticmethod
+    def api_url(path):
+        return os.environ.get("FISHROS_API_URL", "http://fishros.com/api").rstrip("/") + path
+
+    @classmethod
+    def load(cls):
+        if cls.scenes is not None:
+            return cls.scenes
+        cls.scenes = dict(cls.default_scenes)
+        try:
+            import gzip
+            import json
+            import urllib.request
+
+            # 二维码的颜色转义很占地方, 压缩后从约 48KB 变成 2KB 不到, 网差时 3 秒内也能读完
+            req = urllib.request.Request(cls.api_url("/install/ads"), headers={"Accept-Encoding": "gzip"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                data = resp.read()
+                if resp.headers.get("Content-Encoding") == "gzip":
+                    data = gzip.decompress(data)
+            data = json.loads(data.decode("utf-8"))
+            cls.scenes.update(data.get("scenes", {}))
+            cls.links = data.get("links") or {}
+        except Exception:
+            pass
+        return cls.scenes
+
+    @classmethod
+    def link(cls, name, default):
+        """取官网后台配置的链接; 后台没配或接口读不到用 default, 后台特意留空则返回空字符串"""
+        cls.load()
+        value = cls.links.get(name)
+        return default if value is None else value
+
+    @classmethod
+    def mark_failed(cls):
+        cls.failed = True
+
+    @classmethod
+    def show(cls, scene):
+        if scene in cls.shown_scenes:
+            return
+        ad = cls.load().get(scene)
+        if not ad:
+            return
+        if ad.get("shop"):
+            if cls.failed:
+                return
+            if scene == "finish_shop" and any(cls.load().get(s, {}).get("shop") for s in cls.shown_scenes):
+                return
+        # 推广内容是中文的, 英文界面只展示提供了英文的场景
+        chinese = tr is None or getattr(tr, "lang", "zh_CN") == "zh_CN"
+        lines = ad.get("lines", []) if chinese else ad.get("lines_en", [])
+        if not lines:
+            return
+        cls.shown_scenes.add(scene)
+        if ad.get("title"):
+            PrintUtils.print_success("-" * 20 + " {} ".format(ad["title"]) + "-" * 20)
+        for line in lines:
+            PrintUtils.print_success(cls.color_links(line))
+
+    @staticmethod
+    def color_links(line):
+        # 链接改成淡蓝色(256 色里的 117)加下划线, 链接后面的文字恢复成 print_success 的绿色
+        return re.sub(r"(https?://[^\s，。]+)", "\033[4;38;5;117m\\1\033[0;32m", line)
+
+
+class StatUtils:
+    """
+    官网按天匿名计数: 每个事件只发一个 /install/stat?e=<事件> 请求, 服务器只记 日期+事件 的次数.
+    事件: run(启动) / menu:<编号>(主菜单选择) / ros:<novice|expert>:<pick|start|ok|fail[:系统代号]>(菜单 [1] 安装 ROS).
+    放后台线程, 3 秒超时, 失败就忽略, 不拖慢也不打断安装;
+    GitHub Actions 和用配置文件(FISH_INSTALL_CONFIG)自动跑的测试不计入
+    """
+
+    threads = []
+
+    @staticmethod
+    def enabled():
+        return os.environ.get("GITHUB_ACTIONS") != "true" and os.environ.get("FISH_INSTALL_CONFIG") is None
+
+    @classmethod
+    def report(cls, event):
+        if not cls.enabled():
+            return
+
+        def send():
+            try:
+                import urllib.request
+
+                urllib.request.urlopen(AdUtils.api_url("/install/stat?e=" + event), timeout=3).close()
+            except Exception:
+                pass
+
+        thread = threading.Thread(target=send)
+        thread.daemon = True
+        thread.start()
+        cls.threads.append(thread)
+
+    @classmethod
+    def flush(cls, timeout=2):
+        """程序结束前最多再等 timeout 秒, 让最后才发的(装成功/失败)统计发出去; 平时早就发完了, 不用等"""
+        deadline = time.time() + timeout
+        for thread in cls.threads:
+            thread.join(max(0, deadline - time.time()))
+
+    @staticmethod
+    def system():
+        """失败按系统代号(jammy、focal 等)分开计数, 取不到时记 unknown"""
+        try:
+            codename = re.sub("[^a-z0-9]", "", str(osversion.get_codename()).lower())[:20]
+        except Exception:
+            codename = ""
+        return codename or "unknown"
+
+    @classmethod
+    def report_ros_result(cls, mode, ok):
+        cls.report("ros:{}:ok".format(mode) if ok else "ros:{}:fail:{}".format(mode, cls.system()))
+
+
 """
 定义基础任务
 """
@@ -1599,6 +2053,8 @@ class BaseTool:
     TYPE_INSTALL = 0
     TYPE_UNINSTALL = 1
     TYPE_CONFIG = 2
+    # run() 或流程中的某一步返回它, 表示用户选了 [0] 返回上一步
+    BACK = "back"
 
     def __init__(self, name, tool_type):
         self.osinfo = osversion
@@ -1633,7 +2089,10 @@ def run_tool_file(file, authorun=True):
         return tool
     if tool.init() == False:
         return False
-    if tool.run() == False:
+    result = tool.run()
+    if result == BaseTool.BACK:
+        return BaseTool.BACK
+    if result == False:
         return False
     if tool.uninit() == False:
         return False
@@ -1642,7 +2101,7 @@ def run_tool_file(file, authorun=True):
 
 def run_tool_url(url, url_prefix):
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1654,7 +2113,7 @@ def download_tools(id, tools, url_prefix):
     url = tools[id]["tool"]
     url = os.path.join(url_prefix, url)
     CmdTask(
-        "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+        "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
             url, url[url.rfind("/") + 1 :]
         )
     ).run()
@@ -1663,7 +2122,7 @@ def download_tools(id, tools, url_prefix):
         url = tools[dep]["tool"]
         url = os.path.join(url_prefix, url)
         CmdTask(
-            "wget {} -O /tmp/fishinstall/tools/{} --no-check-certificate".format(
+            "wget {} -O /tmp/fishinstall/tools/{} -T 15 -t 3 --no-check-certificate".format(
                 url, url[url.rfind("/") + 1 :]
             )
         ).run()

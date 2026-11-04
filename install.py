@@ -1,147 +1,177 @@
 # -*- coding: utf-8 -*-
 import os
 import importlib
+import subprocess
 
 url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
 base_url = os.path.join(url_prefix, "tools/base.py")
 translator_url = os.path.join(url_prefix, "tools/translation/translator.py")
 
-INSTALL_ROS = 0  # 安装ROS相关
-INSTALL_SOFTWARE = 1  # 安装软件
-CONFIG_TOOL = 2  # 配置相关
-INSTALL_AI = 3  # AI相关
+# 菜单分组, 显示顺序与下面 tools_type_map 的书写顺序一致
+CAT_ROS_INSTALL = 0
+CAT_ROS_TOOLS = 1
+CAT_SOURCE_NETWORK = 2
+CAT_DEV_TOOLS = 3
+CAT_DAILY = 4
 
 tools_type_map = {
-    INSTALL_ROS: "ROS相关",
-    INSTALL_AI: "AI板块",
-    INSTALL_SOFTWARE: "常用软件",
-    CONFIG_TOOL: "配置工具",
+    CAT_ROS_INSTALL: "ROS安装",
+    CAT_ROS_TOOLS: "ROS开发工具",
+    CAT_SOURCE_NETWORK: "换源与网络",
+    CAT_DEV_TOOLS: "开发工具",
+    CAT_DAILY: "日常软件",
 }
 
-
+# 菜单编号是对外接口(fish_install.yaml / Dockerfile 里按编号自动选择), 只能新增不能改号;
+# 菜单里按本字典的书写顺序展示, 所以调整顺序只需要挪位置, 不要改编号
 tools = {
+    # ---------------- ROS安装 ----------------
+    # 小白模式已并入菜单 1, 这里只保留条目供菜单 1 下载依赖, 不在菜单里展示
+    21: {
+        "tip": "一键安装:ROS全自动版(新手推荐,自动识别系统/换源/选版本,只需确认一次)",
+        "type": CAT_ROS_INSTALL,
+        "tool": "tools/tool_install_ros_auto.py",
+        "dep": [1, 4, 5],
+        "hidden": True,
+    },
     1: {
-        "tip": "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)",
-        "type": INSTALL_ROS,
+        "tip": "一键安装(推荐):ROS(小白/高手两种模式,自动识别系统并换源,支持ROS1/ROS2/树莓派/Jetson)",
+        "type": CAT_ROS_INSTALL,
         "tool": "tools/tool_install_ros.py",
-        "dep": [4, 5],
+        "dep": [4, 5, 21],
+        "highlight": True,
     },
-    2: {
-        "tip": "一键安装:github桌面版(小鱼常用的github客户端)",
-        "type": INSTALL_SOFTWARE,
-        "tool": "tools/tool_install_github_desktop.py",
-        "dep": [],
+    11: {
+        "tip": "一键安装:ROS Docker版(支持所有版本ROS/ROS2,系统版本不匹配时使用)",
+        "type": CAT_ROS_INSTALL,
+        "tool": "tools/tool_install_ros_with_docker.py",
+        "dep": [7, 8],
     },
-    3: {
-        "tip": "一键安装:rosdep(小鱼的rosdepc,又快又好用)",
-        "type": INSTALL_ROS,
-        "tool": "tools/tool_config_rosdep.py",
-        "dep": [],
+    16: {
+        "tip": "一键安装:系统自带ROS(！！警告！！仅供特殊情况下使用)",
+        "type": CAT_ROS_INSTALL,
+        "tool": "tools/tool_install_ros1_systemdefault.py",
+        "dep": [5],
     },
+    # ---------------- ROS开发工具 ----------------
     4: {
-        "tip": "一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择)",
-        "type": INSTALL_ROS,
+        "tip": "一键配置:ROS环境(快速更新ROS环境设置,自动生成环境选择,修复中文路径编译报错)",
+        "type": CAT_ROS_TOOLS,
         "tool": "tools/tool_config_rosenv.py",
         "dep": [],
     },
+    3: {
+        "tip": "一键安装:rosdepc(小鱼的国内版rosdep,又快又好用)",
+        "type": CAT_ROS_TOOLS,
+        "tool": "tools/tool_config_rosdep.py",
+        "dep": [],
+    },
+    22: {
+        "tip": "一键安装:ROS常用功能包(导航Nav2/建图slam_toolbox、Cartographer/键盘、手柄遥控等)",
+        "type": CAT_ROS_TOOLS,
+        "tool": "tools/tool_install_ros_pkgs.py",
+        "dep": [1],
+    },
+    9: {
+        "tip": "一键安装:Cartographer(谷歌建图算法,仅支持ROS1:Ubuntu16/18/20)",
+        "type": CAT_ROS_TOOLS,
+        "tool": "tools/tool_install_cartographer.py",
+        "dep": [3],
+    },
+    12: {
+        "tip": "一键安装:MicroROS开发环境(PlatformIO,支持FishBot)",
+        "type": CAT_ROS_TOOLS,
+        "tool": "tools/tool_install_micros_fishbot_env.py",
+        "dep": [],
+    },
+    # ---------------- 换源与网络 ----------------
     5: {
-        "tip": "一键配置:系统源(更换系统源,支持全版本Ubuntu系统)",
-        "type": CONFIG_TOOL,
+        "tip": "一键配置:系统源(更换国内源,支持Ubuntu/Debian全版本)",
+        "type": CAT_SOURCE_NETWORK,
         "tool": "tools/tool_config_system_source.py",
         "dep": [1],
     },
-    6: {
-        "tip": "一键安装:NodeJs环境",
-        "type": INSTALL_AI,
-        "tool": "tools/tool_install_nodejs.py",
+    13: {
+        "tip": "一键配置:Python国内源(加速pip安装)",
+        "type": CAT_SOURCE_NETWORK,
+        "tool": "tools/tool_config_python_source.py",
         "dep": [],
     },
+    17: {
+        "tip": "一键配置:Docker代理(支持VPN+代理服务两种模式)",
+        "type": CAT_SOURCE_NETWORK,
+        "tool": "tools/tool_config_docker_proxy.py",
+        "dep": [],
+    },
+    14: {
+        "tip": "一键安装:科学上网代理工具",
+        "type": CAT_SOURCE_NETWORK,
+        "tool": "tools/tool_install_proxy_tool.py",
+        "dep": [8],
+    },
+    # ---------------- 开发工具 ----------------
     7: {
-        "tip": "一键安装:VsCode开发工具",
-        "type": INSTALL_SOFTWARE,
+        "tip": "一键安装:VSCode(代码编辑器)",
+        "type": CAT_DEV_TOOLS,
         "tool": "tools/tool_install_vscode.py",
         "dep": [],
     },
     8: {
         "tip": "一键安装:Docker",
-        "type": INSTALL_SOFTWARE,
+        "type": CAT_DEV_TOOLS,
         "tool": "tools/tool_install_docker.py",
         "dep": [],
     },
-    9: {
-        "tip": "一键安装:Cartographer(18 20测试通过,16未测. updateTime 20240125)",
-        "type": INSTALL_ROS,
-        "tool": "tools/tool_install_cartographer.py",
-        "dep": [3],
-    },
-    10: {
-        "tip": "一键安装:微信(可以在Linux上使用的微信)",
-        "type": INSTALL_SOFTWARE,
-        "tool": "tools/tool_install_wechat.py",
-        "dep": [8],
-    },
-    11: {
-        "tip": "一键安装:ROS Docker版(支持所有版本ROS/ROS2)",
-        "type": INSTALL_ROS,
-        "tool": "tools/tool_install_ros_with_docker.py",
-        "dep": [7, 8],
-    },
-    12: {
-        "tip": "一键安装:PlateformIO MicroROS开发环境(支持Fishbot)",
-        "type": INSTALL_SOFTWARE,
-        "tool": "tools/tool_install_micros_fishbot_env.py",
+    6: {
+        "tip": "一键安装:Node.js环境",
+        "type": CAT_DEV_TOOLS,
+        "tool": "tools/tool_install_nodejs.py",
         "dep": [],
     },
-    13: {
-        "tip": "一键配置:python国内源",
-        "type": CONFIG_TOOL,
-        "tool": "tools/tool_config_python_source.py",
-        "dep": [],
-    },
-    14: {
-        "tip": "一键安装:科学上网代理工具",
-        "type": INSTALL_AI,
-        "tool": "tools/tool_install_proxy_tool.py",
-        "dep": [8],
-    },
-    15: {
-        "tip": "一键安装：QQ for Linux",
-        "type": INSTALL_SOFTWARE,
-        "tool": "tools/tool_install_qq.py",
-        "dep": [],
-    },
-    16: {
-        "tip": "一键安装：系统自带ROS (！！警告！！仅供特殊情况下使用)",
-        "type": INSTALL_ROS,
-        "tool": "tools/tool_install_ros1_systemdefault.py",
-        "dep": [5],
-    },
-    17: {
-        "tip": "一键配置: Docker代理(支持VPN+代理服务两种模式)",
-        "type": CONFIG_TOOL,
-        "tool": "tools/tool_config_docker_proxy.py",
+    2: {
+        "tip": "一键安装:GitHub桌面版(小鱼常用的GitHub客户端)",
+        "type": CAT_DEV_TOOLS,
+        "tool": "tools/tool_install_github_desktop.py",
         "dep": [],
     },
     18: {
-        "tip": "一键安装/卸载:OpenCode(AI编程助手)",
-        "type": INSTALL_AI,
+        "tip": "一键安装/卸载:AI编程工具(OpenCode/Codex/Claude Code/DeepSeek/Pi/CC Switch)",
+        "type": CAT_DEV_TOOLS,
         "tool": "tools/tool_install_opencode.py",
         "dep": [6],
     },
     # 19: {
     #     "tip": "一键清理:OpenClaw(可选保留配置)",
-    #     "type": INSTALL_AI,
+    #     "type": CAT_DEV_TOOLS,
     #     "tool": "tools/tool_config_openclaw_cleanup.py",
     #     "dep": [],
     # },
     # 20: {
     #     "tip": "一键安装:OpenClaw(智能AI助手)",
-    #     "type": INSTALL_AI,
+    #     "type": CAT_DEV_TOOLS,
     #     "tool": "tools/tool_install_openclaw.py",
     #     "dep": [6],
     # },
+    # ---------------- 日常软件 ----------------
+    10: {
+        "tip": "一键安装:微信(可以在Linux上使用的微信)",
+        "type": CAT_DAILY,
+        "tool": "tools/tool_install_wechat.py",
+        "dep": [8],
+    },
+    15: {
+        "tip": "一键安装:QQ for Linux",
+        "type": CAT_DAILY,
+        "tool": "tools/tool_install_qq.py",
+        "dep": [],
+    },
+    23: {
+        "tip": "一键安装:Chrome浏览器(强烈推荐下载设置成默认浏览器)",
+        "type": CAT_DAILY,
+        "tool": "tools/tool_install_chrome.py",
+        "dep": [],
+    },
 }
-#
 
 
 # 创建用于存储不同类型工具的字典，按目录顺序展示
@@ -149,6 +179,8 @@ tool_categories = {tool_type: {} for tool_type in tools_type_map}
 
 # 遍历tools字典，根据type值进行分类
 for tool_id, tool_info in tools.items():
+    if tool_info.get("hidden"):
+        continue
     tool_type = tool_info["type"]
     tool_categories[tool_type][tool_id] = tool_info
 
@@ -162,16 +194,14 @@ def main():
     os.system("mkdir -p /tmp/fishinstall/tools/translation/assets")
     url_prefix = os.environ.get("FISHROS_URL", "http://mirror.fishros.com/install/")
     if url_prefix:
-        os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
-                base_url, base_url.replace(url_prefix, "")
-            )
-        )
-        os.system(
-            "wget {} -O /tmp/fishinstall/{} --no-check-certificate".format(
-                translator_url, translator_url.replace(url_prefix, "")
-            )
-        )
+        # 静默下载, 只在失败时提示, 免得进菜单前刷一屏 wget 进度
+        for url in (base_url, translator_url):
+            if os.system(
+                "wget -q {} -O /tmp/fishinstall/{} -T 15 -t 3 --no-check-certificate".format(
+                    url, url.replace(url_prefix, "")
+                )
+            ):
+                print("下载失败, 请检查网络后重试: {}".format(url))
 
     from tools.base import (
         CmdTask,
@@ -180,6 +210,9 @@ def main():
         ChooseTask,
         ChooseWithCategoriesTask,
         Tracking,
+        AdUtils,
+        StatUtils,
+        BaseTool,
     )
     from tools.base import encoding_utf8, osversion, osarch
     from tools.base import run_tool_file, download_tools
@@ -192,13 +225,19 @@ def main():
     global tracing
     tracing = copy.copy(Tracking)
 
-    # 使用量统计
-    CmdTask(
-        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 && rm -rf /tmp/t1733"
-    ).run()
+    # 使用量统计: 官网按天计启动次数(后台线程, 失败忽略), 论坛 1733 帖子的访问照旧保留
+    # 论坛这次访问只为计数, 不用等它返回, 交给后台进程(一键安装退出后它会自己结束)
+    StatUtils.report("run")
+    subprocess.Popen(
+        "wget https://fishros.org.cn/forum/topic/1733 -O /tmp/t1733 -q --no-check-certificate --timeout 10 -t 2 && rm -rf /tmp/t1733",
+        shell=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     PrintUtils.print_success(tr.tr("已为您切换语言至当前所在国家语言:") + tr.lang)
-    if tr.country != "CN":
+    # 只有使用官方镜像站时才切到 GitHub; 自建服务器(FISHROS_URL 指向别处)测试时保持原地址
+    if tr.country != "CN" and "mirror.fishros.com" in url_prefix:
         PrintUtils.print_success(
             tr.tr(
                 "检测到当前不在CN,切换服务地址为:https://raw.githubusercontent.com/fishros/install/master/"
@@ -216,6 +255,12 @@ def main():
         print("Solutions: https://fishros.org.cn/forum/topic/24 ")
         return False
     PrintUtils.print_success(tr.tr("基础检查通过..."))
+    # 把系统和架构打出来: 用户发截图求助时一眼能看到是什么系统(dpkg 查到的架构原来会被进度行盖掉)
+    try:
+        PrintUtils.print_info(tr.tr("当前系统:") + " {} {} ({}) {}".format(
+            osversion.get_name(), osversion.get_version(), osversion.get_codename(), osarch))
+    except Exception:
+        pass
 
     book = tr.tr("""
                         .-~~~~~~~~~-._       _.-~~~~~~~~~-.
@@ -237,22 +282,34 @@ def main():
 如果觉得工具好用,请给个star,如果你想和小鱼一起编写工具,请关注B站/公众号<鱼香ROS>,联系小鱼
 更多工具教程，请访问鱼香ROS官方网站:http://fishros.com
     """)
+    # 菜单最上面先放一行商品链接和公众号提示(不放二维码), 内容来自官网 /api/install/ads
+    AdUtils.show("welcome")
     PrintUtils.print_delay(tip, 0.001)
     PrintUtils.print_delay(book, 0.001)
     # download tools
-    code, result = ChooseWithCategoriesTask(
-        tool_categories,
-        tips=tr.tr("---众多工具，等君来用---"),
-        categories=tools_type_map,
-    ).run()
-    if code == 0:
-        PrintUtils().print_success(
-            tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
-        )
-    else:
+    while True:
+        code, result = ChooseWithCategoriesTask(
+            tool_categories,
+            tips=tr.tr("---众多工具，等君来用---"),
+            categories=tools_type_map,
+        ).run()
+        if code == 0:
+            PrintUtils().print_success(
+                tr.tr("是觉得没有合胃口的菜吗？那快联系的小鱼增加菜单吧~")
+            )
+            break
+        StatUtils.report("menu:{}".format(code))
         if url_prefix:
             download_tools(code, tools, url_prefix)
-        run_tool_file(tools[code]["tool"].replace("/", "."))
+        ChooseTask.last_back = False
+        ret = run_tool_file(tools[code]["tool"].replace("/", "."))
+        # 在工具里选了 [0] 返回上一步退出来的, 回到主菜单重新选
+        if ret == BaseTool.BACK or ChooseTask.last_back:
+            PrintUtils.print_info(tr.tr("已返回主菜单"))
+            continue
+        if ret == False:
+            AdUtils.mark_failed()
+        break
 
     # 检查是否在 GitHub Actions 环境中运行或使用了测试配置文件
     # 如果是，则跳过生成配置文件和后续的打印操作，因为这些操作需要用户输入
@@ -261,24 +318,32 @@ def main():
         and os.environ.get("FISH_INSTALL_CONFIG") is None
     ):
         config_helper.gen_config_file()
-        PrintUtils.print_delay(
-            tr.tr("欢迎加入机器人学习交流QQ群：438144612(入群口令：一键安装)"), 0.05
-        )
-        PrintUtils.print_delay(
-            tr.tr(
-                "鱼香小铺正式开业，最低599可入手一台能建图会导航的移动机器人，淘宝搜店：鱼香ROS 或打开链接查看：https://item.taobao.com/item.htm?id=696573635888"
-            ),
-            0.001,
-        )
-        PrintUtils.print_delay(
-            tr.tr(
-                "如在使用过程中遇到问题，请打开：https://fishros.org.cn/forum 进行反馈"
-            ),
-            0.001,
-        )
+        # 推广内容从官网 /api/install/ads 读取, 见 tools/base.py 的 AdUtils
+        AdUtils.show("finish_shop")
+        AdUtils.show("finish")
+    StatUtils.flush()
+
+
+def ensure_utf8():
+    """
+    终端编码不是 UTF-8(LANG 没设置、GBK 等)时, 打印中文会出错. 原来的做法是装中文语言包后让用户重跑,
+    但语言包没生效时就会一直提示 Finish! Please Try Again!(社区帖 24).
+    改为直接用系统自带的 C.UTF-8 重新启动自己; 重启后仍不是 UTF-8 才走原来的语言包流程
+    """
+    import locale
+    import sys
+
+    if "UTF" in locale.getpreferredencoding().upper() or os.environ.get("FISHROS_UTF8_RESTARTED"):
+        return
+    print("Terminal encoding is not UTF-8, restarting with C.UTF-8 ...")
+    sys.stdout.flush()
+    env = dict(os.environ, LANG="C.UTF-8", LC_ALL="C.UTF-8", PYTHONIOENCODING="utf-8")
+    env.update(PYTHONUTF8="1", FISHROS_UTF8_RESTARTED="1")
+    os.execve(sys.executable, [sys.executable] + sys.argv, env)
 
 
 if __name__ == "__main__":
+    ensure_utf8()
     run_exc = []
 
     try:

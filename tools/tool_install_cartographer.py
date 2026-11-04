@@ -28,8 +28,10 @@ class Tool(BaseTool):
         if ros_version!=None:
             PrintUtils.print_info("检测到您的系统版ROS版本为：{}".format(ros_version))
         else:
-            PrintUtils.print_info("检测系统版本失败，请反馈以下信息到鱼香社区：Fail on check ros version with {}".format(osversion.get_version()))
-            return
+            # 不是 bug: 这里是编译 ROS1 版 Cartographer, 22.04 及以后没有 ROS1. 原来提示「检测失败请反馈」会让人以为脚本坏了
+            PrintUtils.print_warn("一键编译Cartographer只支持ROS1(Ubuntu 16.04/18.04/20.04), 当前系统是Ubuntu {}".format(osversion.get_version()))
+            PrintUtils.print_info("ROS2用户请使用菜单[22]一键安装ROS常用功能包, 里面已包含Cartographer")
+            return False
 
         # check apt
         if not AptUtils.checkapt(): return False
@@ -52,5 +54,5 @@ class Tool(BaseTool):
         CmdTask("sudo chmod -R 777 cartographer_ws").run()
 
     def run(self):
-        self.install_docker()
+        return self.install_docker()
 

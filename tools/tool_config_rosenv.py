@@ -48,5 +48,26 @@ class Tool(BaseTool):
                 FileUtils.append(shell_path,"# >>> fishros initialize >>>\n"+data+"\n# <<< fishros initialize <<<\n") # 添加
             PrintUtils.print_text("")
 
+    def fix_rosidl_non_ascii_path(self):
+        """
+        ROS2 的 rosidl_adapter 用 CMake 的 file(STRINGS) 读回接口列表时没指定 UTF-8, CMake 会把中文等非 ASCII
+        字符当作分隔符丢掉: 工作空间放在 ~/桌面 这类中文路径下, colcon build 编译消息包就报
+        "rosidl_generate_interfaces ... list index: 1 out of range" / "Target dependency ... .idl does not exist".
+        上游 humble/jazzy/rolling 都没修, 这里给已装的 ROS2 补上 ENCODING UTF-8; ROS 升级覆盖后再运行一次本工具即可
+        """
+        import glob
+        old = 'idl_output}" idl_tuples)'
+        for path in glob.glob("/opt/ros/*/share/rosidl_adapter/cmake/rosidl_adapt_interfaces.cmake"):
+            with open(path) as f:
+                if old not in f.read():
+                    continue
+            CmdTask(
+                "sudo sed -i.fishros-bak 's#{}#idl_output}}\" idl_tuples ENCODING UTF-8)#' {}".format(old, path), 10
+            ).run()
+            with open(path) as f:
+                if "idl_tuples ENCODING UTF-8)" in f.read():
+                    PrintUtils.print_success("已修复 {} 在中文路径下编译消息包报错的问题".format(path.split("/")[3]))
+
     def run(self):
         self.config_rosenv()
+        self.fix_rosidl_non_ascii_path()

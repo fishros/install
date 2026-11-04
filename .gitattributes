@@ -1,0 +1,27 @@
+# 统一按 LF 处理换行符。
+#
+# 为什么需要：这个仓库里 core.autocrlf 默认是 false 且此前没有 .gitattributes，
+# git 会原样存盘上的字节。Windows 上某些编辑器保存文件时会顺手改成 CRLF，
+# 于是 `git status` 会把整个仓库都标成已修改——实测一次就是 37 个文件、
+# 5608 行增删，而 `git diff --ignore-all-space` 是空的，一行真实内容都没变。
+# 这会淹没真正的改动，评审也没法看。
+#
+# text=auto 让 git 在计算对象时把换行符归一成 LF，工作区是 CRLF 也不再算差异；
+# eol=lf 保证检出到工作区时也是 LF。
+#
+# 对 install 这个文件尤其重要：它是用户 `source` 执行的 shell 脚本，
+# 跑在 Linux 上，CRLF 会导致 bad interpreter 之类的报错。
+* text=auto eol=lf
+
+# 二进制文件不做任何转换。仓库目前没有二进制文件，
+# 这几行是防止以后加了图片等资源被误转换。
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf
+*.zip binary
+*.gz binary
+*.tar binary
+*.deb binary

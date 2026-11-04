@@ -3,16 +3,47 @@ import os
 from urllib.parse import quote
 
 from .base import BaseTool
-from .base import PrintUtils, CmdTask, FileUtils, ChooseTask
+from .base import PrintUtils, CmdTask, FileUtils, ChooseTask, DownloadUtils, AdUtils
 from .base import osarch
+
+# 可选的客户端. port 是各客户端默认的混合代理端口, 写进 proxy_add 快捷命令
+# (Clash Verge Rev 默认是 7897 不是 7890, 原来一律写 7890, 装它的用户 proxy_add 用不了)
+CLIENTS = {
+    1: {
+        "name": "FlClash",
+        "tip": "FlClash: 有界面, 安装包最小(约40MB); 虚拟机里可能白屏, 建议改用 Clash Verge",
+        "repo": "chen08209/FlClash",
+        "tag": "v0.9.2",
+        "cdn_dir": "FlClash/v0.9.2",
+        "file": "FlClash-0.9.2-linux-{arch}.deb",
+        "port": 7890,
+        "cmds": ["FlClash", "flclash"],
+        "deb": "flclash",
+        # Flutter 应用在虚拟机的 vmware/virtualbox 显卡上默认渲染会白屏, 待确认有效的开关后再填
+        "desktop_env": "",
+    },
+    2: {
+        "name": "Clash Verge Rev",
+        "tip": "Clash Verge Rev(推荐): 有界面(约100MB), 虚拟机/真机都能正常显示",
+        "repo": "clash-verge-rev/clash-verge-rev",
+        "tag": "v2.5.8",
+        "cdn_dir": "clash-verge-rev/Clash%20Verge%20Rev%20v2.5.8",
+        "file": "Clash.Verge_2.5.8_{arch}.deb",
+        "port": 7897,
+        "cmds": ["clash-verge", "clash-verge-rev"],
+        "deb": "clash-verge",
+        # WebKitGTK 的 DMABUF 渲染在 vmware/virtualbox 虚拟机显卡上会白屏, 关掉它改走更稳的渲染路径;
+        # 真机加上只是少用一个 GPU 优化, 无副作用, 所以默认都加(2026-11 在 136 VMware 实测有效)
+        "desktop_env": "WEBKIT_DISABLE_DMABUF_RENDERER=1",
+    },
+}
+
 
 
 class Tool(BaseTool):
-    CLASH_VERGE_BASE = (
-        "https://repo.trojan-cdn.com/clash-verge-rev/Clash%20Verge%20Rev%20v2.4.6"
-    )
-    MIHOMO_PARTY_BASE = "https://repo.trojan-cdn.com/mihomo-party/v1.9.2"
-    RECOMMEND_SUBSCRIBE_URL = "https://fishros.org.cn/forum/topic/668"
+    # 推荐的订阅注册链接在官网后台隐藏页 /admin/install/aff 里配置, 读不到官网时用这个默认值.
+    # (原来指向论坛帖子 topic/668, 该帖 2024-10 已删除; 帖子里的 .au 注册地址国内也已连不上)
+    DEFAULT_SUBSCRIBE_URL = "https://portal.shadowsocks.nz/aff.php?aff=41638"
 
     def __init__(self):
         self.name = "一键安装 Linux 代理科学上网工具"
@@ -41,51 +72,22 @@ class Tool(BaseTool):
         return []
 
     def _choose_install_mode(self):
-        mode_dic = {
-            1: "有界面版: Clash Verge Rev",
-            2: "无界面版(按提供源): mihomo-party",
-        }
-        code, _ = ChooseTask(mode_dic, "请选择代理工具版本:", False).run()
+        mode_dic = {code: client["tip"] for code, client in CLIENTS.items()}
+        code, _ = ChooseTask(mode_dic, "请选择代理工具(不知道选哪个就选2 Clash Verge):", False).run()
         return code
 
-    def _resolve_package(self, mode):
-        if osarch not in ["amd64", "arm64"]:
-            return None, None, None
+    def _download_package(self, client, path):
+        """GitHub 加速站在前, repo.trojan-cdn.com 兜底(一直能下, 但国内只有十几 KB/s)"""
+        file_name = client["file"].format(arch=osarch)
+        sources = DownloadUtils.github_sources(client["repo"], client["tag"], file_name)
+        sources = [s for s in sources if s[0] != "GitHub 直连"]  # 直连基本下不动, 用 trojan-cdn 兜底
+        sources.append(("trojan-cdn 镜像", "https://repo.trojan-cdn.com/{}/{}".format(client["cdn_dir"], file_name)))
+        return DownloadUtils.download_deb(sources, path)
 
-        if mode == 1:
-            filename_map = {
-                "amd64": "Clash.Verge_2.4.6_amd64.deb",
-                "arm64": "Clash.Verge_2.4.6_arm64.deb",
-            }
-            file_name = filename_map[osarch]
-            return (
-                "Clash Verge Rev",
-                "{}/{}".format(self.CLASH_VERGE_BASE, file_name),
-                file_name,
-            )
-
-        if mode == 2:
-            filename_map = {
-                "amd64": "mihomo-party-linux-1.9.2-amd64.deb",
-                "arm64": "mihomo-party-linux-1.9.2-arm64.deb",
-            }
-            file_name = filename_map[osarch]
-            return (
-                "mihomo-party",
-                "{}/{}".format(self.MIHOMO_PARTY_BASE, file_name),
-                file_name,
-            )
-
-        return None, None, None
-
-    def _install_deb_package(self, package_url):
+    def _install_deb_package(self, client):
         temp_file = "/tmp/fishros_proxy_tool.deb"
-        download = self._run_cmd(
-            'wget --no-proxy "{}" -O "{}"'.format(package_url, temp_file),
-            300,
-            "下载代理工具安装包中...",
-        )
-        if self._code(download) != 0:
+        if not self._download_package(client, temp_file):
+            self._run_cmd('rm -f "{}"'.format(temp_file), 10)
             return False
 
         install = self._run_cmd(
@@ -127,10 +129,15 @@ class Tool(BaseTool):
         self._run_cmd('rm -f "{}"'.format(temp_file), 10)
         return True
 
+    def _recommend_url(self):
+        return AdUtils.link("proxy_subscribe", self.DEFAULT_SUBSCRIBE_URL)
+
     def _read_input_subscription(self):
-        PrintUtils.print_warn(
-            "请输入订阅地址(若无请访问 {} 获取)".format(self.RECOMMEND_SUBSCRIBE_URL)
-        )
+        recommend = self._recommend_url()
+        if recommend:
+            PrintUtils.print_warn("请输入订阅地址(若无请访问 {} 获取)".format(recommend))
+        else:
+            PrintUtils.print_warn("请输入订阅地址")
         return input("订阅地址:").strip()
 
     def _auto_import_subscription(self, subscribe_url):
@@ -147,32 +154,34 @@ class Tool(BaseTool):
         PrintUtils.print_info(clash_link)
         return False
 
-    def _setup_proxy_alias(self, user_home):
+    def _setup_proxy_alias(self, user_home, port):
         bashrc = os.path.join(user_home.rstrip("/"), ".bashrc")
         if not os.path.exists(bashrc):
             FileUtils.new(user_home.rstrip("/") + "/", name=".bashrc", data="")
 
         start_flag = "# >>> fishros proxy alias >>>"
         end_flag = "# <<< fishros proxy alias <<<"
+        # 端口是所选客户端的默认端口, 在客户端里改过端口的话改这里的 FISHROS_PROXY_PORT 即可
         block = (
-            "{}\n"
-            "proxy_add(){\n"
-            "  export http_proxy=http://127.0.0.1:7890\n"
-            "  export https_proxy=http://127.0.0.1:7890\n"
-            "  export all_proxy=socks5://127.0.0.1:7890\n"
-            "  echo 'proxy on: 127.0.0.1:7890'\n"
-            "}\n"
-            "proxy_off(){\n"
+            "{start}\n"
+            "FISHROS_PROXY_PORT={port}\n"
+            "proxy_add(){{\n"
+            "  export http_proxy=http://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  export https_proxy=http://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  export all_proxy=socks5://127.0.0.1:$FISHROS_PROXY_PORT\n"
+            "  echo \"proxy on: 127.0.0.1:$FISHROS_PROXY_PORT\"\n"
+            "}}\n"
+            "proxy_off(){{\n"
             "  unset http_proxy https_proxy all_proxy\n"
             "  echo 'proxy off'\n"
-            "}\n"
-            "proxy_status(){\n"
+            "}}\n"
+            "proxy_status(){{\n"
             '  echo "http_proxy=$http_proxy"\n'
             '  echo "https_proxy=$https_proxy"\n'
             '  echo "all_proxy=$all_proxy"\n'
-            "}\n"
-            "{}"
-        ).format(start_flag, end_flag)
+            "}}\n"
+            "{end}"
+        ).format(start=start_flag, end=end_flag, port=port)
 
         with open(bashrc, "r") as f:
             data = f.read()
@@ -189,7 +198,7 @@ class Tool(BaseTool):
         with open(bashrc, "w") as f:
             f.write(data)
 
-        PrintUtils.print_success("已写入终端快捷命令: proxy_add/proxy_off/proxy_status")
+        PrintUtils.print_success("已写入终端快捷命令: proxy_add/proxy_off/proxy_status(端口 {})".format(port))
 
     def _which(self, name):
         result = self._run_cmd("command -v {}".format(name), 10)
@@ -197,26 +206,33 @@ class Tool(BaseTool):
             return str(self._out(result)[0]).strip()
         return None
 
-    def _print_launch_tips(self, mode):
+    def _patch_desktop_env(self, client):
+        """
+        给桌面启动项的 Exec 前加上 env 变量, 解决这些 GUI 在虚拟机显卡上白屏的问题.
+        从应用菜单点图标启动时才会读 .desktop, 所以要改这里(终端直接运行命令的用户需要自己带变量).
+        幂等: 已经加过就不再加
+        """
+        env = client.get("desktop_env")
+        deb = client.get("deb")
+        if not env or not deb:
+            return
+        # .desktop 文件名可能带空格(如 "Clash Verge.desktop"), 用 while read 逐行处理
+        cmd = (
+            "dpkg -L {deb} 2>/dev/null | grep -E '/applications/.*\\.desktop$' | while read -r f; do "
+            "grep -q 'env {env}' \"$f\" || sudo sed -i 's#^Exec=#Exec=env {env} #' \"$f\"; "
+            "done; sudo update-desktop-database >/dev/null 2>&1 || true"
+        ).format(deb=deb, env=env)
+        self._run_cmd(cmd, 20, "优化 {} 在虚拟机里的启动方式(避免界面白屏)...".format(client["name"]))
+
+    def _print_launch_tips(self, client):
         PrintUtils.print_delay("==========使用方法===========")
-        if mode == 1:
-            cmd_path = self._which("clash-verge")
-            if cmd_path is None:
-                cmd_path = self._which("clash-verge-rev")
-            if cmd_path:
-                PrintUtils.print_delay("1.启动有界面客户端: {}".format(cmd_path))
-            else:
-                PrintUtils.print_delay(
-                    "1.启动有界面客户端: 在应用菜单中搜索 Clash Verge"
-                )
+        cmd_path = None
+        for cmd in client["cmds"]:
+            cmd_path = cmd_path or self._which(cmd)
+        if cmd_path:
+            PrintUtils.print_delay("1.启动客户端: 在应用菜单中搜索 {}, 或终端运行 {}".format(client["name"], cmd_path))
         else:
-            cmd_path = self._which("mihomo-party")
-            if cmd_path is None:
-                cmd_path = self._which("clash-party")
-            if cmd_path:
-                PrintUtils.print_delay("1.启动工具: {}".format(cmd_path))
-            else:
-                PrintUtils.print_delay("1.启动工具: 在应用菜单中搜索 mihomo-party")
+            PrintUtils.print_delay("1.启动客户端: 在应用菜单中搜索 {}".format(client["name"]))
 
         PrintUtils.print_delay("2.开启终端代理: proxy_add")
         PrintUtils.print_delay("3.关闭终端代理: proxy_off")
@@ -225,41 +241,43 @@ class Tool(BaseTool):
 
     def install_proxy_tool(self):
         mode = self._choose_install_mode()
-        if mode not in [1, 2]:
+        if mode == 0:
+            return BaseTool.BACK
+        if mode not in CLIENTS:
             PrintUtils.print_warn("已取消安装")
             return False
-
-        package_name, package_url, file_name = self._resolve_package(mode)
-        if package_name is None:
+        if osarch not in ["amd64", "arm64"]:
             PrintUtils.print_error("当前仅支持 amd64/arm64 架构")
             return False
 
+        client = CLIENTS[mode]
         PrintUtils.print_info("当前架构: {}".format(osarch))
-        PrintUtils.print_info("准备安装: {} ({})".format(package_name, file_name))
-        if not self._install_deb_package(package_url):
+        PrintUtils.print_info("准备安装: {} {}".format(client["name"], client["tag"]))
+        if not self._install_deb_package(client):
             PrintUtils.print_error("安装失败，请检查网络、系统软件源或依赖修复状态")
             return False
 
-        PrintUtils.print_success("{} 安装完成".format(package_name))
+        PrintUtils.print_success("{} 安装完成".format(client["name"]))
+        self._patch_desktop_env(client)
 
         subscribe_url = self._read_input_subscription()
         if subscribe_url:
             self._auto_import_subscription(subscribe_url)
-        else:
+        elif self._recommend_url():
             PrintUtils.print_warn(
-                "未输入订阅地址，可稍后在客户端导入，推荐: {}".format(
-                    self.RECOMMEND_SUBSCRIBE_URL
-                )
+                "未输入订阅地址，可稍后在客户端导入，推荐: {}".format(self._recommend_url())
             )
+        else:
+            PrintUtils.print_warn("未输入订阅地址，可稍后在客户端导入")
 
         user_homes = FileUtils.getusershome()
         if len(user_homes) > 0:
-            self._setup_proxy_alias(user_homes[0])
+            self._setup_proxy_alias(user_homes[0], client["port"])
         else:
             PrintUtils.print_warn("未找到用户目录，跳过 proxy_add 快捷命令写入")
 
-        self._print_launch_tips(mode)
+        self._print_launch_tips(client)
         return True
 
     def run(self):
-        self.install_proxy_tool()
+        return self.install_proxy_tool()

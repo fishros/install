@@ -12,6 +12,7 @@
   target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 1, desc: "中科大源" }
     - { choose: 5, desc: "支持的第5个ros版本" }       # 中科大，清华，华为，中山大学源不支持Ubuntu18.04安装ros2-bouncy 其余ros2没测试
@@ -21,6 +22,7 @@
   target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 2, desc: "清华源" }
     - { choose: 5, desc: "支持的第5个ros版本" }
@@ -30,6 +32,7 @@
   target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 3, desc: "华为源" }
     - { choose: 5, desc: "支持的第5个ros版本" }
@@ -39,6 +42,7 @@
   target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 4, desc: "中山大学源" }
     - { choose: 5, desc: "支持的第5个ros版本" }
@@ -48,8 +52,9 @@
   target_os_version: "bionic"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
-    - { choose: 5, desc: "ROS官方源" }
+    - { choose: 6, desc: "ROS官方源" }
     - { choose: 5, desc: "支持的第5个ros版本" }
     - { choose: 2, desc: "基础版(小)" }
 
@@ -59,8 +64,9 @@
   target_os_version: "focal"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
-    - { choose: 5, desc: "ROS官方源" }
+    - { choose: 6, desc: "ROS官方源" }
     - { choose: 1, desc: "foxy(ROS2)" }
     - { choose: 2, desc: "基础版(小)" }
 
@@ -68,16 +74,19 @@
   target_os_version: "focal"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
-    - { choose: 5, desc: "ROS官方源" }
+    - { choose: 6, desc: "ROS官方源" }
     - { choose: 3, desc: "noetic(ROS1)" }
     - { choose: 2, desc: "基础版(小)" }
 # - name: "Install_ROS_focal_foxy"
 #   target_os_version: "focal"
 #   chooses:
 #     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+#     - { choose: 2, desc: "高手模式" }
+    - { choose: 2, desc: "高手模式" }
 #     - { choose: 2, desc: "不更换系统源再继续安装" }
-#     - { choose: 4, desc: "ROS官方源" }
+#     - { choose: 6, desc: "ROS官方源" }
 #     - { choose: 1, desc: "支持的第一个ros版本" }
 #     - { choose: 2, desc: "基础版(小)" }
 
@@ -87,8 +96,9 @@
   target_os_version: "jammy"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
-    - { choose: 5, desc: "ROS官方源" }
+    - { choose: 6, desc: "ROS官方源" }
     - { choose: 1, desc: "支持的第一个ros版本" }
     - { choose: 2, desc: "基础版(小)" }
 
@@ -98,8 +108,9 @@
   target_os_version: "noble"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
-    - { choose: 5, desc: "ROS官方源" }
+    - { choose: 6, desc: "ROS官方源" }
     - { choose: 1, desc: "支持的第一个ros版本" }
     - { choose: 2, desc: "基础版(小)" }
 
@@ -109,7 +120,17 @@
   target_os_version: "resolute"
   chooses:
     - { choose: 1, desc: "一键安装(推荐):ROS(支持ROS/ROS2,树莓派Jetson)" }
+    - { choose: 2, desc: "高手模式" }
     - { choose: 2, desc: "不更换系统源再继续安装" }
     - { choose: 1, desc: "ROS国内镜像源(优先第一个)" }
     - { choose: 1, desc: "支持的第一个ros版本" }
     - { choose: 2, desc: "基础版(小)" }
+
+##################################################################################################################################################################
+# 小白模式(菜单 1 里选 1): 只需确认一次, 系统源/ROS源/版本全部自动
+- name: "Install_ROS_focal_auto"
+  target_os_version: "focal"
+  chooses:
+    - { choose: 1, desc: "一键安装(推荐):ROS" }
+    - { choose: 1, desc: "小白模式" }
+    - { choose: 1, desc: "开始全自动安装" }
